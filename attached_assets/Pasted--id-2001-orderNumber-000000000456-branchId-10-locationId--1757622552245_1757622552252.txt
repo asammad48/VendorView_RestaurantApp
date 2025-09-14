@@ -1,0 +1,114 @@
+[
+  {
+    "id": 2001,
+    "orderNumber": "000000000456",
+    "branchId": 10,
+    "locationId": 55,
+    "userId": 1002,
+    "username": "janedoe",
+    "deviceInfo": "Samsung Galaxy S23",
+    "serviceCharges": 40.00,
+    "deliveryCharges": 120.00,
+    "orderAmount": 950.00,
+    "taxAmount": 100.00,
+    "tipAmount": 30.00,
+    "totalAmount": 1120.00,
+    "orderStatus": "InProgress",
+    "orderType": "Pickup",
+    "createdAt": "2025-09-12T18:45:00Z",
+    "subTotal": 900.00,
+    "discountAmount": 50.00,
+    "completionTimeMinutes": 30,
+    "branchName": "Airport Branch",
+    "orderDeliveryDetails": {
+      "id": 2101,
+      "fullName": "Jane Doe",
+      "email": "jane.doe@example.com",
+      "phoneNumber": "03007654321",
+      "deliveryAddress": "456 Airport Road",
+      "streetAddress": "Block B",
+      "apartment": "Suite 5C",
+      "deliveryInstruction": "Ring the bell",
+      "prefferedDeliveryTime": "2025-09-12T20:00:00Z",
+      "longitude": 74.4000,
+      "latitude": 31.6000
+    },
+    "orderPickupDetails": {
+      "id": 2201,
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "phoneNumber": "03001234567",
+      "pickupInstruction": "Wait at counter",
+      "prefferedPickupTime": "2025-09-12T21:00:00Z"
+    },
+    "allergens": ["Dairy"],
+    "orderItems": [
+      {
+        "id": 2301,
+        "menuItemId": 301,
+        "variantId": 2,
+        "itemName": "Grilled Sandwich",
+        "unitPrice": 300.00,
+        "quantity": 2,
+        "totalPrice": 600.00,
+        "variantName": "Medium",
+        "personServing": "Self",
+        "orderItemModifiers": [
+          {
+            "id": 2311,
+            "modifierId": 21,
+            "modifierName": "Extra Sauce",
+            "price": 20.00,
+            "quantity": 1
+          }
+        ],
+        "orderItemCustomizations": [
+          {
+            "id": 2321,
+            "customizationName": "Bread",
+            "optionName": "Brown"
+          }
+        ]
+      }
+    ],
+    "orderPackages": [
+      {
+        "id": 2401,
+        "menuPackageId": 401,
+        "packageName": "Lunch Combo",
+        "unitPrice": 1200.00,
+        "quantity": 1,
+        "totalPrice": 1200.00,
+        "expiryDate": "2025-09-30T00:00:00Z",
+        "orderPackageItems": [
+          {
+            "id": 2411,
+            "menuPackageItemId": 501,
+            "menuPackageItemVariantId": 3,
+            "itemName": "Chicken Wrap",
+            "variantName": "Spicy",
+            "quantity": 1
+          }
+        ],
+        "orderPackageSubItems": [
+          {
+            "id": 2421,
+            "menuPackageSubItemId": 601,
+            "subItemName": "Coleslaw",
+            "price": 150.00,
+            "quantity": 1
+          }
+        ]
+      }
+    ],
+    "splitBills": [
+      {
+        "id": 2501,
+        "splitType": "percentage",
+        "price": 560.00,
+        "mobileNumber": "03009876543",
+        "itemName": "Grilled Sandwich"
+      }
+    ]
+  }
+]

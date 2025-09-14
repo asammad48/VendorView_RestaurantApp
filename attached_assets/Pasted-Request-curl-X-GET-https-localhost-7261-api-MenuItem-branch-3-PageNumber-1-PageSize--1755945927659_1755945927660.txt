@@ -1,0 +1,89 @@
+Request:-
+
+curl -X 'GET' \
+  'https://localhost:7261/api/MenuItem/branch/3?PageNumber=1&PageSize=10&SortBy=name&IsAscending=true&SearchTerm=P' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NzA2MTk1LCJleHAiOjE3NTYzMTA5OTUsImlhdCI6MTc1NTcwNjE5NSwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.3mmuAziRYJuSUdkCKlhGu63x_X_lVCkOmShrRozEIMY'
+  
+  
+  Response:-
+  {
+  "items": [
+    {
+      "id": 2,
+      "menuCategoryId": 3,
+      "name": "Cruchy",
+      "description": "Crunchy Pastra",
+      "isActive": true,
+      "preparationTime": 20,
+      "menuItemPicture": "uploads/menu-items/ee723fc9-b603-451b-b754-7804dd4742e1_Orders (1).png",
+      "variants": [],
+      "modifiers": [],
+      "customizations": []
+    },
+    {
+      "id": 5,
+      "menuCategoryId": 5,
+      "name": "New Pizza Entry",
+      "description": "New Pizza Entry",
+      "isActive": true,
+      "preparationTime": 20,
+      "menuItemPicture": "uploads/menu-items/2d072016-a34d-405a-8e5a-c085cfbe586e.png",
+      "variants": [
+        {
+          "name": "Standard",
+          "price": 120
+        },
+        {
+          "name": "Large",
+          "price": 179
+        }
+      ],
+      "modifiers": [],
+      "customizations": []
+    },
+    {
+      "id": 4,
+      "menuCategoryId": 3,
+      "name": "Pasta Cruchy",
+      "description": "Pasta Cruchy",
+      "isActive": true,
+      "preparationTime": 15,
+      "menuItemPicture": "uploads/menu-items/7f7042c8-2978-41e7-ad4c-d9e275473c0c.png",
+      "variants": [
+        {
+          "name": "Standard",
+          "price": 1200
+        }
+      ],
+      "modifiers": [
+        {
+          "name": "Pepsi",
+          "price": 120
+        }
+      ],
+      "customizations": [
+        {
+          "id": 2,
+          "name": "New",
+          "options": [
+            {
+              "id": 2,
+              "name": "New Options 1"
+            },
+            {
+              "id": 3,
+              "name": "New Options 2"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "pageNumber": 1,
+  "pageSize": 10,
+  "totalCount": 3,
+  "totalPages": 1,
+  "hasPrevious": false,
+  "hasNext": false
+}

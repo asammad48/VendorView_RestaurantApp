@@ -1,0 +1,84 @@
+Now for Creating a category in branch management section please use the eblow API
+Request:-
+curl -X 'POST' \
+  'https://f040v9mc-7261.inc1.devtunnels.ms/api/MenuCategory' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NzA2MTk1LCJleHAiOjE3NTYzMTA5OTUsImlhdCI6MTc1NTcwNjE5NSwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.3mmuAziRYJuSUdkCKlhGu63x_X_lVCkOmShrRozEIMY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "branchId": 3,
+  "name": "Pizza"
+}'
+Response:- 
+{
+  "id": 1,
+  "branchId": 3,
+  "name": "Pizza",
+  "isActive": true
+}
+
+For Displaying Categroy in the please use Generic Pagination model used in User management and use the below API
+
+Request:-
+curl -X 'GET' \
+  'https://f040v9mc-7261.inc1.devtunnels.ms/api/MenuCategory/branch/3?PageNumber=1&PageSize=10&SortBy=name&IsAscending=true&SearchTerm=Pizza' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NzA2MTk1LCJleHAiOjE3NTYzMTA5OTUsImlhdCI6MTc1NTcwNjE5NSwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.3mmuAziRYJuSUdkCKlhGu63x_X_lVCkOmShrRozEIMY'
+  
+  Response:- 
+  {
+  "items": [
+    {
+      "id": 1,
+      "branchId": 3,
+      "name": "Pizza",
+      "isActive": true
+    }
+  ],
+  "pageNumber": 1,
+  "pageSize": 10,
+  "totalCount": 1,
+  "totalPages": 1,
+  "hasPrevious": false,
+  "hasNext": false
+}
+
+Now for displaying data in edit modal of category please use the following API
+Request:-
+curl -X 'GET' \
+  'https://f040v9mc-7261.inc1.devtunnels.ms/api/MenuCategory/1' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NzA2MTk1LCJleHAiOjE3NTYzMTA5OTUsImlhdCI6MTc1NTcwNjE5NSwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.3mmuAziRYJuSUdkCKlhGu63x_X_lVCkOmShrRozEIMY'
+  Response:-
+  {
+  "id": 1,
+  "branchId": 3,
+  "name": "Pizza",
+  "isActive": true
+}
+
+Now to edit category please use the below API
+Request:-
+curl -X 'PUT' \
+  'https://f040v9mc-7261.inc1.devtunnels.ms/api/MenuCategory/1' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NzExNzc1LCJleHAiOjE3NTYzMTY1NzUsImlhdCI6MTc1NTcxMTc3NSwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.28SwkHdcl4UUWDQMyHkasY6Z6mzxc3eGIErG1nR-I44' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Pizza Cateogry"
+}'
+Response:- 
+204
+
+Now to Delete category please use the below API
+Request:-
+curl -X 'DELETE' \
+  'https://f040v9mc-7261.inc1.devtunnels.ms/api/MenuCategory/1' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NzExNzc1LCJleHAiOjE3NTYzMTY1NzUsImlhdCI6MTc1NTcxMTc3NSwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.28SwkHdcl4UUWDQMyHkasY6Z6mzxc3eGIErG1nR-I44'
+  
+  Response:-
+  204
+  
+  Please use Generic API repository to call all the endpoint and you need to work in category section
+  

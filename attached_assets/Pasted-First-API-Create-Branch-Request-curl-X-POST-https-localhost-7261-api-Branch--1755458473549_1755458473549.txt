@@ -1,0 +1,125 @@
+First API Create Branch:- 
+Request:-
+curl -X 'POST' \
+  'https://localhost:7261/api/Branch' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NDUxMjc0LCJleHAiOjE3NTYwNTYwNzQsImlhdCI6MTc1NTQ1MTI3NCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.Hj08CPReEh6pnbAuzG8zMiUaBEMB9nIY1W5omO5RY6w' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'FacebookLink=string' \
+  -F 'RestaurantLogo=@Orders (1).png;type=image/png' \
+  -F 'RestaurantBanner=@Orders (1).png;type=image/png' \
+  -F 'GoogleMapsLink=string' \
+  -F 'Name=string' \
+  -F 'WhatsappLink=string' \
+  -F 'InstagramLink=string' \
+  -F 'Address=string' \
+  -F 'SubscriptionId=1' \
+  -F 'EntityId=1'
+  
+ Response:- 
+ {
+  "id": 1,
+  "entityId": 1,
+  "userId": 1,
+  "name": "string",
+  "address": "string",
+  "subscriptionId": 1,
+  "trialEndDate": "2025-08-24T17:56:47.1683473Z",
+  "gracePeriodEndDate": "2025-08-31T17:56:47.3192252Z",
+  "billingStartDate": "2025-08-17T17:56:47.3015283Z",
+  "restaurantLogo": "uploads/logo/1cc78b7f-0d71-48b7-8a5a-0407fc227e10_Orders (1).png",
+  "restaurantBanner": "uploads/banner/bc93313e-1e56-4dff-9a84-5a0f82740a51_Orders (1).png",
+  "instagramLink": "string",
+  "whatsappLink": "string",
+  "facebookLink": "string",
+  "googleMapsLink": "string"
+}
+
+Second API:- 
+This api is to list all the branches against the entityId
+Request:-
+curl -X 'GET' \
+  'https://localhost:7261/api/Branch/entity/3' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NDUxMjc0LCJleHAiOjE3NTYwNTYwNzQsImlhdCI6MTc1NTQ1MTI3NCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.Hj08CPReEh6pnbAuzG8zMiUaBEMB9nIY1W5omO5RY6w'
+ Response:-
+ [
+  {
+    "id": 2,
+    "entityId": 3,
+    "userId": 1,
+    "name": "string",
+    "address": "string",
+    "subscriptionId": 1,
+    "trialEndDate": "2025-08-24T19:09:35.280058",
+    "gracePeriodEndDate": "2025-08-31T19:09:35.280061",
+    "billingStartDate": "2025-08-17T19:09:35.28006",
+    "restaurantLogo": "uploads/logo/6909db0b-4574-42d6-bdbc-a5d6bae6b9ae_Orders (1).png",
+    "restaurantBanner": "uploads/banner/6a3099d7-2480-4c26-a02e-91784a06ad41_Orders (1).png",
+    "instagramLink": "string",
+    "whatsappLink": "string",
+    "facebookLink": "string",
+    "googleMapsLink": "string"
+  }
+]
+
+Third API:-
+
+This api will be used for displaying data in Edit Modal of branch and for the naviagtion to menu screen
+
+Request:-
+curl -X 'GET' \
+  'https://localhost:7261/api/Branch/2' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NDUxMjc0LCJleHAiOjE3NTYwNTYwNzQsImlhdCI6MTc1NTQ1MTI3NCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.Hj08CPReEh6pnbAuzG8zMiUaBEMB9nIY1W5omO5RY6w'
+Response:-
+
+{
+  "id": 2,
+  "entityId": 3,
+  "userId": 1,
+  "name": "string",
+  "address": "string",
+  "subscriptionId": 1,
+  "trialEndDate": "2025-08-24T19:09:35.280058",
+  "gracePeriodEndDate": "2025-08-31T19:09:35.280061",
+  "billingStartDate": "2025-08-17T19:09:35.28006",
+  "restaurantLogo": "uploads/logo/6909db0b-4574-42d6-bdbc-a5d6bae6b9ae_Orders (1).png",
+  "restaurantBanner": "uploads/banner/6a3099d7-2480-4c26-a02e-91784a06ad41_Orders (1).png",
+  "instagramLink": "string",
+  "whatsappLink": "string",
+  "facebookLink": "string",
+  "googleMapsLink": "string"
+}
+
+Fourht API:-
+Its is used to updated branch data in branch edit modal
+
+Request:-
+curl -X 'PUT' \
+  'https://localhost:7261/api/Branch/2' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NDUxMjc0LCJleHAiOjE3NTYwNTYwNzQsImlhdCI6MTc1NTQ1MTI3NCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.Hj08CPReEh6pnbAuzG8zMiUaBEMB9nIY1W5omO5RY6w' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'Name=Restaurant New' \
+  -F 'Address=string' \
+  -F 'RestaurantLogo=@Orders (1).png;type=image/png' \
+  -F 'RestaurantBanner=@Group 1000003449.png;type=image/png' \
+  -F 'InstagramLink=string' \
+  -F 'WhatsappLink=string' \
+  -F 'FacebookLink=string' \
+  -F 'GoogleMapsLink=string'  
+
+ Response:- 
+ 204 
+ 
+Fifth API
+Used to delete brnach 
+curl -X 'DELETE' \
+  'https://localhost:7261/api/Branch/1' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU1NDUxMjc0LCJleHAiOjE3NTYwNTYwNzQsImlhdCI6MTc1NTQ1MTI3NCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.Hj08CPReEh6pnbAuzG8zMiUaBEMB9nIY1W5omO5RY6w'
+  
+Response:- 204
+
+Now , After Create , Edit and Delete API you will need to fetch the data again https://localhost:7261/api/Branch using this API to display in the Card, Also when ever branch page is open this API will be called
