@@ -399,6 +399,7 @@ export const API_ENDPOINTS = {
   CREATE_USER: '/api/User/user',
   UPDATE_USER: '/api/User/user',
   DELETE_USER: '/api/User/user/{id}',
+  CHEF_BRANCH: '/api/User/chef/branch',
   
   // Generic endpoints
   ROLES: '/api/Generic/roles',
@@ -505,6 +506,7 @@ export const defaultApiConfig: ApiConfig = {
     createUser: API_ENDPOINTS.CREATE_USER,
     updateUser: API_ENDPOINTS.UPDATE_USER,
     deleteUser: API_ENDPOINTS.DELETE_USER,
+    getChefBranch: API_ENDPOINTS.CHEF_BRANCH,
     
     // Generic endpoints
     getRoles: API_ENDPOINTS.ROLES,
@@ -614,6 +616,27 @@ export const defaultApiConfig: ApiConfig = {
     getAnalytics: API_ENDPOINTS.ANALYTICS,
     getFeedbacks: API_ENDPOINTS.FEEDBACKS,
     getTickets: API_ENDPOINTS.TICKETS,
+  },
+};
+
+// Chef API Helper Functions
+export const chefApi = {
+  // Get branch ID for chef user
+  getChefBranch: async (): Promise<{ branchId: number }> => {
+    const response = await apiRepository.call<{ branchId: number }>(
+      'getChefBranch',
+      'GET'
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    if (!response.data) {
+      throw new Error('Failed to fetch chef branch');
+    }
+
+    return response.data;
   },
 };
 
