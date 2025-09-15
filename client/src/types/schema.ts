@@ -535,3 +535,27 @@ export const insertServiceSchema = z.object({
 });
 
 export type InsertService = z.infer<typeof insertServiceSchema>;
+
+// Reservation types
+export interface Reservation {
+  id: number;
+  reservationName: string;
+  reservationDate: string;
+  status: "confirmed" | "cancelled" | "completed" | "pending";
+  tableName: string;
+  numberOfGuests: number;
+  branchId: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const insertReservationSchema = z.object({
+  reservationName: z.string().min(1, "Reservation name is required"),
+  reservationDate: z.string().min(1, "Reservation date is required"),
+  status: z.enum(["confirmed", "cancelled", "completed", "pending"]).default("pending"),
+  tableName: z.string().min(1, "Table name is required"),
+  numberOfGuests: z.number().min(1, "Number of guests must be at least 1"),
+  branchId: z.number().min(1, "Branch ID is required"),
+});
+
+export type InsertReservation = z.infer<typeof insertReservationSchema>;
