@@ -805,6 +805,11 @@ export const genericApi = {
   getTimezones: async () => {
     return await apiRepository.call('getTimezones', 'GET', undefined, {}, false);
   },
+
+  // Get reservation status types
+  getReservationStatusTypes: async () => {
+    return await apiRepository.call('getReservationStatusTypes', 'GET', undefined, {}, false);
+  },
 };
 
 // Location/Table API Helper Functions
