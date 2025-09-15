@@ -1,5 +1,6 @@
 import { Deal, Service, BranchService, DetailedOrder } from '../types/schema';
 import { PaginationResponse } from '../types/pagination';
+import { signalRService } from '../services/signalRService';
 
 // Generic API Repository with error handling and token management
 export interface ApiResponse<T> {
@@ -313,6 +314,40 @@ export class ApiRepository {
   // Check if user is authenticated
   isAuthenticated(): boolean {
     return !!this.accessToken;
+  }
+
+  // SignalR Methods
+  // Connect to SignalR using current access token
+  async connectSignalR(): Promise<void> {
+    if (!this.accessToken) {
+      throw new Error('No access token available for SignalR connection');
+    }
+    
+    try {
+      await signalRService.connect(this.accessToken);
+    } catch (error) {
+      console.error('Failed to connect to SignalR:', error);
+      throw error;
+    }
+  }
+
+  // Disconnect from SignalR
+  async disconnectSignalR(): Promise<void> {
+    try {
+      await signalRService.disconnect();
+    } catch (error) {
+      console.error('Error disconnecting from SignalR:', error);
+    }
+  }
+
+  // Check SignalR connection status
+  isSignalRConnected(): boolean {
+    return signalRService.isConnected();
+  }
+
+  // Get SignalR connection state
+  getSignalRConnectionState() {
+    return signalRService.getConnectionState();
   }
 
   // GET request
