@@ -754,12 +754,13 @@ export default function Orders() {
         }} 
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-6" data-testid="main-tabs">
+        <TabsList className="grid w-full grid-cols-7" data-testid="main-tabs">
           <TabsTrigger value="orders" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Orders
           </TabsTrigger>
           <TabsTrigger value="menu" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Menu</TabsTrigger>
           <TabsTrigger value="tables" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Tables</TabsTrigger>
+          <TabsTrigger value="reservations" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Reservations</TabsTrigger>
           <TabsTrigger value="deals" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Deals</TabsTrigger>
           <TabsTrigger value="services" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Services</TabsTrigger>
           <TabsTrigger value="discounts" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Discounts</TabsTrigger>
