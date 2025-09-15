@@ -536,26 +536,41 @@ export const insertServiceSchema = z.object({
 
 export type InsertService = z.infer<typeof insertServiceSchema>;
 
-// Reservation types
+// Reservation types (matching API response structure)
 export interface Reservation {
   id: number;
   reservationName: string;
   reservationDate: string;
-  status: "confirmed" | "cancelled" | "completed" | "pending";
+  reservationTime: string;
+  actionTaken: number | null;
   tableName: string;
   numberOfGuests: number;
-  branchId: number;
-  createdAt?: string;
-  updatedAt?: string;
+}
+
+// Reservation status type (from Generic API)
+export interface ReservationStatusType {
+  id: number;
+  name: string;
+}
+
+// Pagination response structure
+export interface PaginatedResponse<T> {
+  items: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
 }
 
 export const insertReservationSchema = z.object({
   reservationName: z.string().min(1, "Reservation name is required"),
   reservationDate: z.string().min(1, "Reservation date is required"),
-  status: z.enum(["confirmed", "cancelled", "completed", "pending"]).default("pending"),
+  reservationTime: z.string().min(1, "Reservation time is required"),
   tableName: z.string().min(1, "Table name is required"),
   numberOfGuests: z.number().min(1, "Number of guests must be at least 1"),
-  branchId: z.number().min(1, "Branch ID is required"),
+  actionTaken: z.number().optional(),
 });
 
 export type InsertReservation = z.infer<typeof insertReservationSchema>;

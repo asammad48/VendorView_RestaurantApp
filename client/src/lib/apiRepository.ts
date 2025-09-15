@@ -473,6 +473,12 @@ export const API_ENDPOINTS = {
   SERVICES_BY_TYPE: '/api/Generic/services/{entityType}',
   BRANCH_SERVICES: '/api/BranchServices/{branchId}/services',
   
+  // Reservation endpoints
+  RESERVATIONS_BY_BRANCH: '/api/Reservations/branch/{branchId}',
+  RESERVATION_BY_ID: '/api/Reservations/{id}',
+  RESERVATIONS: '/api/Reservations',
+  RESERVATION_STATUS_TYPES: '/api/Generic/reservationstatustype',
+  
   // Other endpoints
   ANALYTICS: '/api/analytics',
   FEEDBACKS: '/api/feedbacks',
@@ -593,6 +599,14 @@ export const defaultApiConfig: ApiConfig = {
     getDiscountsSimpleByBranch: API_ENDPOINTS.DISCOUNTS_SIMPLE_BY_BRANCH,
     bulkDiscountDeals: API_ENDPOINTS.BULK_DISCOUNT_DEALS,
     bulkDiscountMenu: API_ENDPOINTS.BULK_DISCOUNT_MENU,
+    
+    // Reservation endpoints
+    getReservationsByBranch: API_ENDPOINTS.RESERVATIONS_BY_BRANCH,
+    getReservationById: API_ENDPOINTS.RESERVATION_BY_ID,
+    createReservation: API_ENDPOINTS.RESERVATIONS,
+    updateReservation: API_ENDPOINTS.RESERVATION_BY_ID,
+    deleteReservation: API_ENDPOINTS.RESERVATION_BY_ID,
+    getReservationStatusTypes: API_ENDPOINTS.RESERVATION_STATUS_TYPES,
     
     // Other endpoints
     getAnalytics: API_ENDPOINTS.ANALYTICS,
