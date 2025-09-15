@@ -15,12 +15,12 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 5001
-externalPort = 3001
-
-[[ports]]
 localPort = 33821
 externalPort = 3000
+
+[[ports]]
+localPort = 42015
+externalPort = 3002
 
 [env]
 PORT = "5000"
@@ -46,7 +46,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npx vite --host 0.0.0.0 --port 5000"
+args = "npm run dev"
 waitForPort = 5000
 
 [agent]
