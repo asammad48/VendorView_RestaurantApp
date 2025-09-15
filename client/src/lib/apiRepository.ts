@@ -1284,6 +1284,112 @@ export const servicesApi = {
   },
 };
 
+// Reservation API Helper Functions
+export const reservationApi = {
+  // Get reservations by branch with pagination
+  getReservationsByBranch: async (
+    branchId: number,
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    sortBy: string = 'name',
+    isAscending: boolean = true
+  ) => {
+    const params = new URLSearchParams({
+      PageNumber: pageNumber.toString(),
+      PageSize: pageSize.toString(),
+      SortBy: sortBy,
+      IsAscending: isAscending.toString()
+    });
+    
+    // Update endpoint with query parameters
+    const originalEndpoint = apiRepository.getConfig().endpoints['getReservationsByBranch'];
+    const endpointWithPath = originalEndpoint.replace('{branchId}', branchId.toString());
+    apiRepository.updateEndpoint('getReservationsByBranch', `${endpointWithPath}?${params.toString()}`);
+    
+    const response = await apiRepository.call(
+      'getReservationsByBranch',
+      'GET',
+      undefined,
+      {},
+      true
+    );
+    
+    // Restore original endpoint
+    apiRepository.updateEndpoint('getReservationsByBranch', originalEndpoint);
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    
+    return response.data;
+  },
+
+  // Get reservation status types
+  getReservationStatusTypes: async () => {
+    const response = await apiRepository.call(
+      'getReservationStatusTypes',
+      'GET'
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data || [];
+  },
+
+  // Create reservation
+  createReservation: async (reservationData: any) => {
+    const response = await apiRepository.call(
+      'createReservation',
+      'POST',
+      reservationData
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  },
+
+  // Update reservation
+  updateReservation: async (reservationId: number, reservationData: any) => {
+    const response = await apiRepository.call(
+      'updateReservation',
+      'PUT',
+      reservationData,
+      {},
+      true,
+      { id: reservationId }
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  },
+
+  // Delete reservation
+  deleteReservation: async (reservationId: number) => {
+    const response = await apiRepository.call(
+      'deleteReservation',
+      'DELETE',
+      undefined,
+      {},
+      true,
+      { id: reservationId }
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  },
+};
+
 // Helper to get full URL for images
 export const getImageUrl = (relativePath: string): string => {
   if (!relativePath) return '';
