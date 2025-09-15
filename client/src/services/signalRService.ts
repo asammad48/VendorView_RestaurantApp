@@ -1,4 +1,4 @@
-import { HubConnection, HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
+import { HubConnection, HubConnectionBuilder, HubConnectionState, HttpTransportType } from '@microsoft/signalr';
 import { toast } from '@/hooks/use-toast';
 
 interface OrderCreatedPayload {
@@ -34,8 +34,11 @@ export class SignalRService {
       this.getAccessToken = getAccessToken;
       
       // Build connection with accessTokenFactory for automatic token refresh
+      // Skip negotiation and use direct WebSocket connection to avoid negotiation errors
       this.connection = new HubConnectionBuilder()
         .withUrl(this.baseUrl, {
+          skipNegotiation: true,
+          transport: HttpTransportType.WebSockets,
           accessTokenFactory: () => {
             const token = this.getAccessToken?.();
             console.log('SignalR requesting access token:', token ? 'Token available' : 'No token');
