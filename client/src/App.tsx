@@ -15,6 +15,7 @@ import Users from "@/pages/users";
 import Feedbacks from "@/pages/feedbacks";
 import Reporting from "@/pages/reporting";
 import Appearance from "@/pages/appearance";
+import Chef from "@/pages/chef";
 import Layout from "@/components/layout";
 import { useAuth, AuthProvider } from "@/lib/auth";
 import React from "react";
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/feedbacks" component={() => <ProtectedRoute component={Feedbacks} />} />
       <Route path="/reporting" component={() => <ProtectedRoute component={Reporting} />} />
       <Route path="/appearance" component={() => <ProtectedRoute component={Appearance} />} />
+      <Route path="/chef" component={() => <ProtectedRoute component={Chef} />} />
       {/* Fallback to dashboard for unknown routes */}
       <Route component={() => <ProtectedRoute component={Dashboard} />} />
     </Switch>
