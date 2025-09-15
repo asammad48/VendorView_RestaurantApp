@@ -1327,8 +1327,8 @@ export const reservationApi = {
   },
 
   // Get reservation detail by ID
-  getReservationDetail: async (reservationId: number) => {
-    const response = await apiRepository.call(
+  getReservationDetail: async (reservationId: number): Promise<import('../types/schema').ReservationDetail> => {
+    const response = await apiRepository.call<import('../types/schema').ReservationDetail>(
       'getReservationById',
       'GET',
       undefined,
@@ -1341,12 +1341,16 @@ export const reservationApi = {
       throw new Error(response.error);
     }
 
+    if (!response.data) {
+      throw new Error('Failed to fetch reservation');
+    }
+
     return response.data;
   },
 
   // Update reservation action (status and remarks)
-  updateReservationAction: async (reservationId: number, actionData: { actionTaken: number; remarks: string }) => {
-    const response = await apiRepository.call(
+  updateReservationAction: async (reservationId: number, actionData: { actionTaken: import('../types/schema').ReservationStatus; remarks?: string | null }): Promise<void> => {
+    const response = await apiRepository.call<void>(
       'updateReservationAction',
       'PUT',
       actionData,
@@ -1355,11 +1359,9 @@ export const reservationApi = {
       { id: reservationId }
     );
 
-    if (response.error) {
+    if (response.error && response.status >= 400) {
       throw new Error(response.error);
     }
-
-    return response.data;
   },
 
   // Get reservation status types

@@ -1,6 +1,26 @@
 // Local type definitions to replace @shared/schema
 import { z } from "zod";
 
+// Reservation types
+export type ReservationStatus = 0 | 1 | 2;
+export interface ReservationDetail {
+  id: number;
+  locationId: number;
+  branchId: number;
+  reservationName: string;
+  reservationDate: string; // ISO
+  reservationTime?: string | null;
+  emailAddress: string;
+  specialRequest?: string | null;
+  isActive: boolean;
+  createdDate: string;
+  modifiedDate?: string | null;
+  actionDate?: string | null;
+  actionTaken: ReservationStatus;
+  remarks?: string | null;
+  userId: number;
+}
+
 // User types
 export const insertUserSchema = z.object({
   username: z.string().min(1, "Username is required"),

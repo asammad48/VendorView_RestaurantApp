@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import QRCodeModal from "@/components/qr-code-modal";
 import AddTableModal from "@/components/add-table-modal";
 import EditTableModal from "@/components/edit-table-modal";
-import { AddReservationModal } from "@/components/add-reservation-modal";
+import { ViewReservationModal } from "@/components/view-reservation-modal";
 import AddMenuModal from "@/components/add-menu-modal";
 import AddCategoryModal from "@/components/add-category-modal";
 import AddSubMenuModal from "@/components/add-submenu-modal";
@@ -181,9 +181,8 @@ export default function Orders() {
   const [reservationsCurrentPage, setReservationsCurrentPage] = useState(1);
   const [reservationsItemsPerPage, setReservationsItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
   const [reservationsSearchTerm, setReservationsSearchTerm] = useState("");
-  const [showAddReservationModal, setShowAddReservationModal] = useState(false);
-  const [showEditReservationModal, setShowEditReservationModal] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  const [showViewReservationModal, setShowViewReservationModal] = useState(false);
+  const [selectedReservationId, setSelectedReservationId] = useState<number | null>(null);
   
   const [activeMainTab, setActiveMainTab] = useState("orders");
 
@@ -534,7 +533,7 @@ export default function Orders() {
     queryKey: ['reservations', 'branch', branchId, reservationsCurrentPage, reservationsItemsPerPage, reservationsSearchTerm],
     queryFn: async () => {
       return await reservationApi.getReservationsByBranch(
-        parseInt(branchId),
+        branchId,
         reservationsCurrentPage,
         reservationsItemsPerPage,
         'name',
@@ -1501,18 +1500,7 @@ export default function Orders() {
         <TabsContent value="reservations" className="space-y-6">
           {/* Reservations Tab Content */}
           <div className="space-y-4">
-            <div className="flex items-center justify-end">
-              <div className="flex items-center space-x-2">
-                <Button
-                  onClick={() => setShowAddReservationModal(true)}
-                  className="bg-green-500 hover:bg-green-600 text-white"
-                  data-testid="button-add-reservation"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Reservation
-                </Button>
-              </div>
-            </div>
+            {/* Reservations are view-only - no add/edit functionality */}
 
             {/* Reservations Table */}
             <div className="bg-white rounded-lg border">
@@ -1551,7 +1539,7 @@ export default function Orders() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    reservations.map((reservation) => (
+                    reservations.map((reservation: Reservation) => (
                     <ContextMenu key={reservation.id}>
                       <ContextMenuTrigger asChild>
                         <TableRow className="hover:bg-gray-50 cursor-pointer" data-testid={`reservation-row-${reservation.id}`}>
@@ -1593,13 +1581,13 @@ export default function Orders() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                   onClick={() => {
-                                    setSelectedReservation(reservation);
-                                    setShowEditReservationModal(true);
+                                    setSelectedReservationId(reservation.id);
+                                    setShowViewReservationModal(true);
                                   }}
-                                  data-testid={`button-edit-reservation-${reservation.id}`}
+                                  data-testid={`button-view-reservation-${reservation.id}`}
                                 >
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Edit
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  View
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => {
@@ -1620,11 +1608,11 @@ export default function Orders() {
                       <ContextMenuContent>
                         <ContextMenuItem
                           onClick={() => {
-                            setSelectedReservation(reservation);
-                            setShowEditReservationModal(true);
+                            setSelectedReservationId(reservation.id);
+                            setShowViewReservationModal(true);
                           }}
                         >
-                          Edit Reservation
+                          View Reservation
                         </ContextMenuItem>
                         <ContextMenuItem
                           onClick={() => {
@@ -2102,20 +2090,14 @@ export default function Orders() {
         table={selectedTable}
       />
 
-      {/* Add Reservation Modal */}
-      <AddReservationModal
-        isOpen={showAddReservationModal}
-        onClose={() => setShowAddReservationModal(false)}
-        branchId={branchId}
-      />
-
-      {/* Edit Reservation Modal */}
-      <AddReservationModal
-        isOpen={showEditReservationModal}
-        onClose={() => setShowEditReservationModal(false)}
-        branchId={branchId}
-        reservation={selectedReservation}
-        isEditMode={true}
+      {/* View Reservation Modal */}
+      <ViewReservationModal
+        isOpen={showViewReservationModal}
+        onClose={() => {
+          setShowViewReservationModal(false);
+          setSelectedReservationId(null);
+        }}
+        reservationId={selectedReservationId || 0}
       />
 
       {/* Add Menu Modal */}
@@ -2271,6 +2253,7 @@ export default function Orders() {
             deleteItem.type === 'submenu' ? 'Delete SubMenu' :
             deleteItem.type === 'deal' ? 'Delete Deal' :
             deleteItem.type === 'discount' ? 'Delete Discount' :
+            deleteItem.type === 'reservation' ? 'Delete Reservation' :
             'Delete Table'
           }
           description={`Are you sure you want to delete this ${deleteItem.type}?`}
@@ -2334,28 +2317,6 @@ export default function Orders() {
                 console.error('Failed to delete submenu:', error);
                 throw error; // Re-throw so SimpleDeleteModal can handle the error
               }
-            } else if (deleteItem.type === 'deal') {
-              // Delete deal using real API endpoint
-              try {
-                const response = await apiRepository.call(
-                  'deleteDeal',
-                  'DELETE',
-                  undefined,
-                  undefined,
-                  true,
-                  { id: deleteItem.id }
-                );
-                
-                if (response.error) {
-                  throw new Error(response.error);
-                }
-                
-                // Refresh the submenus list after successful deletion
-                queryClient.invalidateQueries({ queryKey: [`submenus-branch-${branchId}`] });
-              } catch (error: any) {
-                console.error('Failed to delete submenu:', error);
-                throw error; // Re-throw so SimpleDeleteModal can handle the error
-              }
             } else if (deleteItem.type === 'menu') {
               // Delete menu item using real API endpoint
               try {
@@ -2388,6 +2349,18 @@ export default function Orders() {
                 queryClient.invalidateQueries({ queryKey: [`deals-branch-${branchId}`] });
               } catch (error: any) {
                 console.error('Failed to delete deal:', error);
+                throw error; // Re-throw so SimpleDeleteModal can handle the error
+              }
+            } else if (deleteItem.type === 'reservation') {
+              // Delete reservation using real API endpoint
+              try {
+                await reservationApi.deleteReservation(Number(deleteItem.id));
+                
+                // Refresh the reservations list after successful deletion
+                queryClient.invalidateQueries({ queryKey: ['reservations'] });
+                refetchReservations();
+              } catch (error: any) {
+                console.error('Failed to delete reservation:', error);
                 throw error; // Re-throw so SimpleDeleteModal can handle the error
               }
             } else if (deleteItem.type === 'discount') {
