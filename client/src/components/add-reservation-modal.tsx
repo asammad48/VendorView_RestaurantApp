@@ -27,13 +27,14 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { locationApi } from "@/lib/api-clients/location-api";
+import { locationApi } from "@/lib/apiRepository";
 
 // Reservation form schema
 const reservationFormSchema = z.object({
   reservationName: z.string().min(2, "Reservation name must be at least 2 characters"),
   reservationDate: z.string().min(1, "Reservation date is required"),
-  tableName: z.string().min(1, "Table selection is required"),
+  tableId: z.string().min(1, "Table selection is required"),
+  tableName: z.string().min(1, "Table name is required"), // Display name for reference
   numberOfGuests: z.number().min(1, "Number of guests must be at least 1").max(50, "Maximum 50 guests allowed"),
   status: z.enum(["confirmed", "pending", "cancelled", "completed"], {
     required_error: "Status is required",
@@ -65,6 +66,7 @@ export function AddReservationModal({
     defaultValues: {
       reservationName: "",
       reservationDate: "",
+      tableId: "",
       tableName: "",
       numberOfGuests: 1,
       status: "pending"
@@ -76,8 +78,8 @@ export function AddReservationModal({
     queryKey: ['tables', branchId],
     queryFn: async () => {
       try {
-        const response = await locationApi.getLocationsByBranch(branchId);
-        return response || [];
+        const response = await locationApi.getLocationsByBranch(Number(branchId));
+        return response.data || [];
       } catch (error) {
         console.error('Error fetching tables:', error);
         return [];
@@ -134,6 +136,7 @@ export function AddReservationModal({
       form.reset({
         reservationName: reservation.reservationName || "",
         reservationDate: reservation.reservationDate || "",
+        tableId: reservation.tableId || "",
         tableName: reservation.tableName || "",
         numberOfGuests: reservation.numberOfGuests || 1,
         status: reservation.status || "pending"
@@ -142,6 +145,7 @@ export function AddReservationModal({
       form.reset({
         reservationName: "",
         reservationDate: "",
+        tableId: "",
         tableName: "",
         numberOfGuests: 1,
         status: "pending"
@@ -223,7 +227,7 @@ export function AddReservationModal({
             {/* Table Selection */}
             <FormField
               control={form.control}
-              name="tableName"
+              name="tableId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-gray-900">
@@ -231,7 +235,14 @@ export function AddReservationModal({
                   </FormLabel>
                   <FormControl>
                     <Select 
-                      onValueChange={field.onChange} 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Also set the tableName for display purposes
+                        const selectedTable = tables.find((table: any) => table.id.toString() === value);
+                        if (selectedTable) {
+                          form.setValue("tableName", `Table ${selectedTable.name}`);
+                        }
+                      }} 
                       value={field.value}
                       data-testid="select-table"
                       disabled={isLoadingTables}
@@ -241,18 +252,18 @@ export function AddReservationModal({
                       </SelectTrigger>
                       <SelectContent>
                         {tables.map((table: any) => (
-                          <SelectItem key={table.id} value={`Table ${table.name}`}>
+                          <SelectItem key={table.id} value={table.id.toString()}>
                             Table {table.name} (Capacity: {table.capacity || 'N/A'})
                           </SelectItem>
                         ))}
                         {/* Fallback options if no tables are loaded */}
                         {!isLoadingTables && tables.length === 0 && (
                           <>
-                            <SelectItem value="Table 1">Table 1</SelectItem>
-                            <SelectItem value="Table 2">Table 2</SelectItem>
-                            <SelectItem value="Table 3">Table 3</SelectItem>
-                            <SelectItem value="Table 4">Table 4</SelectItem>
-                            <SelectItem value="Table 5">Table 5</SelectItem>
+                            <SelectItem value="1">Table 1</SelectItem>
+                            <SelectItem value="2">Table 2</SelectItem>
+                            <SelectItem value="3">Table 3</SelectItem>
+                            <SelectItem value="4">Table 4</SelectItem>
+                            <SelectItem value="5">Table 5</SelectItem>
                           </>
                         )}
                       </SelectContent>
