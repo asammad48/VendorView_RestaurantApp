@@ -175,6 +175,15 @@ export default function Orders() {
   const [showEditDiscountModal, setShowEditDiscountModal] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState<any>(null);
   const [showAddServicesModal, setShowAddServicesModal] = useState(false);
+  
+  // Reservation states
+  const [reservationsCurrentPage, setReservationsCurrentPage] = useState(1);
+  const [reservationsItemsPerPage, setReservationsItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  const [reservationsSearchTerm, setReservationsSearchTerm] = useState("");
+  const [showAddReservationModal, setShowAddReservationModal] = useState(false);
+  const [showEditReservationModal, setShowEditReservationModal] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  
   const [activeMainTab, setActiveMainTab] = useState("orders");
 
   // Query for branch services with real API
@@ -1466,6 +1475,209 @@ export default function Orders() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="reservations" className="space-y-6">
+          {/* Reservations Tab Content */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-end">
+              <div className="flex items-center space-x-2">
+                <Button
+                  onClick={() => setShowAddReservationModal(true)}
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                  data-testid="button-add-reservation"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Reservation
+                </Button>
+              </div>
+            </div>
+
+            {/* Reservations Table */}
+            <div className="bg-white rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
+                      <div className="flex items-center space-x-2">
+                        <span>Reservation Name</span>
+                        <SearchTooltip
+                          placeholder="Search reservations..."
+                          onSearch={setReservationsSearchTerm}
+                          onClear={() => setReservationsSearchTerm('')}
+                          currentValue={reservationsSearchTerm}
+                        />
+                      </div>
+                    </TableHead>
+                    <TableHead>Reservation Date <ChevronDown className="w-4 h-4 inline ml-1" /></TableHead>
+                    <TableHead>Table Name <ChevronDown className="w-4 h-4 inline ml-1" /></TableHead>
+                    <TableHead>Number of Guests <ChevronDown className="w-4 h-4 inline ml-1" /></TableHead>
+                    <TableHead>Status <ChevronDown className="w-4 h-4 inline ml-1" /></TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* Mock reservations data for now */}
+                  {[
+                    {
+                      id: 1,
+                      reservationName: "John Smith",
+                      reservationDate: "2025-09-16 19:00",
+                      tableName: "Table 5",
+                      numberOfGuests: 4,
+                      status: "confirmed"
+                    },
+                    {
+                      id: 2,
+                      reservationName: "Emily Johnson",
+                      reservationDate: "2025-09-17 20:30",
+                      tableName: "Table 12",
+                      numberOfGuests: 2,
+                      status: "pending"
+                    },
+                    {
+                      id: 3,
+                      reservationName: "Michael Brown",
+                      reservationDate: "2025-09-18 18:00",
+                      tableName: "Table 8",
+                      numberOfGuests: 6,
+                      status: "confirmed"
+                    }
+                  ].map((reservation) => (
+                    <ContextMenu key={reservation.id}>
+                      <ContextMenuTrigger asChild>
+                        <TableRow className="hover:bg-gray-50 cursor-pointer" data-testid={`reservation-row-${reservation.id}`}>
+                          <TableCell className="font-medium" data-testid={`reservation-name-${reservation.id}`}>
+                            {reservation.reservationName}
+                          </TableCell>
+                          <TableCell data-testid={`reservation-date-${reservation.id}`}>
+                            {reservation.reservationDate}
+                          </TableCell>
+                          <TableCell data-testid={`reservation-table-${reservation.id}`}>
+                            {reservation.tableName}
+                          </TableCell>
+                          <TableCell data-testid={`reservation-guests-${reservation.id}`}>
+                            {reservation.numberOfGuests}
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              className={
+                                reservation.status === "confirmed" 
+                                  ? "bg-green-100 text-green-800 border-green-200" 
+                                  : reservation.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                                  : reservation.status === "cancelled"
+                                  ? "bg-red-100 text-red-800 border-red-200"
+                                  : "bg-blue-100 text-blue-800 border-blue-200"
+                              }
+                              data-testid={`reservation-status-${reservation.id}`}
+                            >
+                              {reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0" data-testid={`reservation-actions-${reservation.id}`}>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedReservation(reservation);
+                                    setShowEditReservationModal(true);
+                                  }}
+                                  data-testid={`button-edit-reservation-${reservation.id}`}
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setDeleteItem({type: 'reservation', id: reservation.id.toString(), name: reservation.reservationName});
+                                    setShowDeleteModal(true);
+                                  }}
+                                  className="text-red-600"
+                                  data-testid={`button-delete-reservation-${reservation.id}`}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      </ContextMenuTrigger>
+                      <ContextMenuContent>
+                        <ContextMenuItem
+                          onClick={() => {
+                            setSelectedReservation(reservation);
+                            setShowEditReservationModal(true);
+                          }}
+                        >
+                          Edit Reservation
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          onClick={() => {
+                            setDeleteItem({type: 'reservation', id: reservation.id.toString(), name: reservation.reservationName});
+                            setShowDeleteModal(true);
+                          }}
+                          className="text-red-600"
+                        >
+                          Delete Reservation
+                        </ContextMenuItem>
+                      </ContextMenuContent>
+                    </ContextMenu>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Reservations Pagination */}
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Show result:</span>
+                <Select value={reservationsItemsPerPage.toString()} onValueChange={(value) => setReservationsItemsPerPage(parseInt(value))}>
+                  <SelectTrigger className="w-16">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setReservationsCurrentPage(Math.max(1, reservationsCurrentPage - 1))}
+                  disabled={reservationsCurrentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-green-500 hover:bg-green-600"
+                >
+                  {reservationsCurrentPage}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setReservationsCurrentPage(reservationsCurrentPage + 1)}
+                  disabled={false} // For now, always allow next since we're using mock data
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
