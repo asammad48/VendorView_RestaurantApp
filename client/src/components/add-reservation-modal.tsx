@@ -27,7 +27,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { locationApi } from "@/lib/apiRepository";
+import { locationApi, reservationApi } from "@/lib/apiRepository";
 
 // Reservation form schema
 const reservationFormSchema = z.object({
@@ -36,9 +36,7 @@ const reservationFormSchema = z.object({
   tableId: z.string().min(1, "Table selection is required"),
   tableName: z.string().min(1, "Table name is required"), // Display name for reference
   numberOfGuests: z.number().min(1, "Number of guests must be at least 1").max(50, "Maximum 50 guests allowed"),
-  status: z.enum(["confirmed", "pending", "cancelled", "completed"], {
-    required_error: "Status is required",
-  }),
+  actionTaken: z.number().min(0).max(2, "Invalid status").default(0),
 });
 
 type ReservationFormData = z.infer<typeof reservationFormSchema>;
@@ -69,12 +67,12 @@ export function AddReservationModal({
       tableId: "",
       tableName: "",
       numberOfGuests: 1,
-      status: "pending"
+      actionTaken: 0
     },
   });
 
   // Fetch available tables for selection
-  const { data: tables = [], isLoading: isLoadingTables } = useQuery({
+  const { data: tablesResponse, isLoading: isLoadingTables } = useQuery({
     queryKey: ['tables', branchId],
     queryFn: async () => {
       try {
@@ -89,27 +87,34 @@ export function AddReservationModal({
     staleTime: 5 * 60 * 1000,
   });
 
-  // Create/Update reservation mutation (mock for now)
+  const tables = Array.isArray(tablesResponse) ? tablesResponse : [];
+
+  // Create/Update reservation mutation
   const createReservationMutation = useMutation({
     mutationFn: async (data: ReservationFormData) => {
-      // Mock API call - replace with actual reservation API
-      console.log('Creating/updating reservation:', data);
+      const reservationData = {
+        reservationName: data.reservationName,
+        reservationDate: data.reservationDate,
+        tableId: parseInt(data.tableId),
+        tableName: data.tableName,
+        numberOfGuests: data.numberOfGuests,
+        actionTaken: data.actionTaken,
+      };
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (isEditMode) {
-        // Simulate update
-        return { id: reservation?.id, ...data, updated: true };
+      if (isEditMode && reservation?.id) {
+        // Update existing reservation
+        return await reservationApi.updateReservation(reservation.id, reservationData);
       } else {
-        // Simulate create
-        return { id: Date.now(), ...data, created: true };
+        // Create new reservation
+        return await reservationApi.createReservation(reservationData);
       }
     },
     onSuccess: () => {
-      // Invalidate reservations cache when API is implemented
-      // queryClient.invalidateQueries({ queryKey: ['reservations'] });
-      // if (branchId) queryClient.invalidateQueries({ queryKey: [`reservations-branch-${branchId}`] });
+      // Invalidate reservations cache to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      if (branchId) {
+        queryClient.invalidateQueries({ queryKey: ['reservations', 'branch', branchId] });
+      }
       
       toast({
         title: "Success",
@@ -139,7 +144,7 @@ export function AddReservationModal({
         tableId: reservation.tableId || "",
         tableName: reservation.tableName || "",
         numberOfGuests: reservation.numberOfGuests || 1,
-        status: reservation.status || "pending"
+        actionTaken: reservation.actionTaken ?? 0
       });
     } else if (!isEditMode && isOpen) {
       form.reset({
@@ -148,7 +153,7 @@ export function AddReservationModal({
         tableId: "",
         tableName: "",
         numberOfGuests: 1,
-        status: "pending"
+        actionTaken: 0
       });
     }
   }, [isEditMode, reservation, isOpen, form]);
@@ -290,7 +295,8 @@ export function AddReservationModal({
                       max="50"
                       placeholder="Enter number of guests"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber || 1)}
                       className="w-full"
                       data-testid="input-number-of-guests"
                     />
@@ -303,7 +309,7 @@ export function AddReservationModal({
             {/* Status */}
             <FormField
               control={form.control}
-              name="status"
+              name="actionTaken"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-gray-900">
@@ -311,18 +317,17 @@ export function AddReservationModal({
                   </FormLabel>
                   <FormControl>
                     <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value}
+                      onValueChange={(value) => field.onChange(parseInt(value))} 
+                      value={field.value?.toString()}
                       data-testid="select-status"
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="0">Pending</SelectItem>
+                        <SelectItem value="1">Accepted</SelectItem>
+                        <SelectItem value="2">Rejected</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>

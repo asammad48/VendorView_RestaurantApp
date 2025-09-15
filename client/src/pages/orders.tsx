@@ -531,10 +531,10 @@ export default function Orders() {
 
   // Query for reservations with real API and pagination support
   const { data: reservationsResponse, isLoading: isLoadingReservations, refetch: refetchReservations } = useQuery({
-    queryKey: [`reservations-branch-${branchId}`, reservationsCurrentPage, reservationsItemsPerPage, reservationsSearchTerm],
+    queryKey: ['reservations', 'branch', branchId, reservationsCurrentPage, reservationsItemsPerPage, reservationsSearchTerm],
     queryFn: async () => {
       return await reservationApi.getReservationsByBranch(
-        branchId,
+        parseInt(branchId),
         reservationsCurrentPage,
         reservationsItemsPerPage,
         'name',
