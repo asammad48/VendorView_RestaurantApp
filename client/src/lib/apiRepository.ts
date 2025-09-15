@@ -1293,7 +1293,7 @@ export const reservationApi = {
     pageSize: number = 10,
     sortBy: string = 'name',
     isAscending: boolean = true
-  ) => {
+  ): Promise<any> => {
     const params = new URLSearchParams({
       PageNumber: pageNumber.toString(),
       PageSize: pageSize.toString(),

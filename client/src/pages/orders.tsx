@@ -30,11 +30,11 @@ import ViewMenuModal from "@/components/view-menu-modal";
 import ViewDealsModal from "@/components/view-deals-modal";
 import { SearchTooltip } from "@/components/SearchTooltip";
 import { useLocation } from "wouter";
-import { locationApi, branchApi, dealsApi, discountsApi, apiRepository, servicesApi, ordersApi } from "@/lib/apiRepository";
+import { locationApi, branchApi, dealsApi, discountsApi, apiRepository, servicesApi, ordersApi, reservationApi } from "@/lib/apiRepository";
 import { useBranchCurrency } from "@/hooks/useBranchCurrency";
 import type { Branch } from "@/types/schema";
 // Use MenuItem and MenuCategory from schema
-import type { MenuItem, MenuCategory, SubMenu, Deal, Discount, BranchService, DetailedOrder } from "@/types/schema";
+import type { MenuItem, MenuCategory, SubMenu, Deal, Discount, BranchService, DetailedOrder, Reservation, PaginatedResponse } from "@/types/schema";
 import { PaginationRequest, PaginationResponse, DEFAULT_PAGINATION_CONFIG, buildPaginationQuery } from "@/types/pagination";
 
 // Deal interface is now imported from schema
@@ -270,7 +270,7 @@ export default function Orders() {
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
   const [showEditSubMenuModal, setShowEditSubMenuModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteItem, setDeleteItem] = useState<{type: 'menu' | 'category' | 'submenu' | 'deal' | 'table' | 'discount', id: string, name: string} | null>(null);
+  const [deleteItem, setDeleteItem] = useState<{type: 'menu' | 'category' | 'submenu' | 'deal' | 'table' | 'discount' | 'reservation', id: string, name: string} | null>(null);
 
   // Query for orders using real API with pagination (following template pattern)
   const { data: ordersResponse, isLoading: isLoadingOrders, refetch: refetchOrders } = useQuery({
@@ -528,6 +528,25 @@ export default function Orders() {
   const subMenuItemsLookup = new Map(
     allSubMenuItems.map(item => [item.id, item.name])
   );
+
+  // Query for reservations with real API and pagination support
+  const { data: reservationsResponse, isLoading: isLoadingReservations, refetch: refetchReservations } = useQuery({
+    queryKey: [`reservations-branch-${branchId}`, reservationsCurrentPage, reservationsItemsPerPage, reservationsSearchTerm],
+    queryFn: async () => {
+      return await reservationApi.getReservationsByBranch(
+        branchId,
+        reservationsCurrentPage,
+        reservationsItemsPerPage,
+        'name',
+        true
+      );
+    },
+    enabled: activeMainTab === "reservations", // LAZY LOADING: Only fetch when reservations tab is active
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  const reservations = reservationsResponse?.items || [];
+  const reservationsTotalPages = reservationsResponse?.totalPages || 1;
 
   // Stock status update mutation
   const updateStockStatusMutation = useMutation({
@@ -1519,33 +1538,20 @@ export default function Orders() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Mock reservations data for now */}
-                  {[
-                    {
-                      id: 1,
-                      reservationName: "John Smith",
-                      reservationDate: "2025-09-16 19:00",
-                      tableName: "Table 5",
-                      numberOfGuests: 4,
-                      status: "confirmed"
-                    },
-                    {
-                      id: 2,
-                      reservationName: "Emily Johnson",
-                      reservationDate: "2025-09-17 20:30",
-                      tableName: "Table 12",
-                      numberOfGuests: 2,
-                      status: "pending"
-                    },
-                    {
-                      id: 3,
-                      reservationName: "Michael Brown",
-                      reservationDate: "2025-09-18 18:00",
-                      tableName: "Table 8",
-                      numberOfGuests: 6,
-                      status: "confirmed"
-                    }
-                  ].map((reservation) => (
+                  {isLoadingReservations ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        Loading reservations...
+                      </TableCell>
+                    </TableRow>
+                  ) : reservations.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        No reservations found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    reservations.map((reservation) => (
                     <ContextMenu key={reservation.id}>
                       <ContextMenuTrigger asChild>
                         <TableRow className="hover:bg-gray-50 cursor-pointer" data-testid={`reservation-row-${reservation.id}`}>
@@ -1564,17 +1570,17 @@ export default function Orders() {
                           <TableCell>
                             <Badge 
                               className={
-                                reservation.status === "confirmed" 
+                                reservation.actionTaken === 1 
                                   ? "bg-green-100 text-green-800 border-green-200" 
-                                  : reservation.status === "pending"
+                                  : reservation.actionTaken === 0
                                   ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                                  : reservation.status === "cancelled"
+                                  : reservation.actionTaken === 2
                                   ? "bg-red-100 text-red-800 border-red-200"
                                   : "bg-blue-100 text-blue-800 border-blue-200"
                               }
                               data-testid={`reservation-status-${reservation.id}`}
                             >
-                              {reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
+                              {reservation.actionTaken === 1 ? 'Accepted' : reservation.actionTaken === 0 ? 'Pending' : reservation.actionTaken === 2 ? 'Rejected' : 'Unknown'}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -1631,7 +1637,8 @@ export default function Orders() {
                         </ContextMenuItem>
                       </ContextMenuContent>
                     </ContextMenu>
-                  ))}
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -1673,7 +1680,7 @@ export default function Orders() {
                   variant="outline" 
                   size="sm"
                   onClick={() => setReservationsCurrentPage(reservationsCurrentPage + 1)}
-                  disabled={false} // For now, always allow next since we're using mock data
+                  disabled={reservationsCurrentPage >= reservationsTotalPages}
                 >
                   Next
                 </Button>
