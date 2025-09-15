@@ -37,7 +37,7 @@ export async function deleteLocalData(key: string, id: string): Promise<void> {
 }
 
 // Real API functions for authentication
-import { authApi } from './apiRepository';
+import { authApi, apiRepository } from './apiRepository';
 
 export async function mockLogin(email: string, password: string) {
   try {
@@ -48,6 +48,11 @@ export async function mockLogin(email: string, password: string) {
     }
 
     const data = response.data as any;
+    
+    // Set tokens in apiRepository for proper token management
+    if (data.token) {
+      apiRepository.setTokens(data.token, data.refreshToken);
+    }
     
     // Extract user ID from multiple possible sources
     let userId = null;
@@ -146,6 +151,9 @@ export async function getCurrentUser() {
 }
 
 export async function logout() {
+  // Clear tokens from apiRepository first
+  apiRepository.logout();
+  
   // Clear all authentication related data from localStorage
   localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
   localStorage.removeItem('auth_token');

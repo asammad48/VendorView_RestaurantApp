@@ -43,14 +43,11 @@ export function useAuthState() {
         setUser(currentUser);
         
         // Connect to SignalR if user is already logged in
-        if (currentUser) {
-          const accessToken = apiRepository.getAccessToken();
-          if (accessToken) {
-            try {
-              await signalRService.connect(accessToken);
-            } catch (signalRError) {
-              console.error("SignalR connection failed during user load:", signalRError);
-            }
+        if (currentUser && apiRepository.isAuthenticated()) {
+          try {
+            await signalRService.connect(() => apiRepository.getAccessToken());
+          } catch (signalRError) {
+            console.error("SignalR connection failed during user load:", signalRError);
           }
         }
       } catch (error) {
@@ -69,10 +66,9 @@ export function useAuthState() {
       setUser(loggedInUser);
       
       // Connect to SignalR after successful login
-      const accessToken = apiRepository.getAccessToken();
-      if (accessToken) {
+      if (apiRepository.isAuthenticated()) {
         try {
-          await signalRService.connect(accessToken);
+          await signalRService.connect(() => apiRepository.getAccessToken());
         } catch (signalRError) {
           console.error("SignalR connection failed:", signalRError);
           // Don't throw error here - login was successful, SignalR failure shouldn't block it
@@ -93,10 +89,9 @@ export function useAuthState() {
       setUser(newUser);
       
       // Connect to SignalR after successful signup
-      const accessToken = apiRepository.getAccessToken();
-      if (accessToken) {
+      if (apiRepository.isAuthenticated()) {
         try {
-          await signalRService.connect(accessToken);
+          await signalRService.connect(() => apiRepository.getAccessToken());
         } catch (signalRError) {
           console.error("SignalR connection failed:", signalRError);
           // Don't throw error here - signup was successful, SignalR failure shouldn't block it

@@ -8,16 +8,17 @@ interface OrderCreatedPayload {
 
 export class SignalRService {
   private connection: HubConnection | null = null;
-  private baseUrl: string = 'wss://5dtrtpzg-7261.inc1.devtunnels.ms/orderHub';
+  private baseUrl: string = 'https://5dtrtpzg-7261.inc1.devtunnels.ms/orderHub';
   private isConnecting: boolean = false;
+  private getAccessToken: (() => string | null) | null = null;
 
   constructor() {
     // Initialize with null connection
     this.connection = null;
   }
 
-  // Connect to SignalR hub with access token
-  async connect(accessToken: string): Promise<void> {
+  // Connect to SignalR hub with access token factory
+  async connect(getAccessToken: () => string | null): Promise<void> {
     if (this.connection && this.connection.state === HubConnectionState.Connected) {
       console.log('SignalR already connected');
       return;
@@ -30,10 +31,17 @@ export class SignalRService {
 
     try {
       this.isConnecting = true;
+      this.getAccessToken = getAccessToken;
       
-      // Build connection with access token as query parameter
+      // Build connection with accessTokenFactory for automatic token refresh
       this.connection = new HubConnectionBuilder()
-        .withUrl(`${this.baseUrl}?access_token=${accessToken}`)
+        .withUrl(this.baseUrl, {
+          accessTokenFactory: () => {
+            const token = this.getAccessToken?.();
+            console.log('SignalR requesting access token:', token ? 'Token available' : 'No token');
+            return token || '';
+          }
+        })
         .withAutomaticReconnect({
           nextRetryDelayInMilliseconds: retryContext => {
             if (retryContext.previousRetryCount === 0) {
@@ -128,6 +136,7 @@ export class SignalRService {
         await this.connection.stop();
         console.log('SignalR Disconnected');
         this.connection = null;
+        this.getAccessToken = null;
       } catch (error) {
         console.error('Error disconnecting SignalR:', error);
       }

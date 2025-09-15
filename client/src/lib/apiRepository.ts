@@ -166,7 +166,7 @@ export class ApiRepository {
           response = await fetch(url, requestOptions);
         } else {
           // Refresh failed, redirect to login
-          this.handleAuthenticationFailure();
+          await this.handleAuthenticationFailure();
           return {
             error: 'Authentication failed. Please login again.',
             status: 401,
@@ -234,7 +234,7 @@ export class ApiRepository {
             break;
           case 401:
             console.error('Unauthorized:', errorMessage);
-            this.handleAuthenticationFailure();
+            await this.handleAuthenticationFailure();
             break;
           case 403:
             console.error('Forbidden:', errorMessage);
@@ -279,7 +279,15 @@ export class ApiRepository {
   }
 
   // Handle authentication failure
-  private handleAuthenticationFailure() {
+  private async handleAuthenticationFailure() {
+    // Disconnect from SignalR first to avoid connection issues
+    try {
+      await signalRService.disconnect();
+      console.log('SignalR disconnected due to authentication failure');
+    } catch (error) {
+      console.error('Error disconnecting SignalR on auth failure:', error);
+    }
+    
     this.clearTokens();
     // You can implement additional logic here like redirecting to login page
     // For now, we'll just clear the tokens
@@ -306,6 +314,11 @@ export class ApiRepository {
     this.saveTokensToStorage(accessToken, refreshToken);
   }
 
+  // Clear tokens (useful for logout)
+  logout() {
+    this.clearTokens();
+  }
+
   // Get current access token
   getAccessToken(): string | null {
     return this.accessToken;
@@ -324,7 +337,7 @@ export class ApiRepository {
     }
     
     try {
-      await signalRService.connect(this.accessToken);
+      await signalRService.connect(() => this.getAccessToken());
     } catch (error) {
       console.error('Failed to connect to SignalR:', error);
       throw error;
