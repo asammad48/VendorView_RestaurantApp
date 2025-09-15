@@ -42,13 +42,59 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   );
 }
 
+// Role-based router for dashboard and root routes
+function RoleBasedDashboard() {
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
+  
+  React.useEffect(() => {
+    if (user?.role === "Chef") {
+      navigate("/chef", { replace: true });
+    }
+  }, [user, navigate]);
+  
+  // If user is Chef, show loading while redirect happens
+  if (user?.role === "Chef") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
+  
+  return <Dashboard />;
+}
+
+// Chef guard to redirect non-chef users away from chef page
+function ChefGuard() {
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
+  
+  React.useEffect(() => {
+    if (user?.role !== "Chef") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
+  
+  // If user is not Chef, show loading while redirect happens
+  if (user?.role !== "Chef") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="loading-spinner"></div>
+      </div>
+    );
+  }
+  
+  return <Chef />;
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
-      <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
-      <Route path="/dashboard" component={() => <ProtectedRoute component={Dashboard} />} />
+      <Route path="/" component={() => <ProtectedRoute component={RoleBasedDashboard} />} />
+      <Route path="/dashboard" component={() => <ProtectedRoute component={RoleBasedDashboard} />} />
       <Route path="/entities" component={() => <ProtectedRoute component={Entities} />} />
       <Route path="/branches" component={() => <ProtectedRoute component={Branches} />} />
       <Route path="/restaurants" component={() => <ProtectedRoute component={Restaurants} />} />
@@ -59,7 +105,7 @@ function Router() {
       <Route path="/feedbacks" component={() => <ProtectedRoute component={Feedbacks} />} />
       <Route path="/reporting" component={() => <ProtectedRoute component={Reporting} />} />
       <Route path="/appearance" component={() => <ProtectedRoute component={Appearance} />} />
-      <Route path="/chef" component={() => <ProtectedRoute component={Chef} />} />
+      <Route path="/chef" component={() => <ProtectedRoute component={ChefGuard} />} />
       {/* Fallback to dashboard for unknown routes */}
       <Route component={() => <ProtectedRoute component={Dashboard} />} />
     </Switch>
