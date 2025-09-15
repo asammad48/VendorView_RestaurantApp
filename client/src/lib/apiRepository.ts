@@ -406,6 +406,7 @@ export const API_ENDPOINTS = {
   CURRENCIES: '/api/Generic/currencies',
   TIMEZONES: '/api/Generic/timezones',
   ORDER_STATUS_TYPES: '/api/Generic/orderstatustype',
+  RESERVATION_STATUS_TYPES: '/api/Generic/reservationstatustype',
   
   // Entity endpoints
   ENTITIES: '/api/Entity',
@@ -478,7 +479,6 @@ export const API_ENDPOINTS = {
   RESERVATION_BY_ID: '/api/Reservations/{id}',
   RESERVATION_ACTION_UPDATE: '/api/Reservations/{id}/action',
   RESERVATIONS: '/api/Reservations',
-  RESERVATION_STATUS_TYPES: '/api/Generic/reservationstatustype',
   
   // Other endpoints
   ANALYTICS: '/api/analytics',
@@ -512,6 +512,7 @@ export const defaultApiConfig: ApiConfig = {
     getCurrencies: API_ENDPOINTS.CURRENCIES,
     getTimezones: API_ENDPOINTS.TIMEZONES,
     getOrderStatusTypes: API_ENDPOINTS.ORDER_STATUS_TYPES,
+    getReservationStatusTypes: API_ENDPOINTS.RESERVATION_STATUS_TYPES,
     getServicesByType: API_ENDPOINTS.SERVICES_BY_TYPE,
     getBranchServices: API_ENDPOINTS.BRANCH_SERVICES,
     updateBranchServices: API_ENDPOINTS.BRANCH_SERVICES,
@@ -608,7 +609,6 @@ export const defaultApiConfig: ApiConfig = {
     createReservation: API_ENDPOINTS.RESERVATIONS,
     updateReservation: API_ENDPOINTS.RESERVATION_BY_ID,
     deleteReservation: API_ENDPOINTS.RESERVATION_BY_ID,
-    getReservationStatusTypes: API_ENDPOINTS.RESERVATION_STATUS_TYPES,
     
     // Other endpoints
     getAnalytics: API_ENDPOINTS.ANALYTICS,
