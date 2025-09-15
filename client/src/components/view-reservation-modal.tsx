@@ -30,13 +30,13 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { reservationApi } from "@/lib/apiRepository";
+import { reservationApi, genericApi } from "@/lib/apiRepository";
 import { Separator } from "@/components/ui/separator";
 import { ReservationDetail, ReservationStatus } from "@/types/schema";
 
 // Action form schema for status update
 const actionFormSchema = z.object({
-  actionTaken: z.number().min(0).max(2, "Invalid status"),
+  actionTaken: z.number().min(1, "Please select a status"),
   remarks: z.string().optional(),
 });
 
@@ -48,24 +48,32 @@ interface ViewReservationModalProps {
   reservationId: number;
 }
 
-const getStatusBadge = (actionTaken: number) => {
-  switch (actionTaken) {
-    case 0:
-      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-    case 1:
-      return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Confirmed</Badge>;
-    case 2:
-      return <Badge variant="secondary" className="bg-green-100 text-green-800">Completed</Badge>;
-    default:
-      return <Badge variant="secondary">Unknown</Badge>;
-  }
-};
+// Dynamic status badge based on API data
+const getStatusBadge = (actionTaken: number, statusOptions: any[] = []) => {
+  const status = statusOptions.find(option => option.id === actionTaken);
+  const statusName = status ? status.name : 'Unknown';
+  
+  // Color mapping based on common status types
+  const getStatusColor = (name: string) => {
+    const lowercaseName = name.toLowerCase();
+    if (lowercaseName.includes('pending')) {
+      return "bg-yellow-100 text-yellow-800";
+    } else if (lowercaseName.includes('accept') || lowercaseName.includes('confirm')) {
+      return "bg-blue-100 text-blue-800";
+    } else if (lowercaseName.includes('reject') || lowercaseName.includes('cancel')) {
+      return "bg-red-100 text-red-800";
+    } else if (lowercaseName.includes('complet')) {
+      return "bg-green-100 text-green-800";
+    }
+    return "bg-gray-100 text-gray-800";
+  };
 
-const getStatusOptions = () => [
-  { value: "0", label: "Pending" },
-  { value: "1", label: "Confirmed" },
-  { value: "2", label: "Completed" }
-];
+  return (
+    <Badge variant="secondary" className={getStatusColor(statusName)}>
+      {statusName}
+    </Badge>
+  );
+};
 
 export function ViewReservationModal({ 
   isOpen, 
@@ -89,6 +97,19 @@ export function ViewReservationModal({
     queryKey: ['reservation-detail', reservationId],
     queryFn: () => reservationApi.getReservationDetail(reservationId),
     enabled: isOpen && !!reservationId,
+  });
+
+  // Fetch reservation status types
+  const { data: reservationStatusTypes, isLoading: statusTypesLoading } = useQuery({
+    queryKey: ["reservation-status-types"],
+    queryFn: async () => {
+      const response = await genericApi.getReservationStatusTypes();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as { id: number; name: string }[];
+    },
+    staleTime: 30 * 60 * 1000, // Cache for 30 minutes
   });
 
   // Update form values when reservation detail loads
@@ -174,7 +195,7 @@ export function ViewReservationModal({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium">Reservation Information</h3>
-                  {getStatusBadge(reservationDetail.actionTaken)}
+                  {getStatusBadge(reservationDetail.actionTaken, reservationStatusTypes || [])}
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -264,9 +285,9 @@ export function ViewReservationModal({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {getStatusOptions().map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
+                              {reservationStatusTypes?.map((option: { id: number; name: string }) => (
+                                <SelectItem key={option.id} value={option.id.toString()}>
+                                  {option.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
