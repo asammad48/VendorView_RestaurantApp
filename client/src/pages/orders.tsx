@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import QRCodeModal from "@/components/qr-code-modal";
 import AddTableModal from "@/components/add-table-modal";
 import EditTableModal from "@/components/edit-table-modal";
+import { AddReservationModal } from "@/components/add-reservation-modal";
 import AddMenuModal from "@/components/add-menu-modal";
 import AddCategoryModal from "@/components/add-category-modal";
 import AddSubMenuModal from "@/components/add-submenu-modal";
@@ -2092,6 +2093,22 @@ export default function Orders() {
         open={showEditTableModal}
         onOpenChange={setShowEditTableModal}
         table={selectedTable}
+      />
+
+      {/* Add Reservation Modal */}
+      <AddReservationModal
+        isOpen={showAddReservationModal}
+        onClose={() => setShowAddReservationModal(false)}
+        branchId={branchId}
+      />
+
+      {/* Edit Reservation Modal */}
+      <AddReservationModal
+        isOpen={showEditReservationModal}
+        onClose={() => setShowEditReservationModal(false)}
+        branchId={branchId}
+        reservation={selectedReservation}
+        isEditMode={true}
       />
 
       {/* Add Menu Modal */}
