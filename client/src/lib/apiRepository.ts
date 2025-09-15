@@ -476,6 +476,7 @@ export const API_ENDPOINTS = {
   // Reservation endpoints
   RESERVATIONS_BY_BRANCH: '/api/Reservations/branch/{branchId}',
   RESERVATION_BY_ID: '/api/Reservations/{id}',
+  RESERVATION_ACTION_UPDATE: '/api/Reservations/{id}/action',
   RESERVATIONS: '/api/Reservations',
   RESERVATION_STATUS_TYPES: '/api/Generic/reservationstatustype',
   
@@ -603,6 +604,7 @@ export const defaultApiConfig: ApiConfig = {
     // Reservation endpoints
     getReservationsByBranch: API_ENDPOINTS.RESERVATIONS_BY_BRANCH,
     getReservationById: API_ENDPOINTS.RESERVATION_BY_ID,
+    updateReservationAction: API_ENDPOINTS.RESERVATION_ACTION_UPDATE,
     createReservation: API_ENDPOINTS.RESERVATIONS,
     updateReservation: API_ENDPOINTS.RESERVATION_BY_ID,
     deleteReservation: API_ENDPOINTS.RESERVATION_BY_ID,
@@ -1321,6 +1323,42 @@ export const reservationApi = {
       throw new Error(response.error);
     }
     
+    return response.data;
+  },
+
+  // Get reservation detail by ID
+  getReservationDetail: async (reservationId: number) => {
+    const response = await apiRepository.call(
+      'getReservationById',
+      'GET',
+      undefined,
+      {},
+      true,
+      { id: reservationId }
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  },
+
+  // Update reservation action (status and remarks)
+  updateReservationAction: async (reservationId: number, actionData: { actionTaken: number; remarks: string }) => {
+    const response = await apiRepository.call(
+      'updateReservationAction',
+      'PUT',
+      actionData,
+      {},
+      true,
+      { id: reservationId }
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
     return response.data;
   },
 
