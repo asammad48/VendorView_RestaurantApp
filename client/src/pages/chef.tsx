@@ -135,7 +135,7 @@ const Chef = () => {
       if (!branchId) throw new Error('Branch ID not available');
       
       const result = await reservationApi.getReservationsByBranch(
-        branchId.toString(),
+        branchId,
         reservationsCurrentPage,
         reservationsItemsPerPage,
         'reservationDate', // Sort by reservation date
@@ -462,7 +462,7 @@ const Chef = () => {
                               </Badge>
                             </TableCell>
                             <TableCell data-testid={`order-status-${order.id}`}>
-                              {getOrderStatusBadge(order.orderStatus)}
+                              {getOrderStatusBadge(Number(order.orderStatus))}
                             </TableCell>
                             <TableCell className="font-medium" data-testid={`order-price-${order.id}`}>
                               {formatPrice(order.totalAmount)}
