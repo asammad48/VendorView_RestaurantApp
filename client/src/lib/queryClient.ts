@@ -74,6 +74,17 @@ export async function mockLogin(email: string, password: string) {
       }
     }
     
+    // Extract role from the login response 
+    // Handle both data.role.roleName and direct data.role formats
+    let userRole = null;
+    if (data.role) {
+      if (typeof data.role === 'string') {
+        userRole = data.role;
+      } else if (data.role.roleName) {
+        userRole = data.role.roleName;
+      }
+    }
+
     // Store all user data in localStorage
     const userData = {
       token: data.token,
@@ -81,7 +92,8 @@ export async function mockLogin(email: string, password: string) {
       mobileNumber: data.mobileNumber,
       fullName: data.fullName,
       profilePicture: data.profilePicture,
-      roles: data.roles,
+      role: userRole, // Store the extracted role as a simple string
+      roles: data.roles, // Keep original roles field for compatibility
       // Keep compatibility with existing code
       username: data.email,
       name: data.fullName,
@@ -95,6 +107,7 @@ export async function mockLogin(email: string, password: string) {
     localStorage.setItem('user_fullname', data.fullName);
     localStorage.setItem('user_profile_picture', data.profilePicture || '');
     localStorage.setItem('user_roles', JSON.stringify(data.roles));
+    localStorage.setItem('user_role', userRole || ''); // Store extracted role as string
     
     return userData;
   } catch (error) {
@@ -162,6 +175,7 @@ export async function logout() {
   localStorage.removeItem('user_fullname');
   localStorage.removeItem('user_profile_picture');
   localStorage.removeItem('user_roles');
+  localStorage.removeItem('user_role');
 }
 
 // API request function for mutations
