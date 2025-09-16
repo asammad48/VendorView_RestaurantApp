@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ChevronDown, ChevronLeft, ChevronRight, Eye, Edit, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { chefApi, ordersApi, reservationApi } from "@/lib/apiRepository";
@@ -57,6 +57,8 @@ const Chef = () => {
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [isViewOrderModalOpen, setIsViewOrderModalOpen] = useState(false);
   const [isUpdateOrderStatusModalOpen, setIsUpdateOrderStatusModalOpen] = useState(false);
+  const [selectedStatusId, setSelectedStatusId] = useState<number | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // Modal states for reservations
   const [selectedReservationId, setSelectedReservationId] = useState<number | null>(null);
@@ -820,8 +822,233 @@ const Chef = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Order Modals - placeholder for now, would need to create these similar to the reservation modals */}
-      {/* TODO: Add ViewOrderModal and UpdateOrderStatusModal components */}
+      {/* View Order Modal */}
+      {selectedOrderId && (
+        <Dialog open={isViewOrderModalOpen} onOpenChange={setIsViewOrderModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="view-order-modal">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-xl font-semibold text-gray-900">Order Details</DialogTitle>
+              <DialogDescription className="text-gray-600 mt-1">
+                Complete information for order #{paginatedOrders.find(o => o.id === selectedOrderId)?.orderNumber}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {(() => {
+              const selectedOrder = paginatedOrders.find(o => o.id === selectedOrderId);
+              if (!selectedOrder) return null;
+              
+              return (
+                <div className="space-y-6">
+                  {/* Order Details Grid - 2x2 layout */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-500">Order Number</label>
+                      <p className="text-base font-semibold text-gray-900" data-testid="view-order-number">
+                        {selectedOrder.orderNumber}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-500">Date & Time</label>
+                      <p className="text-base text-gray-900" data-testid="view-order-datetime">
+                        {formatOrderDate(selectedOrder.createdAt)} at {formatOrderTime(selectedOrder.createdAt)}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Status</label>
+                      <div data-testid="view-order-status">{getOrderStatusBadge(Number(selectedOrder.orderStatus))}</div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Payment</label>
+                      <div data-testid="view-order-payment">
+                        <Badge variant={getPaymentStatus(selectedOrder) === "Paid" ? "default" : "secondary"}>
+                          {getPaymentStatus(selectedOrder)}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Customer Information Section */}
+                  <div className="space-y-4">
+                    {selectedOrder.username && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-500">Customer Name</label>
+                        <p className="text-base text-gray-900" data-testid="view-order-customer">{selectedOrder.username}</p>
+                      </div>
+                    )}
+
+                    {selectedOrder.orderType && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-500">Order Type</label>
+                        <p className="text-base text-gray-900 capitalize" data-testid="view-order-type">
+                          {selectedOrder.orderType.toLowerCase()}
+                        </p>
+                      </div>
+                    )}
+
+                    {selectedOrder.branchName && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-500">Branch</label>
+                        <p className="text-base text-gray-900" data-testid="view-order-branch">{selectedOrder.branchName}</p>
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-500">Location ID</label>
+                      <p className="text-base text-gray-900" data-testid="view-order-location">{selectedOrder.locationId}</p>
+                    </div>
+                  </div>
+
+                  {/* Order Items Section */}
+                  {selectedOrder.orderItems && selectedOrder.orderItems.length > 0 && (
+                    <div className="space-y-4">
+                      <label className="text-sm font-medium text-gray-500">Order Items</label>
+                      <div className="border rounded-lg">
+                        {selectedOrder.orderItems.map((item: any, index: number) => (
+                          <div key={index} className="flex justify-between items-center p-3 border-b last:border-b-0">
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-900">{item.menuItemName || item.name || 'Item'}</p>
+                              <p className="text-sm text-gray-500">
+                                Quantity: {item.quantity} × {formatPrice(item.unitPrice)}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-gray-900">
+                                {formatPrice(item.quantity * item.unitPrice)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Final Total */}
+                  <div className="border-t pt-4 mt-6">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-semibold text-gray-900">Total Amount</span>
+                      <span className="text-xl font-bold text-gray-900" data-testid="view-order-total">
+                        {formatPrice(selectedOrder.totalAmount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Update Order Status Modal */}
+      {selectedOrderId && (
+        <Dialog open={isUpdateOrderStatusModalOpen} onOpenChange={setIsUpdateOrderStatusModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Update Order Status</DialogTitle>
+              <DialogDescription>
+                Change the status for order #{paginatedOrders.find(o => o.id === selectedOrderId)?.orderNumber}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {(() => {
+              const selectedOrder = paginatedOrders.find(o => o.id === selectedOrderId);
+              if (!selectedOrder) return null;
+              
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Current Status</label>
+                    <div className="mt-1">
+                      {getOrderStatusBadge(Number(selectedOrder.orderStatus))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Select New Status</label>
+                    {isLoadingStatusTypes ? (
+                      <div className="mt-1 p-2 border rounded">Loading status types...</div>
+                    ) : statusTypesError ? (
+                      <div className="mt-1 p-2 border rounded bg-red-50 text-red-600" data-testid="status-error">
+                        Failed to load status options. Please try again.
+                      </div>
+                    ) : (
+                      <Select 
+                        value={selectedStatusId?.toString() || ""} 
+                        onValueChange={(value) => setSelectedStatusId(Number(value))}
+                      >
+                        <SelectTrigger className="mt-1" data-testid="status-select">
+                          <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {orderStatusTypes.map((status) => (
+                            <SelectItem key={status.id} value={status.id.toString()}>
+                              <div className="flex items-center space-x-2">
+                                <span>{status.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+
+                  <div className="flex items-center space-x-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        setIsUpdateOrderStatusModalOpen(false);
+                        setSelectedStatusId(null);
+                        setSelectedOrderId(null);
+                      }}
+                      data-testid="button-cancel-status"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-green-500 hover:bg-green-600"
+                      disabled={!selectedStatusId || isUpdatingStatus}
+                      onClick={async () => {
+                        if (!selectedStatusId || !selectedOrder) return;
+                        
+                        setIsUpdatingStatus(true);
+                        try {
+                          await ordersApi.updateOrderStatus(selectedOrder.id, selectedStatusId, 'Status updated via chef dashboard');
+                          
+                          // Refresh the orders list to show the updated status
+                          refetchOrders();
+                          
+                          // Close the modal and reset state
+                          setIsUpdateOrderStatusModalOpen(false);
+                          setSelectedStatusId(null);
+                          setSelectedOrderId(null);
+                          
+                          // Show success message
+                          toast({
+                            title: "Status Updated",
+                            description: `Order ${selectedOrder.orderNumber} status has been updated successfully.`,
+                          });
+                        } catch (error) {
+                          console.error('Failed to update order status:', error);
+                          toast({
+                            title: "Update Failed",
+                            description: "Failed to update order status. Please try again.",
+                            variant: "destructive",
+                          });
+                        } finally {
+                          setIsUpdatingStatus(false);
+                        }
+                      }}
+                      data-testid="button-update-status"
+                    >
+                      {isUpdatingStatus ? 'Updating...' : 'Update Status'}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
