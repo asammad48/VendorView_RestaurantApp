@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Search, ChevronDown, Edit, Trash2, Plus, MoreHorizontal, Eye, Package } from "lucide-react";
+import { ArrowLeft, Search, ChevronDown, Edit, Trash2, Plus, MoreHorizontal, Eye, Package, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,13 +10,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import QRCodeModal from "@/components/qr-code-modal";
 import AddTableModal from "@/components/add-table-modal";
 import EditTableModal from "@/components/edit-table-modal";
 import { ViewReservationModal } from "@/components/view-reservation-modal";
+import { ViewOrderReceiptModal } from "@/components/view-order-receipt-modal";
 import AddMenuModal from "@/components/add-menu-modal";
 import AddCategoryModal from "@/components/add-category-modal";
 import AddSubMenuModal from "@/components/add-submenu-modal";
@@ -2385,293 +2385,22 @@ export default function Orders() {
         />
       )}
 
-      {/* View Order Modal */}
-      {selectedOrder && (
-        <Dialog open={showViewOrderModal} onOpenChange={setShowViewOrderModal}>
-          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="view-order-modal">
-            <DialogHeader className="pb-4">
-              <DialogTitle className="text-xl font-semibold text-gray-900">Order Details</DialogTitle>
-              <DialogDescription className="text-gray-600 mt-1">
-                Complete information for order #{selectedOrder.orderNumber}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              {/* Order Details Grid - 2x2 layout matching screenshot */}
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-500">Order Number</label>
-                  <p className="text-base font-semibold text-gray-900" data-testid="view-order-number">
-                    {selectedOrder.orderNumber}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-500">Date & Time</label>
-                  <p className="text-base text-gray-900" data-testid="view-order-datetime">
-                    {formatOrderDate(selectedOrder.createdAt)} at {formatOrderTime(selectedOrder.createdAt)}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-500">Status</label>
-                  <div data-testid="view-order-status">{getStatusBadge(getOrderStatus(selectedOrder))}</div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-500">Payment</label>
-                  <div data-testid="view-order-payment">{getPaymentBadge(getPaymentStatus(selectedOrder))}</div>
-                </div>
-              </div>
-
-              {/* Customer Information Section */}
-              <div className="space-y-4">
-                {selectedOrder.username && (
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">Customer Name</label>
-                    <p className="text-base text-gray-900" data-testid="view-order-customer">{selectedOrder.username}</p>
-                  </div>
-                )}
-
-                {selectedOrder.orderType && (
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">Order Type</label>
-                    <p className="text-base text-gray-900 capitalize" data-testid="view-order-type">
-                      {selectedOrder.orderType.toLowerCase()}
-                    </p>
-                  </div>
-                )}
-
-                {selectedOrder.branchName && (
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">Branch</label>
-                    <p className="text-base text-gray-900" data-testid="view-order-branch">{selectedOrder.branchName}</p>
-                  </div>
-                )}
-
-                {selectedOrder.deliveryCharges && selectedOrder.deliveryCharges > 0 && (
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">Delivery Charges</label>
-                    <p className="text-base font-semibold text-gray-900" data-testid="view-order-delivery-charges">
-                      {formatBranchPrice(selectedOrder.deliveryCharges)}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Order Items Section */}
-              {selectedOrder.orderItems && selectedOrder.orderItems.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-base font-medium text-gray-500">Order Items</h3>
-                  <div className="space-y-2">
-                    {selectedOrder.orderItems.map((item, index) => (
-                      <div 
-                        key={index} 
-                        className="flex justify-between items-start p-3 bg-gray-50 rounded-lg border"
-                        data-testid={`view-order-item-${index}`}
-                      >
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 text-base">{item.itemName || 'Menu Item'}</h4>
-                          {item.variantName && (
-                            <p className="text-sm text-gray-600 mt-1">Variant: {item.variantName}</p>
-                          )}
-                        </div>
-                        <div className="text-right ml-4">
-                          <p className="font-semibold text-gray-900">Qty: {item.quantity}</p>
-                          <p className="text-base font-bold text-gray-900 mt-1">
-                            {formatBranchPrice(item.totalPrice)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Deal Packages Section */}
-              {selectedOrder.orderPackages && selectedOrder.orderPackages.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-base font-medium text-gray-500">Deal Packages</h3>
-                  <div className="space-y-2">
-                    {selectedOrder.orderPackages.map((pkg, index) => (
-                      <div 
-                        key={index} 
-                        className="flex justify-between items-start p-3 bg-blue-50 rounded-lg border border-blue-200"
-                        data-testid={`view-order-package-${index}`}
-                      >
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 text-base">{pkg.packageName || 'Deal Package'}</h4>
-                          {pkg.expiryDate && (
-                            <p className="text-sm text-gray-600 mt-1">
-                              Expires: {new Date(pkg.expiryDate).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right ml-4">
-                          <p className="font-semibold text-gray-900">Qty: {pkg.quantity}</p>
-                          <p className="text-base font-bold text-gray-900 mt-1">
-                            {formatBranchPrice(pkg.totalPrice)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Additional Charges (only if they exist) */}
-              {(selectedOrder.serviceCharges > 0 || selectedOrder.taxAmount > 0 || 
-                selectedOrder.tipAmount > 0 || selectedOrder.discountAmount > 0) && (
-                <div className="space-y-3">
-                  <h3 className="text-base font-medium text-gray-500">Additional Charges</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {selectedOrder.serviceCharges > 0 && (
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-gray-500">Service Charges</label>
-                        <p className="text-base text-gray-900" data-testid="view-order-service-charges">
-                          {formatBranchPrice(selectedOrder.serviceCharges)}
-                        </p>
-                      </div>
-                    )}
-                    {selectedOrder.taxAmount > 0 && (
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-gray-500">Tax Amount</label>
-                        <p className="text-base text-gray-900" data-testid="view-order-tax">
-                          {formatBranchPrice(selectedOrder.taxAmount)}
-                        </p>
-                      </div>
-                    )}
-                    {selectedOrder.tipAmount > 0 && (
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-gray-500">Tip Amount</label>
-                        <p className="text-base text-gray-900" data-testid="view-order-tip">
-                          {formatBranchPrice(selectedOrder.tipAmount)}
-                        </p>
-                      </div>
-                    )}
-                    {selectedOrder.discountAmount > 0 && (
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-gray-500">Discount</label>
-                        <p className="text-base font-bold text-green-600" data-testid="view-order-discount">
-                          -{formatBranchPrice(selectedOrder.discountAmount)}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Final Total */}
-              <div className="border-t pt-4 mt-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-900">Total Amount</span>
-                  <span className="text-xl font-bold text-gray-900" data-testid="view-order-total">
-                    {formatBranchPrice(selectedOrder.totalAmount)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Update Status Modal */}
-      {selectedOrder && (
-        <Dialog open={showUpdateStatusModal} onOpenChange={setShowUpdateStatusModal}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Update Order Status</DialogTitle>
-              <DialogDescription>
-                Change the status for order #{selectedOrder.orderNumber}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Current Status</label>
-                <div className="mt-1">
-                  {getStatusBadge(getOrderStatus(selectedOrder))}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-500">Select New Status</label>
-                {isLoadingStatusTypes ? (
-                  <div className="mt-1 p-2 border rounded">Loading status types...</div>
-                ) : statusTypesError ? (
-                  <div className="mt-1 p-2 border rounded bg-red-50 text-red-600" data-testid="status-error">
-                    Failed to load status options. Please try again.
-                  </div>
-                ) : (
-                  <Select 
-                    value={selectedStatusId?.toString() || ""} 
-                    onValueChange={(value) => setSelectedStatusId(Number(value))}
-                  >
-                    <SelectTrigger className="mt-1" data-testid="status-select">
-                      <SelectValue placeholder="Select a status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {orderStatusTypes.map((status) => (
-                        <SelectItem key={status.id} value={status.id.toString()}>
-                          <div className="flex items-center space-x-2">
-                            <span>{status.name}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-              <div className="flex items-center space-x-2 pt-4">
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => setShowUpdateStatusModal(false)}
-                  data-testid="button-cancel-status"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  className="flex-1 bg-green-500 hover:bg-green-600"
-                  disabled={!selectedStatusId || isUpdatingStatus}
-                  onClick={async () => {
-                    if (!selectedStatusId || !selectedOrder) return;
-                    
-                    setIsUpdatingStatus(true);
-                    try {
-                      await ordersApi.updateOrderStatus(selectedOrder.id, selectedStatusId, 'Status updated via management system');
-                      
-                      // Refresh the orders list to show the updated status
-                      refetchOrders();
-                      
-                      // Close the modal and reset state
-                      setShowUpdateStatusModal(false);
-                      setSelectedStatusId(null);
-                      setSelectedOrder(null);
-                      
-                      // Show success message
-                      toast({
-                        title: "Status Updated",
-                        description: `Order ${selectedOrder.orderNumber} status has been updated successfully.`,
-                      });
-                    } catch (error) {
-                      console.error('Failed to update order status:', error);
-                      toast({
-                        title: "Update Failed",
-                        description: "Failed to update order status. Please try again.",
-                        variant: "destructive",
-                      });
-                    } finally {
-                      setIsUpdatingStatus(false);
-                    }
-                  }}
-                  data-testid="button-update-status"
-                >
-                  {isUpdatingStatus ? 'Updating...' : 'Update Status'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* View Order Receipt Modal */}
+      <ViewOrderReceiptModal
+        open={showViewOrderModal}
+        onOpenChange={setShowViewOrderModal}
+        order={selectedOrder ? {
+          ...selectedOrder,
+          paymentStatus: getPaymentStatus(selectedOrder),
+          orderStatus: getOrderStatus(selectedOrder)
+        } : null}
+        getStatusBadge={getStatusBadge}
+        getPaymentBadge={getPaymentBadge}
+        getOrderStatus={getOrderStatus}
+        getPaymentStatus={getPaymentStatus}
+        formatOrderDate={formatOrderDate}
+        formatOrderTime={formatOrderTime}
+      />
     </div>
   );
 }
