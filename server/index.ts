@@ -15,7 +15,7 @@ console.log("Using external APIs via generic repository pattern");
 const projectRoot = join(__dirname, '..');
 const clientDir = join(projectRoot, 'client');
 
-const viteProcess = spawn('npx', ['vite', '--host', '0.0.0.0', '--port', '5000'], {
+const viteProcess = spawn('npx', ['vite', '--host', '0.0.0.0', '--port', '5000', '--strictPort'], {
   cwd: clientDir,
   stdio: 'inherit',
   shell: true
