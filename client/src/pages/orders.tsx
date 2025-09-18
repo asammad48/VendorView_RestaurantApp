@@ -870,18 +870,37 @@ export default function Orders() {
                           <TableCell>{getStatusBadge(getOrderStatus(order))}</TableCell>
                           <TableCell className="font-medium">{formatBranchPrice(order.totalAmount)}</TableCell>
                           <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedOrder(order);
-                                setShowViewOrderModal(true);
-                              }}
-                              data-testid={`button-view-order-${order.id}`}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedOrder(order);
+                                  setShowViewOrderModal(true);
+                                }}
+                                data-testid={`button-view-order-${order.id}`}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedOrder(order);
+                                  // Find the current status ID from orderStatusTypes
+                                  const currentStatus = orderStatusTypes.find(status => 
+                                    status.name.toLowerCase() === order.orderStatus.toLowerCase()
+                                  );
+                                  setSelectedStatusId(currentStatus?.id || null);
+                                  setShowUpdateStatusModal(true);
+                                }}
+                                data-testid={`button-update-order-${order.id}`}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       </ContextMenuTrigger>
