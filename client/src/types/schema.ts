@@ -345,17 +345,26 @@ export const insertTicketSchema = z.object({
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type Ticket = InsertTicket & { id: string; createdAt: Date; };
 
-// Feedback types
+// Feedback types (matching API response)
 export interface Feedback {
-  id: string;
-  customerName: string;
-  customerImage?: string;
-  rating: number;
-  comment: string;
+  orderId: number;
   orderNumber: string;
-  timestamp: Date;
+  price: number;
+  comments: string;
+  stars: number;
+  branchName: string;
+  entityName: string;
+  // UI helper properties for existing display logic
+  id?: string;
+  customerName?: string;
+  customerImage?: string;
+  rating?: number;
+  comment?: string;
+  timestamp?: Date;
+  feedbackDate?: string;
+  createdAt?: Date;
   response?: string;
-  status: "new" | "responded" | "archived";
+  status?: "new" | "responded" | "archived";
 }
 
 // Analytics types

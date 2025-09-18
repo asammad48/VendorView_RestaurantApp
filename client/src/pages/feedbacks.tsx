@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Star, ChevronLeft, ChevronRight, Calendar, Hash } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, Hash, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import type { Feedback } from "@/types/schema";
+import { genericApi } from "@/lib/apiRepository";
+import { createApiQuery } from "@/lib/errorHandling";
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -26,19 +29,17 @@ function FeedbackCard({ feedback }: { feedback: Feedback }) {
   return (
     <div className="flex gap-4 p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="flex-shrink-0">
-        <img
-          src={feedback.customerImage || "https://images.unsplash.com/photo-1494790108755-2616b9f8e5a6?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150"}
-          alt={feedback.customerName}
-          className="w-12 h-12 rounded-full object-cover"
-        />
+        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+          {feedback.branchName?.charAt(0) || 'F'}
+        </div>
       </div>
       <div className="flex-1">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <h3 className="font-medium text-gray-900 dark:text-gray-100">
-              {feedback.customerName}
+              {feedback.branchName} - {feedback.entityName}
             </h3>
-            <StarRating rating={feedback.rating} />
+            <StarRating rating={feedback.stars} />
           </div>
           <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-1">
@@ -46,25 +47,82 @@ function FeedbackCard({ feedback }: { feedback: Feedback }) {
               <span>{feedback.orderNumber}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              <span>{format(new Date(feedback.feedbackDate || feedback.createdAt), "MMM dd, yyyy HH:mm")}</span>
+              <DollarSign className="w-3 h-3" />
+              <span>${feedback.price.toFixed(2)}</span>
             </div>
           </div>
         </div>
         <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-          {feedback.comment}
+          {feedback.comments}
         </p>
       </div>
     </div>
   );
 }
 
+// Interfaces for API responses
+interface Entity {
+  id: number;
+  name: string;
+}
+
+interface Branch {
+  id: number;
+  name: string;
+  entityId: number;
+}
+
+interface EntitiesAndBranchesResponse {
+  entities: Entity[];
+  branches: Branch[];
+}
+
 export default function Feedbacks() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedEntityId, setSelectedEntityId] = useState<string>("");
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
   const itemsPerPage = 6;
 
+  // Fetch entities and branches
+  const { data: entitiesAndBranches, isLoading: entitiesLoading } = useQuery<EntitiesAndBranchesResponse>({
+    queryKey: ["entities-and-branches"],
+    queryFn: createApiQuery<EntitiesAndBranchesResponse>(() => genericApi.getEntitiesAndBranches() as Promise<{ data: EntitiesAndBranchesResponse, error?: string, status: number }>),
+    staleTime: 0,
+    retry: 2,
+  });
+
+  // Extract entities and branches from the response
+  const entities = entitiesAndBranches?.entities || [];
+  const allBranches = entitiesAndBranches?.branches || [];
+
+  // Filter branches based on selected entity
+  const filteredBranches = selectedEntityId 
+    ? allBranches.filter(branch => branch.entityId.toString() === selectedEntityId)
+    : allBranches;
+
+  // Fetch feedbacks with filtering
   const { data: feedbacks = [], isLoading, error } = useQuery<Feedback[]>({
-    queryKey: ["/api/feedbacks"],
+    queryKey: ["/api/VendorDashboard/feedbacks", selectedEntityId, selectedBranchId],
+    queryFn: createApiQuery<Feedback[]>(() => {
+      const params = new URLSearchParams();
+      if (selectedEntityId) params.append('EntityId', selectedEntityId);
+      if (selectedBranchId) params.append('BranchId', selectedBranchId);
+      
+      const endpoint = `/api/VendorDashboard/feedbacks${params.toString() ? '?' + params.toString() : ''}`;
+      return fetch(endpoint, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token') || localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json',
+        },
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json().then(data => ({ data, status: res.status }));
+      });
+    }),
+    staleTime: 0,
+    retry: 2,
   });
 
   if (isLoading) {
@@ -126,23 +184,87 @@ export default function Feedbacks() {
     }
   };
 
+  // Handle entity change
+  const handleEntityChange = (entityId: string) => {
+    setSelectedEntityId(entityId);
+    setSelectedBranchId(""); // Clear branch selection when entity changes
+    setCurrentPage(1); // Reset to first page
+  };
+
+  // Handle branch change
+  const handleBranchChange = (branchId: string) => {
+    setSelectedBranchId(branchId);
+    setCurrentPage(1); // Reset to first page
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
         Feedbacks
       </h1>
       
+      {/* Filter Controls */}
+      <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="entity-filter" className="text-sm font-medium mb-2 block">
+              Filter by Entity
+            </Label>
+            <Select value={selectedEntityId} onValueChange={handleEntityChange}>
+              <SelectTrigger className="" data-testid="select-entity-filter">
+                <SelectValue placeholder={entitiesLoading ? "Loading entities..." : "All entities"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="" data-testid="option-entity-all">
+                  All entities
+                </SelectItem>
+                {entities.map((entity) => (
+                  <SelectItem key={entity.id} value={entity.id.toString()} data-testid={`option-entity-${entity.id}`}>
+                    {entity.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="branch-filter" className="text-sm font-medium mb-2 block">
+              Filter by Branch
+            </Label>
+            <Select 
+              value={selectedBranchId} 
+              onValueChange={handleBranchChange}
+              disabled={!selectedEntityId && filteredBranches.length === 0}
+            >
+              <SelectTrigger className="" data-testid="select-branch-filter">
+                <SelectValue placeholder={!selectedEntityId ? "All branches" : "Select branch"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="" data-testid="option-branch-all">
+                  All branches
+                </SelectItem>
+                {filteredBranches.map((branch) => (
+                  <SelectItem key={branch.id} value={branch.id.toString()} data-testid={`option-branch-${branch.id}`}>
+                    {branch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+      
       {feedbacks.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">
-            No feedbacks available yet.
+            {isLoading ? "Loading feedbacks..." : "No feedbacks available for the selected filters."}
           </p>
         </div>
       ) : (
         <>
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             {currentFeedbacks.map((feedback) => (
-              <FeedbackCard key={feedback.id} feedback={feedback} />
+              <FeedbackCard key={feedback.orderId} feedback={feedback} />
             ))}
           </div>
 
