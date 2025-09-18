@@ -186,14 +186,16 @@ export default function Feedbacks() {
 
   // Handle entity change
   const handleEntityChange = (entityId: string) => {
-    setSelectedEntityId(entityId);
+    const actualEntityId = entityId === "all" ? "" : entityId;
+    setSelectedEntityId(actualEntityId);
     setSelectedBranchId(""); // Clear branch selection when entity changes
     setCurrentPage(1); // Reset to first page
   };
 
   // Handle branch change
   const handleBranchChange = (branchId: string) => {
-    setSelectedBranchId(branchId);
+    const actualBranchId = branchId === "all" ? "" : branchId;
+    setSelectedBranchId(actualBranchId);
     setCurrentPage(1); // Reset to first page
   };
 
@@ -210,12 +212,12 @@ export default function Feedbacks() {
             <Label htmlFor="entity-filter" className="text-sm font-medium mb-2 block">
               Filter by Entity
             </Label>
-            <Select value={selectedEntityId} onValueChange={handleEntityChange}>
+            <Select value={selectedEntityId || "all"} onValueChange={handleEntityChange}>
               <SelectTrigger className="" data-testid="select-entity-filter">
                 <SelectValue placeholder={entitiesLoading ? "Loading entities..." : "All entities"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="" data-testid="option-entity-all">
+                <SelectItem value="all" data-testid="option-entity-all">
                   All entities
                 </SelectItem>
                 {entities.map((entity) => (
@@ -232,7 +234,7 @@ export default function Feedbacks() {
               Filter by Branch
             </Label>
             <Select 
-              value={selectedBranchId} 
+              value={selectedBranchId || "all"} 
               onValueChange={handleBranchChange}
               disabled={!selectedEntityId && filteredBranches.length === 0}
             >
@@ -240,7 +242,7 @@ export default function Feedbacks() {
                 <SelectValue placeholder={!selectedEntityId ? "All branches" : "Select branch"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="" data-testid="option-branch-all">
+                <SelectItem value="all" data-testid="option-branch-all">
                   All branches
                 </SelectItem>
                 {filteredBranches.map((branch) => (
