@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import QRCodeModal from "@/components/qr-code-modal";
 import AddTableModal from "@/components/add-table-modal";
@@ -2401,6 +2402,103 @@ export default function Orders() {
         formatOrderDate={formatOrderDate}
         formatOrderTime={formatOrderTime}
       />
+
+      {/* Update Order Status Modal */}
+      {showUpdateStatusModal && selectedOrder && (
+        <Dialog open={showUpdateStatusModal} onOpenChange={setShowUpdateStatusModal}>
+          <DialogContent className="sm:max-w-[425px]" data-testid="update-order-status-modal">
+            <DialogHeader>
+              <DialogTitle data-testid="modal-title">Update Order Status</DialogTitle>
+              <DialogDescription data-testid="modal-description">
+                Update the status for order {selectedOrder.orderNumber}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Select Status</label>
+                {isLoadingStatusTypes ? (
+                  <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
+                ) : statusTypesError ? (
+                  <div className="text-red-600 text-sm">Error loading status options</div>
+                ) : (
+                  <Select 
+                    value={selectedStatusId?.toString() || ""} 
+                    onValueChange={(value) => setSelectedStatusId(Number(value))}
+                  >
+                    <SelectTrigger className="mt-1" data-testid="status-select">
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {orderStatusTypes.map((status) => (
+                        <SelectItem key={status.id} value={status.id.toString()}>
+                          <div className="flex items-center space-x-2">
+                            <span>{status.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-2 pt-4">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setShowUpdateStatusModal(false);
+                    setSelectedStatusId(null);
+                    setSelectedOrder(null);
+                  }}
+                  data-testid="button-cancel-status"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1 bg-green-500 hover:bg-green-600"
+                  disabled={!selectedStatusId || isUpdatingStatus}
+                  onClick={async () => {
+                    if (!selectedStatusId || !selectedOrder) return;
+                    
+                    setIsUpdatingStatus(true);
+                    try {
+                      await ordersApi.updateOrderStatus(selectedOrder.id, selectedStatusId, 'Status updated via restaurant management');
+                      
+                      // Refresh the orders list to show the updated status - use queryClient for better cache consistency
+                      queryClient.invalidateQueries({ queryKey: [`/api/orders/branch/${branchId}`] });
+                      refetchOrders();
+                      
+                      // Close the modal and reset state
+                      setShowUpdateStatusModal(false);
+                      setSelectedStatusId(null);
+                      setSelectedOrder(null);
+                      
+                      // Show success message
+                      toast({
+                        title: "Status Updated",
+                        description: `Order ${selectedOrder.orderNumber} status has been updated successfully.`,
+                      });
+                    } catch (error) {
+                      console.error('Failed to update order status:', error);
+                      toast({
+                        title: "Update Failed",
+                        description: "Failed to update order status. Please try again.",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setIsUpdatingStatus(false);
+                    }
+                  }}
+                  data-testid="button-update-status"
+                >
+                  {isUpdatingStatus ? 'Updating...' : 'Update Status'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
