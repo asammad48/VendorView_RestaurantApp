@@ -104,11 +104,25 @@ export default function Feedbacks() {
   const { data: feedbacks = [], isLoading, error } = useQuery<Feedback[]>({
     queryKey: ["/api/VendorDashboard/feedbacks", selectedEntityId, selectedBranchId],
     queryFn: createApiQuery<Feedback[]>(() => {
+      const baseUrl = 'https://5dtrtpzg-7261.inc1.devtunnels.ms';
       const params = new URLSearchParams();
-      if (selectedEntityId) params.append('EntityId', selectedEntityId);
-      if (selectedBranchId) params.append('BranchId', selectedBranchId);
       
-      const endpoint = `/api/VendorDashboard/feedbacks${params.toString() ? '?' + params.toString() : ''}`;
+      // Always send EntityId and BranchId parameters, use null values when not selected
+      if (selectedEntityId) {
+        params.append('EntityId', selectedEntityId);
+      } else {
+        params.append('EntityId', '');
+      }
+      
+      if (selectedBranchId) {
+        params.append('BranchId', selectedBranchId);
+      } else {
+        params.append('BranchId', '');
+      }
+      
+      const endpoint = `${baseUrl}/api/VendorDashboard/feedbacks?${params.toString()}`;
+      console.log('Fetching feedbacks from:', endpoint);
+      
       return fetch(endpoint, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token') || localStorage.getItem('auth_token')}`,
@@ -236,7 +250,7 @@ export default function Feedbacks() {
             <Select 
               value={selectedBranchId || "all"} 
               onValueChange={handleBranchChange}
-              disabled={!selectedEntityId && filteredBranches.length === 0}
+              disabled={false}
             >
               <SelectTrigger className="" data-testid="select-branch-filter">
                 <SelectValue placeholder={!selectedEntityId ? "All branches" : "Select branch"} />
