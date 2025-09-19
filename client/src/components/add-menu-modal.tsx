@@ -34,6 +34,11 @@ interface SubMenuItem {
   price: number;
 }
 
+interface Allergen {
+  id: number;
+  name: string;
+}
+
 interface Customization {
   name: string;
   options: string[];
@@ -64,6 +69,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
   const [customizations, setCustomizations] = useState<Customization[]>([{ name: "", options: [""] }]);
   const [variants, setVariants] = useState<Variant[]>([{ name: "", price: 0, personServing: 1, outOfStock: false }]);
   const [selectedModifiers, setSelectedModifiers] = useState<number[]>([]);
+  const [selectedAllergens, setSelectedAllergens] = useState<number[]>([]);
   
   // Section visibility states
   const [showCustomizations, setShowCustomizations] = useState<boolean>(true);
@@ -125,6 +131,21 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
     },
     enabled: !!branchId, // Only fetch when branchId is available
     retry: 1
+  });
+
+  // Fetch allergens
+  const { data: allergens, isLoading: allergensLoading, isError: allergensError } = useQuery({
+    queryKey: ['allergens'],
+    queryFn: async () => {
+      const response = await apiRepository.call<Allergen[]>(
+        'getAllergens',
+        'GET'
+      );
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data || [];
+    },
   });
 
   // Fetch menu item data for editing
@@ -204,8 +225,22 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
       } else {
         setShowCustomizations(false); // Hide section if no customizations
       }
+      
+      // Set allergens (convert from string to array) - handle both cases for robustness
+      const allergenData = (menuItemData as any).AllergenItemContains || (menuItemData as any).allergenItemContains;
+      if (allergenData) {
+        const allergenNames = allergenData.split(',').map((name: string) => name.trim());
+        if (allergens) {
+          const allergenIds = allergens
+            .filter(allergen => allergenNames.includes(allergen.name))
+            .map(allergen => allergen.id);
+          setSelectedAllergens(allergenIds);
+        }
+      } else {
+        setSelectedAllergens([]);
+      }
     }
-  }, [isEditMode, menuItemData, form, restaurantId]);
+  }, [isEditMode, menuItemData, form, restaurantId, allergens]);
 
   const createMenuItemMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -227,6 +262,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
       setCustomizations([{ name: "", options: [""] }]);
       setVariants([{ name: "", price: 0, personServing: 1, outOfStock: false }]);
       setSelectedModifiers([]);
+      setSelectedAllergens([]);
       setImage("");
       setOriginalImage("");
       setShowCustomizations(true);
@@ -265,6 +301,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
       setCustomizations([{ name: "", options: [""] }]);
       setVariants([{ name: "", price: 0, personServing: 1, outOfStock: false }]);
       setSelectedModifiers([]);
+      setSelectedAllergens([]);
       setImage("");
       setOriginalImage("");
       setShowCustomizations(true);
@@ -397,10 +434,46 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
     );
   };
 
+  // Allergen toggle function
+  const toggleAllergen = (allergenId: number) => {
+    setSelectedAllergens(prev => 
+      prev.includes(allergenId) 
+        ? prev.filter(id => id !== allergenId)
+        : [...prev, allergenId]
+    );
+  };
+
   const onSubmit = (data: AddMenuFormData) => {
+    // Prevent submission if allergens are still loading to avoid data loss
+    if (allergensLoading) {
+      toast({
+        title: "Please wait",
+        description: "Loading allergen information...",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Prevent submission if allergens failed to load and user has selections
+    if (allergensError && selectedAllergens.length > 0) {
+      toast({
+        title: "Failed to load allergen catalog",
+        description: "Please retry. Your allergen selections cannot be saved.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Determine if image has changed (for update mode)
     const imageChanged = isEditMode && image !== originalImage;
     const imageData = isEditMode ? (imageChanged ? image : "") : image || "";
+
+    // Convert selected allergens to comma-separated string
+    const allergenString = selectedAllergens.length > 0 
+      ? allergens?.filter(allergen => selectedAllergens.includes(allergen.id))
+          .map(allergen => allergen.name)
+          .join(',') || ""
+      : "";
 
     // Prepare API payload according to the real API structure
     const menuItemData = {
@@ -410,6 +483,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
       isActive: true, // Required field for update
       preparationTime: data.preparationTime,
       MenuItemPicture: imageData, // Use capital M as per API spec
+      AllergenItemContains: allergenString, // Use PascalCase to match API spec (like MenuItemPicture)
       variants: variants
         .filter(variant => variant.name.trim())
         .map(variant => ({
@@ -447,6 +521,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
         description: data.description || "",
         preparationTime: data.preparationTime,
         menuItemPicture: imageData, // lowercase for create
+        allergenItemContains: allergenString, // Keep camelCase for create - follow user specification
         variants: variants
           .filter(variant => variant.name.trim())
           .map(variant => ({
@@ -588,6 +663,39 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
                   Browse
                 </Button>
               </div>
+            </div>
+
+            {/* Allergen Selection Section */}
+            <div className="space-y-2">
+              <Label>Allergen Information</Label>
+              <p className="text-sm text-gray-600">Select allergens that this menu item contains</p>
+              {allergensLoading ? (
+                <div className="text-center py-4 text-gray-500">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500 mx-auto mb-2"></div>
+                  Loading allergens...
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded p-2">
+                  {allergens?.map((allergen) => (
+                    <div key={allergen.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`allergen-${allergen.id}`}
+                        checked={selectedAllergens.includes(allergen.id)}
+                        onCheckedChange={() => toggleAllergen(allergen.id)}
+                        data-testid={`checkbox-allergen-${allergen.id}`}
+                      />
+                      <Label htmlFor={`allergen-${allergen.id}`} className="text-sm cursor-pointer">
+                        {allergen.name}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {selectedAllergens.length > 0 && (
+                <p className="text-xs text-gray-500">
+                  Selected: {allergens?.filter(a => selectedAllergens.includes(a.id)).map(a => a.name).join(', ')}
+                </p>
+              )}
             </div>
           </div>
 
@@ -896,10 +1004,14 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
             <Button
               type="submit"
               className="bg-green-600 hover:bg-green-700 text-white px-8 py-2 rounded-lg"
-              disabled={createMenuItemMutation.isPending || updateMenuItemMutation.isPending || (isEditMode && isLoadingMenuItem)}
+              disabled={createMenuItemMutation.isPending || updateMenuItemMutation.isPending || (isEditMode && isLoadingMenuItem) || allergensLoading || (allergensError && selectedAllergens.length > 0)}
               data-testid="button-add-menu-item"
             >
-              {(createMenuItemMutation.isPending || updateMenuItemMutation.isPending)
+              {allergensLoading
+                ? "Loading allergens..."
+                : (allergensError && selectedAllergens.length > 0)
+                ? "Allergen error - cannot save"
+                : (createMenuItemMutation.isPending || updateMenuItemMutation.isPending)
                 ? (isEditMode ? "Updating..." : "Adding...") 
                 : (isEditMode ? "Update Menu Item" : "Add")
               }

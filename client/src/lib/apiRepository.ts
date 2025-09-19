@@ -408,6 +408,7 @@ export const API_ENDPOINTS = {
   TIMEZONES: '/api/Generic/timezones',
   ORDER_STATUS_TYPES: '/api/Generic/orderstatustype',
   RESERVATION_STATUS_TYPES: '/api/Generic/reservationstatustype',
+  ALLERGENS: '/api/Generic/allergens',
   
   // Entity endpoints
   ENTITIES: '/api/Entity',
@@ -515,6 +516,7 @@ export const defaultApiConfig: ApiConfig = {
     getTimezones: API_ENDPOINTS.TIMEZONES,
     getOrderStatusTypes: API_ENDPOINTS.ORDER_STATUS_TYPES,
     getReservationStatusTypes: API_ENDPOINTS.RESERVATION_STATUS_TYPES,
+    getAllergens: API_ENDPOINTS.ALLERGENS,
     getServicesByType: API_ENDPOINTS.SERVICES_BY_TYPE,
     getBranchServices: API_ENDPOINTS.BRANCH_SERVICES,
     updateBranchServices: API_ENDPOINTS.BRANCH_SERVICES,
