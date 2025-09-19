@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development npx tsx server/index.ts",
+    "dev": "cd client && NODE_ENV=development npx vite --host 0.0.0.0 --port 5000 --strictPort",
     "build": "cd client && vite build",
     "start": "cd client && npx vite preview --host 0.0.0.0 --port 5000",
     "check": "tsc",
