@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import type { Feedback } from "@/types/schema";
-import { genericApi } from "@/lib/apiRepository";
+import { genericApi, apiRepository } from "@/lib/apiRepository";
 import { createApiQuery } from "@/lib/errorHandling";
 
 function StarRating({ rating }: { rating: number }) {
@@ -103,8 +103,7 @@ export default function Feedbacks() {
   // Fetch feedbacks with filtering
   const { data: feedbacks = [], isLoading, error } = useQuery<Feedback[]>({
     queryKey: ["/api/VendorDashboard/feedbacks", selectedEntityId, selectedBranchId],
-    queryFn: createApiQuery<Feedback[]>(() => {
-      const baseUrl = 'https://5dtrtpzg-7261.inc1.devtunnels.ms';
+    queryFn: createApiQuery<Feedback[]>(async () => {
       const params = new URLSearchParams();
       
       // Always send EntityId and BranchId parameters, use null values when not selected
@@ -120,20 +119,24 @@ export default function Feedbacks() {
         params.append('BranchId', '');
       }
       
-      const endpoint = `${baseUrl}/api/VendorDashboard/feedbacks?${params.toString()}`;
-      console.log('Fetching feedbacks from:', endpoint);
+      // Use the generic API repository pattern with temporary endpoint modification
+      const originalEndpoint = apiRepository.getConfig().endpoints['getVendorDashboardFeedbacks'];
+      apiRepository.updateEndpoint('getVendorDashboardFeedbacks', `${originalEndpoint}?${params.toString()}`);
       
-      return fetch(endpoint, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token') || localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json',
-        },
-      }).then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json().then(data => ({ data, status: res.status }));
-      });
+      console.log('Fetching feedbacks using apiRepository with params:', params.toString());
+      
+      const response = await apiRepository.call<Feedback[]>(
+        'getVendorDashboardFeedbacks',
+        'GET',
+        undefined,
+        {},
+        true
+      );
+      
+      // Restore original endpoint
+      apiRepository.updateEndpoint('getVendorDashboardFeedbacks', originalEndpoint);
+      
+      return response;
     }),
     staleTime: 0,
     retry: 2,

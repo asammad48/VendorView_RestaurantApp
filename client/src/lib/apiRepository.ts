@@ -485,6 +485,7 @@ export const API_ENDPOINTS = {
   // Other endpoints
   ANALYTICS: '/api/analytics',
   FEEDBACKS: '/api/feedbacks',
+  VENDOR_DASHBOARD_FEEDBACKS: '/api/VendorDashboard/feedbacks',
   TICKETS: '/api/tickets',
 };
 
@@ -617,6 +618,7 @@ export const defaultApiConfig: ApiConfig = {
     // Other endpoints
     getAnalytics: API_ENDPOINTS.ANALYTICS,
     getFeedbacks: API_ENDPOINTS.FEEDBACKS,
+    getVendorDashboardFeedbacks: API_ENDPOINTS.VENDOR_DASHBOARD_FEEDBACKS,
     getTickets: API_ENDPOINTS.TICKETS,
   },
 };
