@@ -3,8 +3,27 @@
     "rewrite": "/index.html",
     "exclude": [
       "/api/*",
-      "/assets/**",
-      "/**/*.{css,js,map,ico,png,jpg,jpeg,gif,svg,webp,avif,woff,woff2,ttf,otf,txt,xml,webmanifest,json}"
+      "/assets/*",
+      "/index.html",
+      "/*.css",
+      "/*.js",
+      "/*.map",
+      "/*.ico",
+      "/*.png",
+      "/*.jpg",
+      "/*.jpeg",
+      "/*.gif",
+      "/*.svg",
+      "/*.webp",
+      "/*.avif",
+      "/*.woff",
+      "/*.woff2",
+      "/*.ttf",
+      "/*.otf",
+      "/*.txt",
+      "/*.xml",
+      "/*.webmanifest",
+      "/*.json"
     ]
   },
   "routes": [
