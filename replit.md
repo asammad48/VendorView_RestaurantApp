@@ -81,12 +81,20 @@ Technical preferences:
 ### Routing and Navigation
 - **wouter**: Minimalist routing library.
 
+### Environment Configuration
+- **Configuration File**: `client/src/config/environment.ts` - Centralized environment management
+- **Development API**: `https://5dtrtpzg-7261.inc1.devtunnels.ms` (used in Replit)
+- **QA API**: `https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net`
+- **Environment Detection**: Automatic detection based on hostname or explicit `VITE_API_BASE_URL` environment variable
+- **SignalR Integration**: Automatically derives SignalR hub URL from API base URL (`${apiBaseUrl}/orderHub`)
+- **Production Safety**: Includes validation warnings to prevent development URLs in production
+
 ### API Endpoints
-- **Base URL**: `https://5dtrtpzg-7261.inc1.devtunnels.ms`
-- **Signup API**: `https://5dtrtpzg-7261.inc1.devtunnels.ms/api/User/restaurant-owner`
-- **Entity API**: `https://5dtrtpzg-7261.inc1.devtunnels.ms/api/Entity`
-- **MenuCategory API**: `https://5dtrtpzg-7261.inc1.devtunnels.ms/api/MenuCategory`
-- **SubMenuItems API**: `https://5dtrtpzg-7261.inc1.devtunnels.ms/api/SubMenuItems`
+- **Base URL**: Configured via environment detection (see Environment Configuration above)
+- **Signup API**: `${apiBaseUrl}/api/User/restaurant-owner`
+- **Entity API**: `${apiBaseUrl}/api/Entity`
+- **MenuCategory API**: `${apiBaseUrl}/api/MenuCategory`
+- **SubMenuItems API**: `${apiBaseUrl}/api/SubMenuItems`
   - GET `/api/SubMenuItems/branch/{branchId}/simple` - Fetch simple SubMenuItems for modifiers
   - PUT `/api/SubMenuItems/{id}` - Update SubMenuItem 
   - DELETE `/api/SubMenuItems/{id}` - Delete SubMenuItem

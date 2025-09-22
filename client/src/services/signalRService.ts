@@ -1,5 +1,6 @@
 import { HubConnection, HubConnectionBuilder, HubConnectionState, HttpTransportType } from '@microsoft/signalr';
 import { toast } from '@/hooks/use-toast';
+import { signalRBaseUrl } from '@/config/environment';
 
 interface OrderCreatedPayload {
   orderId: number;
@@ -8,7 +9,7 @@ interface OrderCreatedPayload {
 
 export class SignalRService {
   private connection: HubConnection | null = null;
-  private baseUrl: string = 'https://5dtrtpzg-7261.inc1.devtunnels.ms/orderHub';
+  private baseUrl: string = signalRBaseUrl;
   private isConnecting: boolean = false;
   private getAccessToken: (() => string | null) | null = null;
 

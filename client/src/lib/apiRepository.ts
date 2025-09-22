@@ -384,8 +384,11 @@ export class ApiRepository {
   }
 }
 
+// Import environment configuration
+import { apiBaseUrl } from '@/config/environment';
+
 // API Base URL and Endpoints
-export const API_BASE_URL = 'https://5dtrtpzg-7261.inc1.devtunnels.ms';
+export const API_BASE_URL = apiBaseUrl;
 
 export const API_ENDPOINTS = {
   // Authentication endpoints
