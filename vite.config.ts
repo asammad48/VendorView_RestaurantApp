@@ -14,7 +14,7 @@ export default defineConfig({
   ],
   root: "./client",
   build: {
-    outDir: "../dist",
+    outDir: "../dist/public",
     emptyOutDir: true,
   },
   resolve: {
@@ -29,4 +29,5 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: true,
   },
+  publicDir: path.resolve(import.meta.dirname, "client", "public"),
 });
