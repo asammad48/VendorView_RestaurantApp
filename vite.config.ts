@@ -13,9 +13,21 @@ export default defineConfig({
     runtimeErrorOverlay(),
   ],
   root: "./client",
+  base: "/",
   build: {
     outDir: "../dist",
     emptyOutDir: true,
+    assetsDir: "assets",
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['wouter'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+        },
+      },
+    },
   },
   resolve: {
     alias: {
@@ -29,5 +41,8 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: true,
   },
-  publicDir: path.resolve(import.meta.dirname, "client", "public"),
+  preview: {
+    port: 4173,
+    host: "0.0.0.0",
+  },
 });
