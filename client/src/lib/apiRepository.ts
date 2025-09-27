@@ -395,6 +395,8 @@ export const API_ENDPOINTS = {
   LOGIN: '/api/User/login',
   SIGNUP: '/api/User/restaurant-owner',
   REFRESH_TOKEN: '/api/auth/refresh',
+  FORGOT_PASSWORD: '/api/User/forgot-password',
+  RESET_PASSWORD: '/api/User/reset-password',
   
   // User endpoints
   USERS: '/api/User/users',
@@ -504,6 +506,8 @@ export const defaultApiConfig: ApiConfig = {
     login: API_ENDPOINTS.LOGIN,
     signup: API_ENDPOINTS.SIGNUP,
     refreshToken: API_ENDPOINTS.REFRESH_TOKEN,
+    forgotPassword: API_ENDPOINTS.FORGOT_PASSWORD,
+    resetPassword: API_ENDPOINTS.RESET_PASSWORD,
     
     // User endpoints
     getUsers: API_ENDPOINTS.USERS,
