@@ -51,7 +51,7 @@ export default function UsersTable({
 
   return (
     <Card className="bg-white border border-gray-100 overflow-hidden" data-testid="users-table-card">
-      <div className="overflow-x-auto">
+      <div className="table-responsive">
         <table className="min-w-full divide-y divide-gray-200" data-testid="users-table">
           <thead className="bg-gray-50">
             <tr>
