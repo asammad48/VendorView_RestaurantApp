@@ -2,52 +2,13 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Link } from "wouter";
 import { 
-  LayoutDashboard, 
-  Building2, 
-  BarChart3, 
-  Users, 
-  MessageSquare, 
-  FileText,
   ChevronLeft,
   ChevronRight,
   Menu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
-const navigationItems = [
-  {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    name: "Entities",
-    href: "/entities",
-    icon: Building2,
-    badge: "4",
-  },
-  {
-    name: "Analytics",
-    href: "/analytics",
-    icon: BarChart3,
-  },
-  {
-    name: "Users",
-    href: "/users",
-    icon: Users,
-  },
-  {
-    name: "Feedbacks",
-    href: "/feedbacks",
-    icon: MessageSquare,
-  },
-  {
-    name: "Reporting",
-    href: "/reporting",
-    icon: FileText,
-  },
-];
+import { navigationItems } from "./nav-items";
 
 interface CollapsibleSidebarProps {
   collapsed?: boolean;

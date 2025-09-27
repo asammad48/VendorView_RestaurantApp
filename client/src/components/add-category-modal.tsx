@@ -102,7 +102,7 @@ export default function AddCategoryModal({ isOpen, onClose, branchId, editCatego
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md" data-testid="modal-add-category">
+      <DialogContent className="w-[min(92vw,40rem)] sm:w-[min(92vw,36rem)] max-h-[calc(100svh-2rem)] overflow-y-auto p-4 sm:p-6" data-testid="modal-add-category">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center">{isEditMode ? 'Edit Category' : 'Add Category'}</DialogTitle>
         </DialogHeader>
