@@ -58,7 +58,7 @@ export default function DeleteConfirmationModal({ entity, open, onOpenChange }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[min(92vw,40rem)] sm:w-[min(92vw,36rem)] max-h-[calc(100svh-2rem)] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20">

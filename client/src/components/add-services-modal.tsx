@@ -129,7 +129,7 @@ export default function AddServicesModal({ open, onOpenChange, branchId, onServi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl p-6 bg-white rounded-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-[min(95vw,60rem)] max-h-[calc(100svh-2rem)] overflow-y-auto p-4 sm:p-6">
         <DialogTitle className="text-xl font-semibold text-gray-900 mb-6">
           Add Services
         </DialogTitle>

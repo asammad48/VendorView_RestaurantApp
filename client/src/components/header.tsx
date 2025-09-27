@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Search, Bell, User } from "lucide-react";
+import { Search, Bell, User, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,19 +16,37 @@ const pageNames: Record<string, string> = {
   "/reporting": "Reporting",
 };
 
-export default function Header() {
+interface HeaderProps {
+  onMobileMenuToggle?: () => void;
+}
+
+export default function Header({ onMobileMenuToggle }: HeaderProps) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const pageName = pageNames[location] || "Dashboard";
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4" data-testid="header">
+    <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4" data-testid="header">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-800" data-testid="page-title">
-          {pageName}
-        </h1>
+        <div className="flex items-center space-x-3">
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="inline-flex md:hidden"
+            onClick={onMobileMenuToggle}
+            aria-label="Open navigation menu"
+            data-testid="mobile-menu-button"
+          >
+            <Menu className="h-5 w-5 text-gray-600" />
+          </Button>
+          
+          <h1 className="text-xl md:text-2xl font-semibold text-gray-800" data-testid="page-title">
+            {pageName}
+          </h1>
+        </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative" data-testid="notifications-button">
             <Bell className="h-5 w-5 text-gray-400" />

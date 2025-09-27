@@ -3,6 +3,25 @@
 ## Overview
 This is a full-stack restaurant and hotel management application. Its main purpose is to provide comprehensive entity management functionality for both hotels and restaurants, including user management, analytics, and reporting through an intuitive dashboard. It supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics.
 
+## Recent Changes
+Last updated: September 27, 2025
+
+### Import Status - COMPLETE
+- Successfully imported GitHub repository to Replit environment
+- Frontend application is fully configured and running on port 5000
+- All dependencies installed and working properly
+- Vite configuration optimized for Replit proxy (allowedHosts: true, host: 0.0.0.0)
+- Deployment configuration set up for autoscale target
+- External API integration working correctly with development tunnel endpoints
+
+### Import Configuration Details
+- **Project Type**: Frontend-only React application
+- **Build System**: Vite with TypeScript  
+- **Port Configuration**: Frontend on port 5000 (webview output)
+- **Host Configuration**: 0.0.0.0 to work with Replit proxy
+- **API Integration**: External development API endpoints via tunnels
+- **Deployment**: Configured for autoscale with npm build and serve
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Technical preferences:
