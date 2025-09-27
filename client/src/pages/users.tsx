@@ -37,7 +37,8 @@ export default function Users() {
       };
 
       const queryString = buildPaginationQuery(paginationRequest);
-      return await userApi.getUsers(queryString);
+      const response = await userApi.getUsers(queryString);
+      return response as PaginationResponse<UserListItem>;
     }),
   });
 
