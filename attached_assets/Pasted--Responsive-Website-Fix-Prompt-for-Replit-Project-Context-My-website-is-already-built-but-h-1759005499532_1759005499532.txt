@@ -1,0 +1,52 @@
+# Responsive Website Fix Prompt for Replit
+
+**Project Context:** My website is already built but has significant responsiveness issues. Please analyze the entire codebase and refactor it for a flawless mobile and desktop experience.
+
+**Primary Goal:** Achieve complete responsiveness without horizontal scrolling on the main viewport, except where explicitly intended for data tables.
+
+## Specific Requirements:
+
+### 1. Horizontal Scrolling Prevention
+- **Main pages must NOT scroll horizontally** on mobile screens
+- Ensure viewport width is constrained to `100vw`
+- Fix any elements causing overflow beyond viewport boundaries
+
+### 2. Flexible Layout Management
+- Make flex/grid containers use `flex-wrap: wrap`
+- Items should automatically wrap to next rows on small screens
+- Maintain proper spacing and alignment when wrapped
+
+### 3. Data Table Handling
+- Keep tables with many columns **horizontally scrollable**
+- Wrap each table in a container with `overflow-x: auto`
+- Ensure only the table scrolls, not the entire page
+
+### 4. Mobile Navigation Fix
+- Current left-side nav is invisible on mobile
+- Implement hamburger menu that works on all pages
+- Menu should be accessible and toggleable
+- Ensure smooth animation and proper positioning
+
+### 5. Modal/Popup Containment
+- All modals must fit within viewport boundaries
+- Use `max-width: 100vw` and `max-height: 100vh`
+- Prevent cutting off or overflow on any device
+
+### 6. Content Centering
+- Center all main content horizontally
+- Use Flexbox/Grid for proper centering
+- No content should be stuck to left/right edges
+
+## Technical Implementation:
+- **Approach:** Mobile-first CSS with media queries
+- **Units:** Use relative units (`%`, `rem`, `vw/vh`)
+- **Layout:** Flexbox/Grid with proper wrapping
+- **Testing:** Verify on multiple screen sizes
+
+## Files to Audit:
+- All HTML files
+- CSS stylesheets (main and component-specific)
+- JavaScript for interactive elements (modals, navigation)
+- Any framework-specific component files
+
+**Priority:** Fix horizontal scrolling and mobile navigation first, then proceed with other responsiveness issues.
