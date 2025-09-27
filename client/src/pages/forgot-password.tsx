@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ interface ForgotPasswordResponse {
 }
 
 export default function ForgotPassword() {
+  const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
@@ -68,6 +69,10 @@ export default function ForgotPassword() {
       title: "Success",
       description: "Password reset successfully! You can now login with your new password.",
     });
+    // Navigate back to login page
+    setTimeout(() => {
+      setLocation("/login");
+    }, 1500); // Give time for user to see the success message
   };
 
   return (
