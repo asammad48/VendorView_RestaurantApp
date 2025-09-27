@@ -783,16 +783,16 @@ export default function Orders() {
         }} 
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-7" data-testid="main-tabs">
-          <TabsTrigger value="orders" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">
+        <TabsList className="flex flex-wrap w-full gap-1 h-auto p-1" data-testid="main-tabs">
+          <TabsTrigger value="orders" className="flex-1 min-w-0 sm:flex-none sm:w-auto bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4">
             Orders
           </TabsTrigger>
-          <TabsTrigger value="menu" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Menu</TabsTrigger>
-          <TabsTrigger value="tables" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Tables</TabsTrigger>
-          <TabsTrigger value="reservations" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Reservations</TabsTrigger>
-          <TabsTrigger value="deals" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Deals</TabsTrigger>
-          <TabsTrigger value="services" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Services</TabsTrigger>
-          <TabsTrigger value="discounts" className="bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white">Discounts</TabsTrigger>
+          <TabsTrigger value="menu" className="flex-1 min-w-0 sm:flex-none sm:w-auto bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4">Menu</TabsTrigger>
+          <TabsTrigger value="tables" className="flex-1 min-w-0 sm:flex-none sm:w-auto bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4">Tables</TabsTrigger>
+          <TabsTrigger value="reservations" className="flex-1 min-w-0 sm:flex-none sm:w-auto bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4">Reservations</TabsTrigger>
+          <TabsTrigger value="deals" className="flex-1 min-w-0 sm:flex-none sm:w-auto bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4">Deals</TabsTrigger>
+          <TabsTrigger value="services" className="flex-1 min-w-0 sm:flex-none sm:w-auto bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4">Services</TabsTrigger>
+          <TabsTrigger value="discounts" className="flex-1 min-w-0 sm:flex-none sm:w-auto bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4">Discounts</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="space-y-6">
