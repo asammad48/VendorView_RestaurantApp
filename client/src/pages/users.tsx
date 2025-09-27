@@ -27,7 +27,7 @@ export default function Users() {
 
   const { data: usersResponse, isLoading } = useQuery<PaginationResponse<UserListItem>>({
     queryKey: ["users", currentPage, pageSize, nameSearchTerm],
-    queryFn: createApiQuery<PaginationResponse<UserListItem>>(async () => {
+    queryFn: async () => {
       const paginationRequest: PaginationRequest = {
         pageNumber: currentPage,
         pageSize: pageSize,
@@ -38,8 +38,11 @@ export default function Users() {
 
       const queryString = buildPaginationQuery(paginationRequest);
       const response = await userApi.getUsers(queryString);
-      return response as PaginationResponse<UserListItem>;
-    }),
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data as PaginationResponse<UserListItem>;
+    },
   });
 
   const users = usersResponse?.items || [];

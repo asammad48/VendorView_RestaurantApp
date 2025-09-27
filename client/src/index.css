@@ -61,6 +61,14 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Prevent horizontal scrolling on main viewport */
+    overflow-x: hidden;
+  }
+  
+  /* Prevent horizontal overflow on all elements unless explicitly needed */
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 }
 
@@ -151,16 +159,24 @@
 }
 
 .modal-content {
-  width: min(92vw, 40rem);
-  max-height: calc(100svh - 2rem);
+  width: min(95vw, 40rem);
+  max-width: 95vw;
+  max-height: calc(100dvh - 2rem);
   overflow-y: auto;
-  @apply mx-4 p-4 bg-white rounded-lg shadow-xl relative;
+  overflow-x: hidden;
+  @apply mx-2 p-4 bg-white rounded-lg shadow-xl relative;
+}
+
+@media (min-width: 640px) {
+  .modal-content {
+    width: min(90vw, 36rem);
+    @apply mx-4 p-6;
+  }
 }
 
 @media (min-width: 768px) {
   .modal-content {
-    width: min(92vw, 36rem);
-    @apply p-6;
+    width: min(85vw, 40rem);
   }
 }
 
@@ -206,7 +222,7 @@
   @apply text-red-500 hover:text-red-600;
 }
 
-/* Responsive grid layouts */
+/* Responsive grid layouts with flex-wrap fallbacks */
 .stats-grid {
   @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
 }
@@ -217,6 +233,48 @@
 
 .analytics-grid {
   @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
+
+/* Flexible container layouts */
+.flex-container-wrap {
+  @apply flex flex-wrap gap-4;
+}
+
+.flex-container-wrap > * {
+  @apply flex-1 min-w-0;
+}
+
+/* Responsive card containers */
+.card-grid {
+  @apply grid gap-4 grid-cols-1;
+}
+
+@media (min-width: 640px) {
+  .card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+/* Table responsive wrapper improvements */
+.table-responsive {
+  @apply overflow-x-auto;
+  /* Ensure only tables scroll, not entire page */
+  max-width: 100vw;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(156, 163, 175) transparent;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background-color: rgb(156, 163, 175);
+  border-radius: 4px;
 }
 
 /* Loading and error states */
