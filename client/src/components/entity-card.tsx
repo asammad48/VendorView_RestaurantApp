@@ -54,7 +54,10 @@ export default function EntityCard({ entity, onEdit, onDelete, onManage }: Entit
             {entity.name}
           </h3>
           <p className="text-sm text-gray-500 font-medium">
-            {entity.entityType || (entity.type === 1 ? 'Hotel' : 'Restaurant')} Business
+            {(() => {
+              const entityType = entity.entityType || (entity.type === 1 ? 'Hotel' : 'Restaurant');
+              return entityType.charAt(0).toUpperCase() + entityType.slice(1).toLowerCase();
+            })()} Business
           </p>
         </div>
 
@@ -66,7 +69,7 @@ export default function EntityCard({ entity, onEdit, onDelete, onManage }: Entit
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-700">Address</p>
-              <p className="text-sm text-gray-500 line-clamp-2">{entity.address}</p>
+              <p className="text-sm text-gray-500 truncate">{entity.address}</p>
             </div>
           </div>
           
