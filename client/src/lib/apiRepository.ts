@@ -494,7 +494,11 @@ export const API_ENDPOINTS = {
   FEEDBACKS: '/api/feedbacks',
   VENDOR_DASHBOARD_FEEDBACKS: '/api/VendorDashboard/feedbacks',
   TICKETS: '/api/tickets',
+  
+  // Issues Reporting endpoints
   ISSUES_REPORTING: '/api/IssuesReporting',
+  ISSUES_REPORTING_BY_ID: '/api/IssuesReporting/{id}',
+  ISSUES_REPORTING_PAGED: '/api/IssuesReporting/GetIssuesReporting',
 };
 
 // Default API configuration
@@ -632,6 +636,11 @@ export const defaultApiConfig: ApiConfig = {
     getFeedbacks: API_ENDPOINTS.FEEDBACKS,
     getVendorDashboardFeedbacks: API_ENDPOINTS.VENDOR_DASHBOARD_FEEDBACKS,
     getTickets: API_ENDPOINTS.TICKETS,
+    
+    // Issues Reporting endpoints
+    getIssuesReporting: API_ENDPOINTS.ISSUES_REPORTING,
+    getIssuesReportingPaged: API_ENDPOINTS.ISSUES_REPORTING_PAGED,
+    getIssueReportingById: API_ENDPOINTS.ISSUES_REPORTING_BY_ID,
     createIssueReport: API_ENDPOINTS.ISSUES_REPORTING,
   },
 };

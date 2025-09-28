@@ -4,7 +4,7 @@
 This is a full-stack restaurant and hotel management application. Its main purpose is to provide comprehensive entity management functionality for both hotels and restaurants, including user management, analytics, and reporting through an intuitive dashboard. It supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics.
 
 ## Recent Changes
-Last updated: September 27, 2025
+Last updated: September 28, 2025
 
 ### Import Status - COMPLETE
 - Successfully imported GitHub repository to Replit environment
@@ -13,6 +13,17 @@ Last updated: September 27, 2025
 - Vite configuration optimized for Replit proxy (allowedHosts: true, host: 0.0.0.0)
 - Deployment configuration set up for autoscale target
 - External API integration working correctly with development tunnel endpoints
+
+### Issues Reporting API Integration - COMPLETE
+- Integrated real Issues Reporting API with proper pagination support
+- Replaced mock data with live API endpoints using Generic API Repository pattern
+- Added comprehensive view details modal with image/video attachment support
+- Implemented proper pagination controls matching project standards
+- Added API endpoints for GetIssuesReporting (paginated) and individual issue details
+- Enhanced reporting page with real-time search, sorting, and pagination functionality
+- Added loading states, error handling, and proper TypeScript typing
+- Issues display includes ID, date, title, category, status, and severity information
+- Details modal shows complete issue information including attachments and comments
 
 ### Import Configuration Details
 - **Project Type**: Frontend-only React application

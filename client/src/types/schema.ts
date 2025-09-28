@@ -635,3 +635,43 @@ export const insertReservationSchema = z.object({
 });
 
 export type InsertReservation = z.infer<typeof insertReservationSchema>;
+
+// Issues Reporting types based on API response
+export interface IssueReporting {
+  id: number;
+  title: string;
+  description: string;
+  category: number;
+  severity: number;
+  status: number;
+  imageUrls: string[];
+  createdOn: string;
+}
+
+// Detailed Issue for view modal
+export interface IssueReportingDetail {
+  id: number;
+  userId: number;
+  userName: string;
+  title: string;
+  description: string;
+  attachmentUrl: string;
+  category: number;
+  status: number;
+  severity: number;
+  createdDate: string;
+  modifiedDate: string | null;
+  resolutionDate: string | null;
+  comments: string | null;
+}
+
+// Insert schema for creating new issues
+export const insertIssueReportingSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.number().min(1, "Category is required"),
+  severity: z.number().min(1, "Severity is required"),
+  attachmentFile: z.any().optional(), // File
+});
+
+export type InsertIssueReporting = z.infer<typeof insertIssueReportingSchema>;
