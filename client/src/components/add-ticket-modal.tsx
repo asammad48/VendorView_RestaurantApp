@@ -93,7 +93,8 @@ export default function AddTicketModal({ isOpen, onClose, restaurantId }: AddTic
         title: "Success",
         description: "Bug report has been created successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      // Invalidate the Issues Reporting query to refresh the table
+      queryClient.invalidateQueries({ queryKey: ["/api/IssuesReporting"] });
       reset();
       setImageFile(null);
       onClose();

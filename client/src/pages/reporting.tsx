@@ -306,7 +306,7 @@ export default function Reporting() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handlePageChange(pageNum)}
-                className={currentPage === pageNum ? "bg-blue-500 text-white" : "text-gray-600"}
+                className={currentPage === pageNum ? "bg-green-500 text-white hover:bg-green-600" : "text-gray-600"}
                 data-testid={`button-page-${pageNum}`}
               >
                 {pageNum}
