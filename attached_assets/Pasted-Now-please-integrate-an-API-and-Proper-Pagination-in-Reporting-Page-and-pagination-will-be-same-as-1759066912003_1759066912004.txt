@@ -1,0 +1,59 @@
+Now please integrate an API and Proper Pagination in Reporting Page , and pagination will be same as Implement in Project
+For displayinh data in reporting table you need to call an API
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/IssuesReporting/GetIssuesReporting?PageNumber=1&PageSize=10&SortBy=Title&IsAscending=true&SearchTerm=Issu' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU5MDYzNDMyLCJleHAiOjE3NTk2NjgyMzIsImlhdCI6MTc1OTA2MzQzMiwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.yiEv8xgXiZgOrlKXmGAYiqnawsvT_5IaUGAzvNYkdfg'
+
+Response:-
+{
+  "items": [
+    {
+      "id": 1,
+      "title": "Issues in Menu Screen",
+      "description": "Issues in Menu Screen on Phone",
+      "category": 1,
+      "severity": 1,
+      "status": 2,
+      "imageUrls": [
+        "uploads/bug-reports/f52b5d50-e7b6-4e94-a548-68882fd76b90_Profile.jpg"
+      ],
+      "createdOn": "2025-09-28T12:59:07.143418"
+    }
+  ],
+  "pageNumber": 1,
+  "pageSize": 10,
+  "totalCount": 1,
+  "totalPages": 1,
+  "hasPrevious": false,
+  "hasNext": false
+}
+
+Also user can view data of selected issue using the API which is mentoned below
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/IssuesReporting/1' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU5MDYzNDMyLCJleHAiOjE3NTk2NjgyMzIsImlhdCI6MTc1OTA2MzQzMiwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.yiEv8xgXiZgOrlKXmGAYiqnawsvT_5IaUGAzvNYkdfg'
+  
+Response:-
+{
+  "id": 1,
+  "userId": 1,
+  "userName": "Owner",
+  "title": "Issues in Menu Screen",
+  "description": "Issues in Menu Screen on Phone",
+  "attachmentUrl": "uploads/bug-reports/f52b5d50-e7b6-4e94-a548-68882fd76b90_Profile.jpg",
+  "category": 1,
+  "status": 2,
+  "severity": 1,
+  "createdDate": "2025-09-28T12:59:07.143418",
+  "modifiedDate": null,
+  "resolutionDate": null,
+  "comments": null
+}
+
+Also you need to display and image or video in this view details modal
+
+Also please keep in mind that you need to use Generic API repsitory to integrate these APIs

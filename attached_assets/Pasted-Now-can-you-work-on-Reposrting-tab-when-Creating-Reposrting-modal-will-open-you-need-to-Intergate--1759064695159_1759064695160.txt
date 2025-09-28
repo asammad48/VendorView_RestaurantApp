@@ -1,0 +1,85 @@
+Now can you work on Reposrting tab , when Creating Reposrting modal will open you need to Intergate APIs
+1. For Dropdown Bug Severity
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/Generic/bug-severities' \
+  -H 'accept: */*'
+Response:-
+[
+  {
+    "id": 1,
+    "name": "All"
+  },
+  {
+    "id": 2,
+    "name": "Low"
+  },
+  {
+    "id": 3,
+    "name": "Medium"
+  },
+  {
+    "id": 4,
+    "name": "High"
+  },
+  {
+    "id": 5,
+    "name": "Critical"
+  }
+]
+
+2. For Dropdown Bug Category
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/Generic/bug-categories' \
+  -H 'accept: */*'
+Resposne:-
+[
+  {
+    "id": 1,
+    "name": "All"
+  },
+  {
+    "id": 2,
+    "name": "UI"
+  },
+  {
+    "id": 3,
+    "name": "Functional"
+  },
+  {
+    "id": 4,
+    "name": "Performance"
+  },
+  {
+    "id": 5,
+    "name": "Other"
+  }
+]
+
+3. For Creating a Bug you need to integrate an APIs
+Request:-
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/IssuesReporting' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJPd25lciIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwibmJmIjoxNzU5MDYzNDMyLCJleHAiOjE3NTk2NjgyMzIsImlhdCI6MTc1OTA2MzQzMiwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.yiEv8xgXiZgOrlKXmGAYiqnawsvT_5IaUGAzvNYkdfg' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'Title=Issues in Menu Screen' \
+  -F 'Description=Issues in Menu Screen on Phone' \
+  -F 'Attachment=@Profile.jpg;type=image/jpeg' \
+  -F 'Category=1' \
+  -F 'Severity=1'
+Response:-
+{
+  "id": 1,
+  "title": "Issues in Menu Screen",
+  "description": "Issues in Menu Screen on Phone",
+  "attachmentUrl": "uploads/bug-reports/f52b5d50-e7b6-4e94-a548-68882fd76b90_Profile.jpg",
+  "category": 1,
+  "status": 2,
+  "severity": 1,
+  "createdDate": "2025-09-28T12:59:07.1434185Z"
+}
+
+
+Please use Generic API repository to integrate these APIs Please 

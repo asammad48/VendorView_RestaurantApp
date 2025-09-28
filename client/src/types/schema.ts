@@ -345,6 +345,38 @@ export const insertTicketSchema = z.object({
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type Ticket = InsertTicket & { id: string; createdAt: Date; };
 
+// Bug Report types for Issues Reporting API
+export interface BugSeverity {
+  id: number;
+  name: string;
+}
+
+export interface BugCategory {
+  id: number;
+  name: string;
+}
+
+export interface BugReport {
+  id: number;
+  title: string;
+  description: string;
+  attachmentUrl: string;
+  category: number;
+  status: number;
+  severity: number;
+  createdDate: string;
+}
+
+export const insertBugReportSchema = z.object({
+  Title: z.string().min(1, "Title is required"),
+  Description: z.string().min(1, "Description is required"),
+  Category: z.number().min(1, "Category is required"),
+  Severity: z.number().min(1, "Severity is required"),
+  Attachment: z.any().optional(), // File
+});
+
+export type InsertBugReport = z.infer<typeof insertBugReportSchema>;
+
 // Feedback types (matching API response)
 export interface Feedback {
   orderId: number;
@@ -603,3 +635,43 @@ export const insertReservationSchema = z.object({
 });
 
 export type InsertReservation = z.infer<typeof insertReservationSchema>;
+
+// Issues Reporting types based on API response
+export interface IssueReporting {
+  id: number;
+  title: string;
+  description: string;
+  category: number;
+  severity: number;
+  status: number;
+  imageUrls: string[];
+  createdOn: string;
+}
+
+// Detailed Issue for view modal
+export interface IssueReportingDetail {
+  id: number;
+  userId: number;
+  userName: string;
+  title: string;
+  description: string;
+  attachmentUrl: string;
+  category: number;
+  status: number;
+  severity: number;
+  createdDate: string;
+  modifiedDate: string | null;
+  resolutionDate: string | null;
+  comments: string | null;
+}
+
+// Insert schema for creating new issues
+export const insertIssueReportingSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.number().min(1, "Category is required"),
+  severity: z.number().min(1, "Severity is required"),
+  attachmentFile: z.any().optional(), // File
+});
+
+export type InsertIssueReporting = z.infer<typeof insertIssueReportingSchema>;

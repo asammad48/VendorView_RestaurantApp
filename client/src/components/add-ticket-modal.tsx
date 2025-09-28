@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { X, Upload } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -11,17 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { insertTicketSchema } from "@/types/schema";
-import { apiRequest } from "@/lib/queryClient";
+import { insertBugReportSchema, BugCategory, BugSeverity } from "@/types/schema";
+import { genericApi, bugReportingApi } from "@/lib/apiRepository";
 
-const ticketFormSchema = insertTicketSchema.extend({
-  subject: z.string().min(1, "Subject is required"),
-  category: z.string().min(1, "Category is required"),
-  description: z.string().min(1, "Description is required"),
-  image: z.string().optional(),
-});
+const bugReportFormSchema = insertBugReportSchema;
 
-type TicketFormData = z.infer<typeof ticketFormSchema>;
+type BugReportFormData = z.infer<typeof bugReportFormSchema>;
 
 interface AddTicketModalProps {
   isOpen: boolean;
@@ -29,19 +24,28 @@ interface AddTicketModalProps {
   restaurantId?: string;
 }
 
-const TICKET_CATEGORIES = [
-  "Bug Report",
-  "Feature Request",
-  "Technical Issue",
-  "Account Issue",
-  "Payment Issue",
-  "General Inquiry",
-];
-
 export default function AddTicketModal({ isOpen, onClose, restaurantId }: AddTicketModalProps) {
-  const [imageFile, setImageFile] = useState<string>("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch bug categories
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['bug-categories'],
+    queryFn: async () => {
+      const response = await genericApi.getBugCategories();
+      return response.data as BugCategory[] || [];
+    },
+  });
+
+  // Fetch bug severities
+  const { data: severities = [], isLoading: severitiesLoading } = useQuery({
+    queryKey: ['bug-severities'],
+    queryFn: async () => {
+      const response = await genericApi.getBugSeverities();
+      return response.data as BugSeverity[] || [];
+    },
+  });
 
   const {
     register,
@@ -50,37 +54,55 @@ export default function AddTicketModal({ isOpen, onClose, restaurantId }: AddTic
     watch,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<TicketFormData>({
-    resolver: zodResolver(ticketFormSchema),
+  } = useForm<BugReportFormData>({
+    resolver: zodResolver(bugReportFormSchema),
     defaultValues: {
-      subject: "",
-      category: "",
-      description: "",
-      image: "",
-      restaurantId: restaurantId || "",
+      Title: "",
+      Category: 0,
+      Description: "",
+      Severity: 0,
     },
   });
 
-  const categoryValue = watch("category");
+  const categoryValue = watch("Category");
+  const severityValue = watch("Severity");
 
-  const createTicketMutation = useMutation({
-    mutationFn: async (data: TicketFormData) => {
-      return apiRequest("POST", "/api/tickets", data);
+  const createBugReportMutation = useMutation({
+    mutationFn: async (data: BugReportFormData) => {
+      const formData = new FormData();
+      formData.append('Title', data.Title);
+      formData.append('Description', data.Description);
+      formData.append('Category', data.Category.toString());
+      formData.append('Severity', data.Severity.toString());
+      
+      if (imageFile) {
+        formData.append('Attachment', imageFile);
+      }
+      
+      const response = await bugReportingApi.createBugReport(formData);
+      
+      // Check for API errors and throw to trigger React Query's onError
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data;
     },
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Ticket has been created successfully.",
+        description: "Bug report has been created successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      // Invalidate the Issues Reporting query to refresh the table
+      queryClient.invalidateQueries({ queryKey: ["/api/IssuesReporting"] });
       reset();
-      setImageFile("");
+      setImageFile(null);
       onClose();
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create ticket.",
+        description: error instanceof Error ? error.message : "Failed to create bug report.",
         variant: "destructive",
       });
     },
@@ -90,13 +112,7 @@ export default function AddTicketModal({ isOpen, onClose, restaurantId }: AddTic
     const file = event.target.files?.[0];
     if (file) {
       if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const base64 = e.target?.result as string;
-          setImageFile(base64);
-          setValue("image", base64);
-        };
-        reader.readAsDataURL(file);
+        setImageFile(file);
       } else {
         toast({
           title: "Invalid file type",
@@ -107,8 +123,8 @@ export default function AddTicketModal({ isOpen, onClose, restaurantId }: AddTic
     }
   };
 
-  const onSubmit = (data: TicketFormData) => {
-    createTicketMutation.mutate(data);
+  const onSubmit = (data: BugReportFormData) => {
+    createBugReportMutation.mutate(data);
   };
 
   if (!isOpen) return null;
@@ -126,58 +142,87 @@ export default function AddTicketModal({ isOpen, onClose, restaurantId }: AddTic
         </button>
 
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-center" data-testid="modal-title">Add ticket</h2>
+          <h2 className="text-xl font-semibold text-center" data-testid="modal-title">Report Issue</h2>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="subject" className="text-sm font-medium">
-              Subject
+            <Label htmlFor="Title" className="text-sm font-medium">
+              Title
             </Label>
             <Input
-              id="subject"
-              {...register("subject")}
+              id="Title"
+              {...register("Title")}
               className="mt-1"
-              data-testid="input-subject"
+              data-testid="input-title"
             />
-            {errors.subject && (
-              <p className="text-sm text-red-600 mt-1">{errors.subject.message}</p>
+            {errors.Title && (
+              <p className="text-sm text-red-600 mt-1">{errors.Title.message}</p>
             )}
           </div>
 
           <div>
-            <Label htmlFor="category" className="text-sm font-medium">
+            <Label htmlFor="Category" className="text-sm font-medium">
               Category
             </Label>
-            <Select value={categoryValue} onValueChange={(value) => setValue("category", value)}>
+            <Select value={categoryValue?.toString()} onValueChange={(value) => setValue("Category", parseInt(value))}>
               <SelectTrigger className="mt-1" data-testid="select-category">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                {TICKET_CATEGORIES.map((category) => (
-                  <SelectItem key={category} value={category} data-testid={`option-category-${category.toLowerCase().replace(/\s+/g, '-')}`}>
-                    {category}
-                  </SelectItem>
-                ))}
+                {categoriesLoading ? (
+                  <SelectItem value="loading" disabled data-testid="option-loading">Loading...</SelectItem>
+                ) : (
+                  categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id.toString()} data-testid={`option-category-${category.id}`}>
+                      {category.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
-            {errors.category && (
-              <p className="text-sm text-red-600 mt-1">{errors.category.message}</p>
+            {errors.Category && (
+              <p className="text-sm text-red-600 mt-1">{errors.Category.message}</p>
             )}
           </div>
 
           <div>
-            <Label htmlFor="description" className="text-sm font-medium">
+            <Label htmlFor="Severity" className="text-sm font-medium">
+              Severity
+            </Label>
+            <Select value={severityValue?.toString()} onValueChange={(value) => setValue("Severity", parseInt(value))}>
+              <SelectTrigger className="mt-1" data-testid="select-severity">
+                <SelectValue placeholder="Select severity" />
+              </SelectTrigger>
+              <SelectContent>
+                {severitiesLoading ? (
+                  <SelectItem value="loading" disabled data-testid="option-loading">Loading...</SelectItem>
+                ) : (
+                  severities.map((severity) => (
+                    <SelectItem key={severity.id} value={severity.id.toString()} data-testid={`option-severity-${severity.id}`}>
+                      {severity.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            {errors.Severity && (
+              <p className="text-sm text-red-600 mt-1">{errors.Severity.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="Description" className="text-sm font-medium">
               Description
             </Label>
             <Textarea
-              id="description"
-              {...register("description")}
+              id="Description"
+              {...register("Description")}
               className="mt-1 min-h-[100px]"
               data-testid="textarea-description"
             />
-            {errors.description && (
-              <p className="text-sm text-red-600 mt-1">{errors.description.message}</p>
+            {errors.Description && (
+              <p className="text-sm text-red-600 mt-1">{errors.Description.message}</p>
             )}
           </div>
 
@@ -199,7 +244,7 @@ export default function AddTicketModal({ isOpen, onClose, restaurantId }: AddTic
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md cursor-pointer text-sm text-gray-500 hover:border-gray-400"
                 data-testid="label-choose-file"
               >
-                {imageFile ? "Image selected" : "Choose File"}
+                {imageFile ? imageFile.name : "Choose File"}
               </Label>
               <Button
                 type="button"
@@ -217,10 +262,10 @@ export default function AddTicketModal({ isOpen, onClose, restaurantId }: AddTic
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-24 bg-emerald-500 hover:bg-emerald-600 text-white"
-              data-testid="button-add-ticket"
+              className="w-32 bg-emerald-500 hover:bg-emerald-600 text-white"
+              data-testid="button-submit-report"
             >
-              {isSubmitting ? "Adding..." : "Add"}
+              {isSubmitting ? "Submitting..." : "Submit Report"}
             </Button>
           </div>
         </form>
