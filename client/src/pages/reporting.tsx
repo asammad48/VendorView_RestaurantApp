@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import AddTicketModal from "@/components/add-ticket-modal";
-import { Ticket } from "@shared/schema";
+import { Ticket } from "@/types/schema";
 
 export default function Reporting() {
   const [isAddTicketModalOpen, setIsAddTicketModalOpen] = useState(false);
@@ -31,52 +31,47 @@ export default function Reporting() {
   const mockTickets: Ticket[] = [
     {
       id: "12345",
-      subject: "Bug Report",
-      category: "Bug Report",
+      title: "Bug Report - System Error",
+      type: "bug",
+      priority: "high",
       description: "Found a bug in the system",
-      image: null,
-      status: "in_progress",
-      restaurantId: "rest-1",
+      status: "open",
       createdAt: new Date("2025-04-24"),
     },
     {
       id: "12346",
-      subject: "Bug Report",
-      category: "Bug Report", 
+      title: "Bug Report - UI Issue",
+      type: "bug",
+      priority: "medium", 
       description: "Another bug found",
-      image: null,
-      status: "in_progress",
-      restaurantId: "rest-1",
+      status: "open",
       createdAt: new Date("2025-04-24"),
     },
     {
       id: "12347",
-      subject: "Bug Report",
-      category: "Bug Report",
+      title: "Bug Report - Performance",
+      type: "bug",
+      priority: "low",
       description: "Yet another bug",
-      image: null,
-      status: "in_progress",
-      restaurantId: "rest-1",
+      status: "open",
       createdAt: new Date("2025-04-24"),
     },
     {
       id: "12348",
-      subject: "Bug Report",
-      category: "Bug Report",
+      title: "Feature Request - New Function",
+      type: "feature",
+      priority: "medium",
       description: "More bugs to fix",
-      image: null,
-      status: "in_progress",
-      restaurantId: "rest-1",
+      status: "open",
       createdAt: new Date("2025-04-24"),
     },
     {
       id: "12349",
-      subject: "Bug Report",
-      category: "Bug Report",
+      title: "Support Request - Help Needed",
+      type: "support",
+      priority: "urgent",
       description: "Final bug report",
-      image: null,
-      status: "in_progress",
-      restaurantId: "rest-1",
+      status: "open",
       createdAt: new Date("2025-04-24"),
     },
   ];
@@ -90,8 +85,8 @@ export default function Reporting() {
   });
 
   const filteredTickets = tickets?.filter(ticket =>
-    ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.category.toLowerCase().includes(searchTerm.toLowerCase())
+    ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ticket.type.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   const formatDate = (date: Date) => {
@@ -104,14 +99,14 @@ export default function Reporting() {
 
   const getStatusBadge = (status: string) => {
     const statusColors = {
-      in_progress: "bg-orange-100 text-orange-800",
+      open: "bg-orange-100 text-orange-800",
       resolved: "bg-green-100 text-green-800",
       closed: "bg-gray-100 text-gray-800",
     };
 
     return (
-      <Badge className={statusColors[status as keyof typeof statusColors]} data-testid={`status-${status}`}>
-        {status === "in_progress" ? "in progress" : status}
+      <Badge className={statusColors[status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"} data-testid={`status-${status}`}>
+        {status}
       </Badge>
     );
   };
@@ -179,7 +174,7 @@ export default function Reporting() {
                       {ticket.createdAt ? formatDate(ticket.createdAt) : 'N/A'}
                     </TableCell>
                     <TableCell className="text-left" data-testid={`ticket-subject-${ticket.id}`}>
-                      {ticket.subject}
+                      {ticket.title}
                     </TableCell>
                     <TableCell className="text-left">
                       {getStatusBadge(ticket.status)}

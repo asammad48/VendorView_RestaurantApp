@@ -345,6 +345,38 @@ export const insertTicketSchema = z.object({
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type Ticket = InsertTicket & { id: string; createdAt: Date; };
 
+// Bug Report types for Issues Reporting API
+export interface BugSeverity {
+  id: number;
+  name: string;
+}
+
+export interface BugCategory {
+  id: number;
+  name: string;
+}
+
+export interface BugReport {
+  id: number;
+  title: string;
+  description: string;
+  attachmentUrl: string;
+  category: number;
+  status: number;
+  severity: number;
+  createdDate: string;
+}
+
+export const insertBugReportSchema = z.object({
+  Title: z.string().min(1, "Title is required"),
+  Description: z.string().min(1, "Description is required"),
+  Category: z.number().min(1, "Category is required"),
+  Severity: z.number().min(1, "Severity is required"),
+  Attachment: z.any().optional(), // File
+});
+
+export type InsertBugReport = z.infer<typeof insertBugReportSchema>;
+
 // Feedback types (matching API response)
 export interface Feedback {
   orderId: number;

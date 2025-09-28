@@ -414,6 +414,8 @@ export const API_ENDPOINTS = {
   ORDER_STATUS_TYPES: '/api/Generic/orderstatustype',
   RESERVATION_STATUS_TYPES: '/api/Generic/reservationstatustype',
   ALLERGENS: '/api/Generic/allergens',
+  BUG_SEVERITIES: '/api/Generic/bug-severities',
+  BUG_CATEGORIES: '/api/Generic/bug-categories',
   
   // Entity endpoints
   ENTITIES: '/api/Entity',
@@ -492,6 +494,7 @@ export const API_ENDPOINTS = {
   FEEDBACKS: '/api/feedbacks',
   VENDOR_DASHBOARD_FEEDBACKS: '/api/VendorDashboard/feedbacks',
   TICKETS: '/api/tickets',
+  ISSUES_REPORTING: '/api/IssuesReporting',
 };
 
 // Default API configuration
@@ -525,6 +528,8 @@ export const defaultApiConfig: ApiConfig = {
     getOrderStatusTypes: API_ENDPOINTS.ORDER_STATUS_TYPES,
     getReservationStatusTypes: API_ENDPOINTS.RESERVATION_STATUS_TYPES,
     getAllergens: API_ENDPOINTS.ALLERGENS,
+    getBugSeverities: API_ENDPOINTS.BUG_SEVERITIES,
+    getBugCategories: API_ENDPOINTS.BUG_CATEGORIES,
     getServicesByType: API_ENDPOINTS.SERVICES_BY_TYPE,
     getBranchServices: API_ENDPOINTS.BRANCH_SERVICES,
     updateBranchServices: API_ENDPOINTS.BRANCH_SERVICES,
@@ -627,6 +632,7 @@ export const defaultApiConfig: ApiConfig = {
     getFeedbacks: API_ENDPOINTS.FEEDBACKS,
     getVendorDashboardFeedbacks: API_ENDPOINTS.VENDOR_DASHBOARD_FEEDBACKS,
     getTickets: API_ENDPOINTS.TICKETS,
+    createIssueReport: API_ENDPOINTS.ISSUES_REPORTING,
   },
 };
 
@@ -844,6 +850,16 @@ export const genericApi = {
   getReservationStatusTypes: async () => {
     return await apiRepository.call('getReservationStatusTypes', 'GET', undefined, {}, false);
   },
+
+  // Get bug severities
+  getBugSeverities: async () => {
+    return await apiRepository.call('getBugSeverities', 'GET', undefined, {}, false);
+  },
+
+  // Get bug categories
+  getBugCategories: async () => {
+    return await apiRepository.call('getBugCategories', 'GET', undefined, {}, false);
+  },
 };
 
 // Location/Table API Helper Functions
@@ -871,6 +887,14 @@ export const locationApi = {
   // Delete location
   deleteLocation: async (locationId: string) => {
     return await apiRepository.call('deleteLocation', 'DELETE', undefined, {}, true, { id: locationId });
+  },
+};
+
+// Bug Reporting API Helper Functions
+export const bugReportingApi = {
+  // Create bug report with FormData
+  createBugReport: async (formData: FormData) => {
+    return await apiRepository.call('createIssueReport', 'POST', formData);
   },
 };
 
