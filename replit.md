@@ -4,7 +4,15 @@
 This is a full-stack restaurant and hotel management application. Its main purpose is to provide comprehensive entity management functionality for both hotels and restaurants, including user management, analytics, and reporting through an intuitive dashboard. It supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics.
 
 ## Recent Changes
-Last updated: September 28, 2025
+Last updated: September 30, 2025
+
+### localStorage Consistency Fix - COMPLETE
+- Fixed inconsistent localStorage usage across authentication and user management
+- Consolidated user data storage to single source of truth: `STORAGE_KEYS.CURRENT_USER`
+- Removed redundant individual field storage (auth_token, user_email, user_mobile, user_fullname, user_profile_picture, user_roles, user_role)
+- Standardized token storage to access_token and refresh_token only (managed by ApiRepository)
+- Fixed update-profile-modal to use consistent storage keys
+- Eliminated data synchronization issues and improved maintainability
 
 ### Import Status - COMPLETE
 - Successfully imported GitHub repository to Replit environment

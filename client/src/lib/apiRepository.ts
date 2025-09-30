@@ -31,7 +31,7 @@ export class ApiRepository {
 
   // Load tokens from localStorage
   private loadTokensFromStorage() {
-    this.accessToken = localStorage.getItem('access_token') || localStorage.getItem('auth_token');
+    this.accessToken = localStorage.getItem('access_token');
     this.refreshToken = localStorage.getItem('refresh_token');
   }
 

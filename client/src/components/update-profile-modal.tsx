@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRepository } from "@/lib/apiRepository";
 import { useAuth } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
+import { STORAGE_KEYS } from "@/data/mockData";
 
 // Validation schema for profile update
 const profileUpdateSchema = z.object({
@@ -92,7 +93,7 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
       
       // Update localStorage with new user data
       const apiData = data as any;
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || '{}');
       const updatedUser = {
         ...currentUser,
         fullName: apiData.name,
@@ -100,10 +101,7 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
         mobileNumber: apiData.mobileNumber,
         profilePicture: apiData.profilePicture,
       };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      localStorage.setItem('user_fullname', apiData.name);
-      localStorage.setItem('user_mobile', apiData.mobileNumber);
-      localStorage.setItem('user_profile_picture', apiData.profilePicture || '');
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(updatedUser));
       
       // Refresh the user in auth context
       await refreshUser();
