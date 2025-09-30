@@ -18,16 +18,40 @@ import { getProfilePictureUrl, isTextAvatar } from "@/lib/imageUtils";
 
 // Validation schema for profile update
 const profileUpdateSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
-  mobileNumber: z.string().min(1, "Mobile number is required").regex(/^\+?[\d\s\-\(\)]{7,15}$/, "Please enter a valid mobile number"),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100, "Name must be less than 100 characters"),
+  mobileNumber: z
+    .string()
+    .min(1, "Mobile number is required")
+    .regex(/^\+?[\d\s\-\(\)]{7,15}$/, "Please enter a valid mobile number"),
 });
 
 type ProfileUpdateFormData = z.infer<typeof profileUpdateSchema>;
 
 // Avatar options for selection
 const avatarOptions = [
-  "👤", "👨", "👩", "🧑", "👶", "👦", "👧", "🧓", "👴", "👵",
-  "🤵", "👰", "🕴️", "💼", "👨‍💻", "👩‍💻", "👨‍🍳", "👩‍🍳", "👨‍🎨", "👩‍🎨"
+  "👤",
+  "👨",
+  "👩",
+  "🧑",
+  "👶",
+  "👦",
+  "👧",
+  "🧓",
+  "👴",
+  "👵",
+  "🤵",
+  "👰",
+  "🕴️",
+  "💼",
+  "👨‍💻",
+  "👩‍💻",
+  "👨‍🍳",
+  "👩‍🍳",
+  "👨‍🎨",
+  "👩‍🎨",
 ];
 
 interface UpdateProfileModalProps {
@@ -35,8 +59,13 @@ interface UpdateProfileModalProps {
   onClose: () => void;
 }
 
-export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileModalProps) {
-  const [profilePicture, setProfilePicture] = useState<File | string | null>(null);
+export default function UpdateProfileModal({
+  isOpen,
+  onClose,
+}: UpdateProfileModalProps) {
+  const [profilePicture, setProfilePicture] = useState<File | string | null>(
+    null,
+  );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [useAvatar, setUseAvatar] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string>("");
@@ -51,7 +80,7 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
   } = useForm<ProfileUpdateFormData>({
     resolver: zodResolver(profileUpdateSchema),
     defaultValues: {
-      name: user?.fullName || user?.name || "",
+      name: user?.fullName || "",
       mobileNumber: user?.mobileNumber || "",
     },
   });
@@ -60,24 +89,24 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileUpdateFormData) => {
       const formData = new FormData();
-      formData.append('Name', data.name);
-      formData.append('MobileNumber', data.mobileNumber);
-      
+      formData.append("Name", data.name);
+      formData.append("MobileNumber", data.mobileNumber);
+
       if (useAvatar && selectedAvatar) {
         // For avatar selection, we'll create a simple text file with the avatar emoji
-        const avatarBlob = new Blob([selectedAvatar], { type: 'text/plain' });
-        formData.append('ProfilePicture', avatarBlob, 'avatar.txt');
+        const avatarBlob = new Blob([selectedAvatar], { type: "text/plain" });
+        formData.append("ProfilePicture", avatarBlob, "avatar.txt");
       } else if (profilePicture instanceof File) {
-        formData.append('ProfilePicture', profilePicture);
+        formData.append("ProfilePicture", profilePicture);
       }
 
       // Call the profile update API
       const response = await apiRepository.call(
-        'updateUserProfile',
-        'PUT',
+        "updateUserProfile",
+        "PUT",
         formData,
         {},
-        true // requires authentication
+        true, // requires authentication
       );
 
       if (response.error) {
@@ -91,26 +120,31 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
         title: "Success",
         description: "Profile updated successfully.",
       });
-      
+
       // Update localStorage with new user data
       const apiData = data as any;
-      const currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || '{}');
+      const currentUser = JSON.parse(
+        localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || "{}",
+      );
       const updatedUser = {
         ...currentUser,
         fullName: apiData.name,
         mobileNumber: apiData.mobileNumber,
         profilePicture: apiData.profilePicture,
       };
-      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(updatedUser));
-      
+      localStorage.setItem(
+        STORAGE_KEYS.CURRENT_USER,
+        JSON.stringify(updatedUser),
+      );
+
       // Refresh the user in auth context
       await refreshUser();
-      
+
       // Invalidate relevant queries to keep caches coherent
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+
       reset();
       setProfilePicture(null);
       setPreviewUrl(null);
@@ -121,7 +155,8 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
     onError: (error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update profile.",
+        description:
+          error instanceof Error ? error.message : "Failed to update profile.",
         variant: "destructive",
       });
     },
@@ -169,20 +204,24 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
   // Get the appropriate display value for profile picture
   const getProfilePictureDisplay = () => {
     // If user uploaded a new image, show preview
-    if (previewUrl) return { type: 'image', value: previewUrl };
+    if (previewUrl) return { type: "image", value: previewUrl };
     // If user selected an emoji avatar
-    if (useAvatar && selectedAvatar) return { type: 'text', value: selectedAvatar };
+    if (useAvatar && selectedAvatar)
+      return { type: "text", value: selectedAvatar };
     // Otherwise show current user profile picture
     if (isTextAvatar(user?.profilePicture)) {
-      return { type: 'text', value: user?.profilePicture };
+      return { type: "text", value: user?.profilePicture };
     }
-    return { type: 'image', value: getProfilePictureUrl(user?.profilePicture) };
+    return { type: "image", value: getProfilePictureUrl(user?.profilePicture) };
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto" data-testid="update-profile-modal">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto"
+      data-testid="update-profile-modal"
+    >
       <div className="min-h-screen w-full flex items-center justify-center p-4">
         <Card className="w-full max-w-lg p-6 bg-white relative my-8">
           <button
@@ -194,7 +233,12 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
           </button>
 
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-center" data-testid="modal-title">Update Profile</h2>
+            <h2
+              className="text-xl font-semibold text-center"
+              data-testid="modal-title"
+            >
+              Update Profile
+            </h2>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -204,7 +248,7 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
                 <Avatar className="h-20 w-20">
                   {(() => {
                     const display = getProfilePictureDisplay();
-                    if (display.type === 'text') {
+                    if (display.type === "text") {
                       return (
                         <div className="h-full w-full flex items-center justify-center text-3xl bg-gray-100">
                           {display.value}
@@ -217,9 +261,13 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
                             <AvatarImage src={display.value} alt="Profile" />
                           )}
                           <AvatarFallback className="bg-green-500 text-white text-xl">
-                            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 
-                             user?.name ? user.name.charAt(0).toUpperCase() : 
-                             <User className="h-8 w-8" />}
+                            {user?.fullName ? (
+                              user.fullName.charAt(0).toUpperCase()
+                            ) : user?.name ? (
+                              user.name.charAt(0).toUpperCase()
+                            ) : (
+                              <User className="h-8 w-8" />
+                            )}
                           </AvatarFallback>
                         </>
                       );
@@ -241,7 +289,9 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
                 data-testid="input-name"
               />
               {errors.name && (
-                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -259,7 +309,9 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
                 data-testid="input-mobile"
               />
               {errors.mobileNumber && (
-                <p className="text-sm text-red-600 mt-1">{errors.mobileNumber.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.mobileNumber.message}
+                </p>
               )}
             </div>
 
@@ -268,7 +320,7 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
               <Label className="text-sm font-medium mb-3 block">
                 Profile Picture
               </Label>
-              
+
               {/* File Upload Option */}
               <div className="mb-4">
                 <div className="flex items-center space-x-2">
@@ -285,13 +337,17 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md cursor-pointer text-sm text-gray-500 hover:border-gray-400 text-center"
                     data-testid="label-choose-file"
                   >
-                    {profilePicture instanceof File ? profilePicture.name : "Choose Image File"}
+                    {profilePicture instanceof File
+                      ? profilePicture.name
+                      : "Choose Image File"}
                   </Label>
                   <Button
                     type="button"
                     variant="outline"
                     className="bg-green-500 text-white hover:bg-green-600 border-green-500"
-                    onClick={() => document.getElementById("profilePicture")?.click()}
+                    onClick={() =>
+                      document.getElementById("profilePicture")?.click()
+                    }
                     data-testid="button-browse"
                   >
                     <Upload className="w-4 h-4 mr-2" />
@@ -312,7 +368,9 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
                       type="button"
                       onClick={() => handleAvatarSelect(avatar)}
                       className={`w-8 h-8 text-lg hover:bg-gray-200 rounded ${
-                        selectedAvatar === avatar ? 'bg-green-200 ring-2 ring-green-500' : ''
+                        selectedAvatar === avatar
+                          ? "bg-green-200 ring-2 ring-green-500"
+                          : ""
                       }`}
                       data-testid={`avatar-option-${index}`}
                     >
@@ -331,7 +389,9 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
                 className="w-40 bg-green-500 hover:bg-green-600 text-white"
                 data-testid="button-update-profile"
               >
-                {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
+                {updateProfileMutation.isPending
+                  ? "Updating..."
+                  : "Update Profile"}
               </Button>
             </div>
           </form>
