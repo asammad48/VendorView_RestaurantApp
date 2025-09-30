@@ -14,6 +14,7 @@ import { apiRepository } from "@/lib/apiRepository";
 import { useAuth } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
 import { STORAGE_KEYS } from "@/data/mockData";
+import { getProfilePictureUrl, isTextAvatar } from "@/lib/imageUtils";
 
 // Validation schema for profile update
 const profileUpdateSchema = z.object({
@@ -97,7 +98,6 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
       const updatedUser = {
         ...currentUser,
         fullName: apiData.name,
-        name: apiData.name,
         mobileNumber: apiData.mobileNumber,
         profilePicture: apiData.profilePicture,
       };
@@ -159,7 +159,12 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
   const getCurrentProfilePicture = () => {
     if (previewUrl) return previewUrl;
     if (useAvatar && selectedAvatar) return null; // Will show avatar emoji instead
-    return user?.profilePicture || null;
+    return getProfilePictureUrl(user?.profilePicture);
+  };
+
+  const shouldShowTextAvatar = () => {
+    if (useAvatar && selectedAvatar) return true;
+    return !previewUrl && isTextAvatar(user?.profilePicture);
   };
 
   if (!isOpen) return null;
@@ -185,9 +190,9 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
             <div className="flex justify-center mb-4">
               <div className="relative">
                 <Avatar className="h-20 w-20">
-                  {useAvatar && selectedAvatar ? (
+                  {shouldShowTextAvatar() ? (
                     <div className="h-full w-full flex items-center justify-center text-3xl bg-gray-100">
-                      {selectedAvatar}
+                      {selectedAvatar || user?.profilePicture}
                     </div>
                   ) : (
                     <>

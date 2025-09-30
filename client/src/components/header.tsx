@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
 import UpdateProfileModal from "./update-profile-modal";
+import { getProfilePictureUrl, isTextAvatar } from "@/lib/imageUtils";
 
 const pageNames: Record<string, string> = {
   "/": "Dashboard",
@@ -60,17 +61,25 @@ export default function Header({ onMobileMenuToggle }: HeaderProps) {
                 data-testid="profile-button"
               >
                 <Avatar className="h-8 w-8">
-                  {user?.profilePicture && (
-                    <AvatarImage src={user.profilePicture} alt={user.fullName || user.name} />
+                  {isTextAvatar(user?.profilePicture) ? (
+                    <div className="h-full w-full flex items-center justify-center text-lg bg-gray-100">
+                      {user?.profilePicture}
+                    </div>
+                  ) : (
+                    <>
+                      {getProfilePictureUrl(user?.profilePicture) && (
+                        <AvatarImage src={getProfilePictureUrl(user?.profilePicture)!} alt={user?.fullName || user?.name} />
+                      )}
+                      <AvatarFallback 
+                        data-testid="avatar-fallback"
+                        className="bg-green-500 text-white font-medium"
+                      >
+                        {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 
+                         user?.name ? user.name.charAt(0).toUpperCase() : 
+                         <User className="h-4 w-4" />}
+                      </AvatarFallback>
+                    </>
                   )}
-                  <AvatarFallback 
-                    data-testid="avatar-fallback"
-                    className="bg-green-500 text-white font-medium"
-                  >
-                    {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 
-                     user?.name ? user.name.charAt(0).toUpperCase() : 
-                     <User className="h-4 w-4" />}
-                  </AvatarFallback>
                 </Avatar>
                 {user && (
                   <span className="hidden md:block" data-testid="user-name">
