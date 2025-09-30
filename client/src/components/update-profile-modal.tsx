@@ -156,15 +156,27 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
     updateProfileMutation.mutate(data);
   };
 
-  const getCurrentProfilePicture = () => {
-    if (previewUrl) return previewUrl;
-    if (useAvatar && selectedAvatar) return null; // Will show avatar emoji instead
-    return getProfilePictureUrl(user?.profilePicture);
+  // Check if we should show text avatar (emoji) or image
+  const shouldShowTextAvatar = () => {
+    // If user selected an emoji avatar
+    if (useAvatar && selectedAvatar) return true;
+    // If there's a preview (uploaded new image), don't show text
+    if (previewUrl) return false;
+    // Otherwise check if current user profile picture is text
+    return isTextAvatar(user?.profilePicture);
   };
 
-  const shouldShowTextAvatar = () => {
-    if (useAvatar && selectedAvatar) return true;
-    return !previewUrl && isTextAvatar(user?.profilePicture);
+  // Get the appropriate display value for profile picture
+  const getProfilePictureDisplay = () => {
+    // If user uploaded a new image, show preview
+    if (previewUrl) return { type: 'image', value: previewUrl };
+    // If user selected an emoji avatar
+    if (useAvatar && selectedAvatar) return { type: 'text', value: selectedAvatar };
+    // Otherwise show current user profile picture
+    if (isTextAvatar(user?.profilePicture)) {
+      return { type: 'text', value: user?.profilePicture };
+    }
+    return { type: 'image', value: getProfilePictureUrl(user?.profilePicture) };
   };
 
   if (!isOpen) return null;
@@ -190,22 +202,29 @@ export default function UpdateProfileModal({ isOpen, onClose }: UpdateProfileMod
             <div className="flex justify-center mb-4">
               <div className="relative">
                 <Avatar className="h-20 w-20">
-                  {shouldShowTextAvatar() ? (
-                    <div className="h-full w-full flex items-center justify-center text-3xl bg-gray-100">
-                      {selectedAvatar || user?.profilePicture}
-                    </div>
-                  ) : (
-                    <>
-                      {getCurrentProfilePicture() && (
-                        <AvatarImage src={getCurrentProfilePicture()!} alt="Profile" />
-                      )}
-                      <AvatarFallback className="bg-green-500 text-white text-xl">
-                        {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 
-                         user?.name ? user.name.charAt(0).toUpperCase() : 
-                         <User className="h-8 w-8" />}
-                      </AvatarFallback>
-                    </>
-                  )}
+                  {(() => {
+                    const display = getProfilePictureDisplay();
+                    if (display.type === 'text') {
+                      return (
+                        <div className="h-full w-full flex items-center justify-center text-3xl bg-gray-100">
+                          {display.value}
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <>
+                          {display.value && (
+                            <AvatarImage src={display.value} alt="Profile" />
+                          )}
+                          <AvatarFallback className="bg-green-500 text-white text-xl">
+                            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 
+                             user?.name ? user.name.charAt(0).toUpperCase() : 
+                             <User className="h-8 w-8" />}
+                          </AvatarFallback>
+                        </>
+                      );
+                    }
+                  })()}
                 </Avatar>
               </div>
             </div>
