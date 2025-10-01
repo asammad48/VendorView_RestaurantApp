@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (userData: any) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -115,11 +116,21 @@ export function useAuthState() {
     setUser(null);
   };
 
+  const refreshUser = async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Error refreshing user:", error);
+    }
+  };
+
   return {
     user,
     login,
     signup,
     logout,
+    refreshUser,
     isLoading,
   };
 }

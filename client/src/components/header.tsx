@@ -1,10 +1,14 @@
 import { useLocation } from "wouter";
-import { Search, Bell, User, Menu } from "lucide-react";
+import { useState } from "react";
+import { Search, Bell, User, Menu, ChevronDown, UserCog, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
+import UpdateProfileModal from "./update-profile-modal";
+import { getProfilePictureUrl, isTextAvatar } from "@/lib/imageUtils";
 
 const pageNames: Record<string, string> = {
   "/": "Dashboard",
@@ -23,6 +27,7 @@ interface HeaderProps {
 export default function Header({ onMobileMenuToggle }: HeaderProps) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const [isUpdateProfileModalOpen, setIsUpdateProfileModalOpen] = useState(false);
   const pageName = pageNames[location] || "Dashboard";
 
   return (
@@ -47,48 +52,70 @@ export default function Header({ onMobileMenuToggle }: HeaderProps) {
         </div>
         
         <div className="flex items-center space-x-2 md:space-x-4">
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative" data-testid="notifications-button">
-            <Bell className="h-5 w-5 text-gray-400" />
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs flex items-center justify-center p-0"
-              data-testid="notification-badge"
-            >
-              3
-            </Badge>
-          </Button>
-          
           {/* Profile */}
-          <div className="relative" data-testid="profile-menu">
-            <Button
-              variant="ghost"
-              className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              onClick={() => logout()}
-              data-testid="profile-button"
-            >
-              <Avatar className="h-8 w-8">
-                {user?.profilePicture && (
-                  <AvatarImage src={user.profilePicture} alt={user.fullName || user.name} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild data-testid="profile-menu">
+              <Button
+                variant="ghost"
+                className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                data-testid="profile-button"
+              >
+                <Avatar className="h-8 w-8">
+                  {isTextAvatar(user?.profilePicture) ? (
+                    <div className="h-full w-full flex items-center justify-center text-lg bg-gray-100">
+                      {user?.profilePicture}
+                    </div>
+                  ) : (
+                    <>
+                      {getProfilePictureUrl(user?.profilePicture) && (
+                        <AvatarImage src={getProfilePictureUrl(user?.profilePicture)!} alt={user?.fullName || user?.name} />
+                      )}
+                      <AvatarFallback 
+                        data-testid="avatar-fallback"
+                        className="bg-green-500 text-white font-medium"
+                      >
+                        {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 
+                         user?.name ? user.name.charAt(0).toUpperCase() : 
+                         <User className="h-4 w-4" />}
+                      </AvatarFallback>
+                    </>
+                  )}
+                </Avatar>
+                {user && (
+                  <span className="hidden md:block" data-testid="user-name">
+                    {user.fullName || user.name || user.email}
+                  </span>
                 )}
-                <AvatarFallback 
-                  data-testid="avatar-fallback"
-                  className="bg-green-500 text-white font-medium"
-                >
-                  {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 
-                   user?.name ? user.name.charAt(0).toUpperCase() : 
-                   <User className="h-4 w-4" />}
-                </AvatarFallback>
-              </Avatar>
-              {user && (
-                <span className="hidden md:block" data-testid="user-name">
-                  {user.fullName || user.name || user.email}
-                </span>
-              )}
-            </Button>
-          </div>
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56" data-testid="profile-dropdown">
+              <DropdownMenuItem
+                onClick={() => setIsUpdateProfileModalOpen(true)}
+                className="flex items-center gap-2 cursor-pointer"
+                data-testid="update-profile-item"
+              >
+                <UserCog className="h-4 w-4" />
+                Update Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={logout}
+                className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600"
+                data-testid="logout-item"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+      
+      {/* Update Profile Modal */}
+      <UpdateProfileModal
+        isOpen={isUpdateProfileModalOpen}
+        onClose={() => setIsUpdateProfileModalOpen(false)}
+      />
     </header>
   );
 }

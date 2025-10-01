@@ -17,7 +17,6 @@ export const navigationItems = [
     name: "Entities",
     href: "/entities",
     icon: Building2,
-    badge: "4",
   },
   {
     name: "Analytics",

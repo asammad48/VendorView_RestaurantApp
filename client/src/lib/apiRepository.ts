@@ -31,7 +31,7 @@ export class ApiRepository {
 
   // Load tokens from localStorage
   private loadTokensFromStorage() {
-    this.accessToken = localStorage.getItem('access_token') || localStorage.getItem('auth_token');
+    this.accessToken = localStorage.getItem('access_token');
     this.refreshToken = localStorage.getItem('refresh_token');
   }
 
@@ -405,6 +405,7 @@ export const API_ENDPOINTS = {
   UPDATE_USER: '/api/User/user',
   DELETE_USER: '/api/User/user/{id}',
   CHEF_BRANCH: '/api/User/chef/branch',
+  UPDATE_USER_PROFILE: '/api/User/profile',
   
   // Generic endpoints
   ROLES: '/api/Generic/roles',
@@ -523,6 +524,7 @@ export const defaultApiConfig: ApiConfig = {
     updateUser: API_ENDPOINTS.UPDATE_USER,
     deleteUser: API_ENDPOINTS.DELETE_USER,
     getChefBranch: API_ENDPOINTS.CHEF_BRANCH,
+    updateUserProfile: API_ENDPOINTS.UPDATE_USER_PROFILE,
     
     // Generic endpoints
     getRoles: API_ENDPOINTS.ROLES,

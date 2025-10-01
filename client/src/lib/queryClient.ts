@@ -85,7 +85,7 @@ export async function mockLogin(email: string, password: string) {
       }
     }
 
-    // Store all user data in localStorage
+    // Store user data in a single location for consistency
     const userData = {
       token: data.token,
       email: data.email,
@@ -100,14 +100,8 @@ export async function mockLogin(email: string, password: string) {
       id: userId ? userId.toString() : Date.now().toString()
     };
     
+    // Store complete user object in single location
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userData));
-    localStorage.setItem('auth_token', data.token);
-    localStorage.setItem('user_email', data.email);
-    localStorage.setItem('user_mobile', data.mobileNumber);
-    localStorage.setItem('user_fullname', data.fullName);
-    localStorage.setItem('user_profile_picture', data.profilePicture || '');
-    localStorage.setItem('user_roles', JSON.stringify(data.roles));
-    localStorage.setItem('user_role', userRole || ''); // Store extracted role as string
     
     return userData;
   } catch (error) {
@@ -164,18 +158,11 @@ export async function getCurrentUser() {
 }
 
 export async function logout() {
-  // Clear tokens from apiRepository first
+  // Clear tokens from apiRepository (handles access_token and refresh_token)
   apiRepository.logout();
   
-  // Clear all authentication related data from localStorage
+  // Clear user data from localStorage
   localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('user_email');
-  localStorage.removeItem('user_mobile');
-  localStorage.removeItem('user_fullname');
-  localStorage.removeItem('user_profile_picture');
-  localStorage.removeItem('user_roles');
-  localStorage.removeItem('user_role');
 }
 
 // API request function for mutations
