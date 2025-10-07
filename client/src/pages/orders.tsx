@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Search, ChevronDown, Edit, Trash2, Plus, MoreHorizontal, Eye, Package, Printer } from "lucide-react";
+import { ArrowLeft, Search, ChevronDown, Edit, Trash2, Plus, MoreHorizontal, Eye, Package, Printer, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -25,15 +25,14 @@ import ApplyDiscountModal from "@/components/apply-discount-modal";
 import AddDealsModal from "@/components/add-deals-modal";
 import AddServicesModal from "@/components/add-services-modal";
 import AddDiscountModal from "@/components/add-discount-modal";
-import PricingPlansModal from "@/components/pricing-plans-modal";
 import SimpleDeleteModal from "@/components/simple-delete-modal";
 import ViewMenuModal from "@/components/view-menu-modal";
 import ViewDealsModal from "@/components/view-deals-modal";
 import { SearchTooltip } from "@/components/SearchTooltip";
 import { useLocation } from "wouter";
-import { locationApi, branchApi, dealsApi, discountsApi, apiRepository, servicesApi, ordersApi, reservationApi } from "@/lib/apiRepository";
+import { locationApi, branchApi, dealsApi, discountsApi, apiRepository, servicesApi, ordersApi, reservationApi, subscriptionsApi } from "@/lib/apiRepository";
 import { useBranchCurrency } from "@/hooks/useBranchCurrency";
-import type { Branch } from "@/types/schema";
+import type { Branch, Subscription, BillingCycle, ApplySubscriptionRequest } from "@/types/schema";
 // Use MenuItem and MenuCategory from schema
 import type { MenuItem, MenuCategory, SubMenu, Deal, Discount, BranchService, DetailedOrder, Reservation, PaginatedResponse } from "@/types/schema";
 import { PaginationRequest, PaginationResponse, DEFAULT_PAGINATION_CONFIG, buildPaginationQuery } from "@/types/pagination";
@@ -197,8 +196,9 @@ export default function Orders() {
     enabled: activeMainTab === "services", // LAZY LOADING: Only fetch when services tab is active
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
-  const [showPricingModal, setShowPricingModal] = useState(false);
   const [showEditTableModal, setShowEditTableModal] = useState(false);
+  const [showSubscriptionsModal, setShowSubscriptionsModal] = useState(false);
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState<BillingCycle>(0); // 0 = Monthly
   const [selectedTable, setSelectedTable] = useState<TableWithBranchData | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<DetailedOrder | null>(null);
   const [showViewOrderModal, setShowViewOrderModal] = useState(false);
@@ -206,14 +206,6 @@ export default function Orders() {
   const [selectedStatusId, setSelectedStatusId] = useState<number | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  // Check URL params for pricing modal trigger
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const showPricing = urlParams.get('showPricing');
-    if (showPricing === 'true') {
-      setShowPricingModal(true);
-    }
-  }, []);
   // Get branch details for the current branch
   const { data: branchData } = useQuery<Branch>({
     queryKey: ["branch", branchId],
@@ -750,6 +742,48 @@ export default function Orders() {
   const discountsHasNext = discountsResponse?.hasNext || false;
   const discountsHasPrevious = discountsResponse?.hasPrevious || false;
 
+  // Query for current subscription
+  const { data: currentSubscription, isLoading: isLoadingCurrentSubscription, refetch: refetchCurrentSubscription } = useQuery<Subscription | null>({
+    queryKey: ['current-subscription', branchId],
+    queryFn: async () => {
+      return await subscriptionsApi.getCurrentSubscription(branchId);
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: 1,
+  });
+
+  // Query for available subscriptions
+  const { data: availableSubscriptions = [], isLoading: isLoadingSubscriptions, isError: isSubscriptionsError, error: subscriptionsError } = useQuery<Subscription[]>({
+    queryKey: ['subscriptions-by-branch', branchId],
+    queryFn: async () => {
+      return await subscriptionsApi.getSubscriptionsByBranch(branchId);
+    },
+    enabled: showSubscriptionsModal, // Only fetch when modal is opened
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // Mutation for applying subscription
+  const applySubscriptionMutation = useMutation({
+    mutationFn: async (data: ApplySubscriptionRequest) => {
+      return await subscriptionsApi.applySubscription(data);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: data.status || "Subscription applied successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['current-subscription', branchId] });
+      setShowSubscriptionsModal(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to apply subscription",
+        variant: "destructive",
+      });
+    },
+  });
+
   // This local formatPrice function is no longer used - replaced with formatBranchPrice from useBranchCurrency
 
   return (
@@ -772,6 +806,66 @@ export default function Orders() {
         
 
       </div>
+
+      {/* Subscription Management Section */}
+      <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200" data-testid="subscription-section">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              {isLoadingCurrentSubscription ? (
+                <div className="animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-48 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-64"></div>
+                </div>
+              ) : currentSubscription ? (
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-1" data-testid="current-plan-name">
+                    Current Plan: {currentSubscription.name}
+                  </h2>
+                  <p className="text-sm text-gray-600" data-testid="current-plan-description">
+                    {currentSubscription.description}
+                  </p>
+                  {currentSubscription.endDate && (
+                    <p className="text-xs text-gray-500 mt-1" data-testid="plan-end-date">
+                      Valid until: {new Date(currentSubscription.endDate).toLocaleDateString()}
+                    </p>
+                  )}
+                  {currentSubscription.paymentStatus && (
+                    <Badge 
+                      className={`mt-2 ${
+                        currentSubscription.paymentStatus === 'Pending' 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : currentSubscription.paymentStatus === 'Paid'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                      data-testid="payment-status-badge"
+                    >
+                      Payment: {currentSubscription.paymentStatus}
+                    </Badge>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-1" data-testid="no-plan-title">
+                    No Active Subscription
+                  </h2>
+                  <p className="text-sm text-gray-600" data-testid="no-plan-description">
+                    Subscribe to a plan to unlock all features
+                  </p>
+                </div>
+              )}
+            </div>
+            <Button
+              onClick={() => setShowSubscriptionsModal(true)}
+              className="bg-green-500 hover:bg-green-600 text-white"
+              data-testid="button-view-plans"
+            >
+              {currentSubscription ? 'Change Plan' : 'View Plans'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Navigation Tabs */}
       <Tabs 
@@ -2195,12 +2289,164 @@ export default function Orders() {
         }}
       />
 
-      {/* Pricing Plans Modal */}
-      <PricingPlansModal
-        open={showPricingModal}
-        onOpenChange={setShowPricingModal}
-        onPlanSelect={() => setShowPricingModal(false)}
-      />
+      {/* Subscriptions Modal */}
+      <Dialog open={showSubscriptionsModal} onOpenChange={setShowSubscriptionsModal}>
+        <DialogContent className="w-[min(95vw,75rem)] max-h-[calc(100svh-2rem)] overflow-y-auto p-4 sm:p-6" data-testid="subscriptions-modal">
+          <DialogHeader className="text-center pb-6">
+            <DialogTitle className="text-4xl font-bold text-gray-900 mb-4" data-testid="subscriptions-modal-title">
+              Subscription Plans
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 text-lg max-w-2xl mx-auto" data-testid="subscriptions-modal-description">
+              Choose the plan that fits your needs. All plans include essential features to get you started.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Billing Cycle Toggle */}
+          <div className="flex justify-center mb-8">
+            <div className="flex bg-gray-100 rounded-full p-1" data-testid="billing-cycle-toggle">
+              <button
+                onClick={() => setSelectedBillingCycle(0)}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedBillingCycle === 0
+                    ? "bg-green-500 text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+                data-testid="button-billing-monthly"
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setSelectedBillingCycle(1)}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedBillingCycle === 1
+                    ? "bg-green-500 text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+                data-testid="button-billing-yearly"
+              >
+                Yearly
+              </button>
+            </div>
+          </div>
+
+          {/* Loading State */}
+          {isLoadingSubscriptions && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+              <p className="text-gray-600 mt-4">Loading subscription plans...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {isSubscriptionsError && (
+            <div className="text-center py-8">
+              <div className="text-red-500 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Subscription Plans</h3>
+              <p className="text-gray-600 mb-4">
+                {subscriptionsError instanceof Error ? subscriptionsError.message : 'An error occurred while fetching subscription plans.'}
+              </p>
+              <Button
+                onClick={() => setShowSubscriptionsModal(false)}
+                variant="outline"
+                data-testid="button-close-error"
+              >
+                Close
+              </Button>
+            </div>
+          )}
+
+          {/* Subscription Plans */}
+          {!isLoadingSubscriptions && !isSubscriptionsError && availableSubscriptions.length > 0 && (
+            <div className="grid md:grid-cols-3 gap-6">
+              {availableSubscriptions.map((subscription) => {
+                const priceInfo = subscription.prices.find(p => p.billingCycle === selectedBillingCycle && p.currencyCode === (branchData?.currency || 'PKR'));
+                const discount = subscription.discounts.find(d => d.billingCycle === selectedBillingCycle);
+                const discountedPrice = priceInfo && discount?.discountPercentage 
+                  ? priceInfo.price * (1 - discount.discountPercentage / 100)
+                  : priceInfo?.price;
+
+                return (
+                  <div
+                    key={subscription.id}
+                    className="relative bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-8"
+                    data-testid={`subscription-card-${subscription.id}`}
+                  >
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2" data-testid={`subscription-name-${subscription.id}`}>
+                        {subscription.name}
+                      </h3>
+                      <p className="text-gray-600 text-sm" data-testid={`subscription-description-${subscription.id}`}>
+                        {subscription.description}
+                      </p>
+                    </div>
+
+                    <div className="text-center mb-8">
+                      <div className="flex items-baseline justify-center">
+                        {discount?.discountPercentage && priceInfo && (
+                          <span className="text-2xl font-semibold text-gray-400 line-through mr-2">
+                            {getCurrencySymbol()}{priceInfo.price}
+                          </span>
+                        )}
+                        <span className="text-5xl font-bold text-gray-900" data-testid={`subscription-price-${subscription.id}`}>
+                          {getCurrencySymbol()}{discountedPrice || 0}
+                        </span>
+                        <span className="text-gray-600 text-lg ml-2">
+                          /{selectedBillingCycle === 0 ? 'month' : 'year'}
+                        </span>
+                      </div>
+                      {discount?.discountPercentage && (
+                        <Badge className="bg-green-100 text-green-800 mt-2">
+                          Save {discount.discountPercentage}%
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="space-y-4 mb-8">
+                      {subscription.details.map((detail, index) => (
+                        <div key={index} className="flex items-start">
+                          <Check className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                          <span className="text-gray-700 text-sm" data-testid={`subscription-feature-${subscription.id}-${index}`}>
+                            {detail.feature}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      onClick={() => {
+                        if (priceInfo) {
+                          applySubscriptionMutation.mutate({
+                            branchId: branchId,
+                            subscriptionId: subscription.id,
+                            billingCycle: selectedBillingCycle,
+                            currencyCode: priceInfo.currencyCode,
+                            paymentMethodId: "Online"
+                          });
+                        }
+                      }}
+                      disabled={applySubscriptionMutation.isPending}
+                      className="w-full py-3 text-sm font-medium rounded-lg transition-all bg-gray-900 hover:bg-gray-800 text-white"
+                      data-testid={`button-apply-subscription-${subscription.id}`}
+                    >
+                      {applySubscriptionMutation.isPending ? 'Applying...' : 'Select Plan'}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {!isLoadingSubscriptions && !isSubscriptionsError && availableSubscriptions.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-600">No subscription plans available at the moment.</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Add Discount Modal */}
       <AddDiscountModal

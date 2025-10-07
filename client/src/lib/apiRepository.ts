@@ -484,6 +484,11 @@ export const API_ENDPOINTS = {
   SERVICES_BY_TYPE: '/api/Generic/services/{entityType}',
   BRANCH_SERVICES: '/api/BranchServices/{branchId}/services',
   
+  // Subscription endpoints
+  SUBSCRIPTIONS_BY_BRANCH: '/api/Subscriptions/subscriptionsByBranch',
+  APPLY_SUBSCRIPTION: '/api/Subscriptions/apply',
+  CURRENT_SUBSCRIPTION: '/api/Subscriptions/current',
+  
   // Reservation endpoints
   RESERVATIONS_BY_BRANCH: '/api/Reservations/branch/{branchId}',
   RESERVATION_BY_ID: '/api/Reservations/{id}',
@@ -539,6 +544,11 @@ export const defaultApiConfig: ApiConfig = {
     getServicesByType: API_ENDPOINTS.SERVICES_BY_TYPE,
     getBranchServices: API_ENDPOINTS.BRANCH_SERVICES,
     updateBranchServices: API_ENDPOINTS.BRANCH_SERVICES,
+    
+    // Subscription endpoints
+    getSubscriptionsByBranch: API_ENDPOINTS.SUBSCRIPTIONS_BY_BRANCH,
+    applySubscription: API_ENDPOINTS.APPLY_SUBSCRIPTION,
+    getCurrentSubscription: API_ENDPOINTS.CURRENT_SUBSCRIPTION,
     
     // Entity endpoints
     getEntities: API_ENDPOINTS.ENTITIES,
@@ -1357,6 +1367,92 @@ export const servicesApi = {
     }
     
     return response;
+  },
+};
+
+// Subscription API Helper Functions
+export const subscriptionsApi = {
+  // Get subscriptions by branch (using unique endpoint keys to avoid race conditions)
+  getSubscriptionsByBranch: async (branchId: number): Promise<import('../types/schema').Subscription[]> => {
+    const originalEndpoint = apiRepository.getConfig().endpoints['getSubscriptionsByBranch'];
+    const uniqueKey = `getSubscriptionsByBranch-${Date.now()}-${Math.random()}`;
+    
+    // Add unique temporary endpoint with query params
+    apiRepository.updateEndpoint(uniqueKey, `${originalEndpoint}?branchId=${branchId}`);
+    
+    try {
+      const response = await apiRepository.call<import('../types/schema').Subscription[]>(
+        uniqueKey,
+        'GET',
+        undefined,
+        {},
+        true
+      );
+      
+      // Throw error to let React Query error boundary handle it
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      // Return empty array only if the API successfully returned no data
+      return Array.isArray(response.data) ? response.data : [];
+    } finally {
+      // Always cleanup the temporary endpoint
+      delete apiRepository.getConfig().endpoints[uniqueKey];
+    }
+  },
+
+  // Apply subscription
+  applySubscription: async (
+    data: import('../types/schema').ApplySubscriptionRequest
+  ): Promise<import('../types/schema').ApplySubscriptionResponse> => {
+    const response = await apiRepository.call<import('../types/schema').ApplySubscriptionResponse>(
+      'applySubscription',
+      'POST',
+      data,
+      {},
+      true
+    );
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    
+    if (!response.data) {
+      throw new Error('Failed to apply subscription');
+    }
+    
+    return response.data;
+  },
+
+  // Get current subscription for branch (using unique endpoint keys to avoid race conditions)
+  getCurrentSubscription: async (branchId: number): Promise<import('../types/schema').Subscription | null> => {
+    const originalEndpoint = apiRepository.getConfig().endpoints['getCurrentSubscription'];
+    const uniqueKey = `getCurrentSubscription-${Date.now()}-${Math.random()}`;
+    
+    // Add unique temporary endpoint with query params
+    apiRepository.updateEndpoint(uniqueKey, `${originalEndpoint}?branchId=${branchId}`);
+    
+    try {
+      const response = await apiRepository.call<import('../types/schema').Subscription>(
+        uniqueKey,
+        'GET',
+        undefined,
+        {},
+        true
+      );
+      
+      // Throw error to let React Query error boundary handle it
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      // Return null if no subscription is found (but no error)
+      return response.data || null;
+    } finally {
+      // Always cleanup the temporary endpoint
+      delete apiRepository.getConfig().endpoints[uniqueKey];
+    }
   },
 };
 

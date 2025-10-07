@@ -131,6 +131,64 @@ export const insertBranchSchema = z.object({
 
 export type InsertBranch = z.infer<typeof insertBranchSchema>;
 
+// Subscription Enums
+export enum SubscriptionType {
+  Basic = 1,
+  Standard = 2,
+  Premium = 3
+}
+
+export enum BillingCycle {
+  Monthly = 0,
+  Yearly = 1
+}
+
+// Subscription types
+export interface SubscriptionPrice {
+  currencyCode: string;
+  price: number;
+  billingCycle: BillingCycle;
+}
+
+export interface SubscriptionDiscount {
+  billingCycle: BillingCycle;
+  discountPercentage: number | null;
+  discountAmount: number | null;
+  validUntil: string | null;
+}
+
+export interface SubscriptionDetail {
+  feature: string;
+}
+
+export interface Subscription {
+  id: number;
+  subscriptionType: SubscriptionType | string;
+  trialPeriodInDays: number;
+  gracePeriodInDays: number;
+  name: string;
+  description: string;
+  details: SubscriptionDetail[];
+  prices: SubscriptionPrice[];
+  discounts: SubscriptionDiscount[];
+  startDate?: string;
+  endDate?: string;
+  paymentStatus?: string;
+}
+
+export interface ApplySubscriptionRequest {
+  branchId: number;
+  subscriptionId: number;
+  billingCycle: BillingCycle;
+  currencyCode: string;
+  paymentMethodId: string;
+}
+
+export interface ApplySubscriptionResponse {
+  branchSubscriptionId: number;
+  status: string;
+}
+
 // Menu item types for API
 export interface MenuItemVariant {
   name: string;
