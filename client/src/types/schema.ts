@@ -189,6 +189,50 @@ export interface ApplySubscriptionResponse {
   status: string;
 }
 
+export interface CalculateProratedAmountRequest {
+  branchId: number;
+  newSubscriptionId: number;
+  billingCycle: BillingCycle;
+}
+
+export interface CalculateProratedAmountResponse {
+  remainingAmount: number;
+  newPlanAmount: number;
+  amountDue: number;
+}
+
+export interface ChangeSubscriptionRequest {
+  branchId: number;
+  newSubscriptionId: number;
+  billingCycle: BillingCycle;
+  currencyCode: string;
+}
+
+export interface ChangeSubscriptionResponse {
+  newBranchSubscriptionId: number;
+  status: string;
+  amountDue: number;
+}
+
+export interface CancelSubscriptionRequest {
+  branchId: number;
+  cancelImmediately: boolean;
+}
+
+export interface CancelSubscriptionResponse {
+  status: string;
+}
+
+export interface UploadPaymentProofRequest {
+  branchSubscriptionId: number;
+  proofOfPayment: File;
+}
+
+export interface UploadPaymentProofResponse {
+  status: string;
+  filePath: string;
+}
+
 // Menu item types for API
 export interface MenuItemVariant {
   name: string;

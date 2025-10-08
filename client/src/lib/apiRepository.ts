@@ -488,6 +488,10 @@ export const API_ENDPOINTS = {
   SUBSCRIPTIONS_BY_BRANCH: '/api/Subscriptions/subscriptionsByBranch',
   APPLY_SUBSCRIPTION: '/api/Subscriptions/apply',
   CURRENT_SUBSCRIPTION: '/api/Subscriptions/current',
+  CALCULATE_PRORATED_AMOUNT: '/api/Subscriptions/calculate-prorated-amount',
+  CHANGE_SUBSCRIPTION: '/api/Subscriptions/change',
+  CANCEL_SUBSCRIPTION: '/api/Subscriptions/cancel',
+  UPLOAD_PAYMENT_PROOF: '/api/Subscriptions/upload-proof',
   
   // Reservation endpoints
   RESERVATIONS_BY_BRANCH: '/api/Reservations/branch/{branchId}',
@@ -549,6 +553,10 @@ export const defaultApiConfig: ApiConfig = {
     getSubscriptionsByBranch: API_ENDPOINTS.SUBSCRIPTIONS_BY_BRANCH,
     applySubscription: API_ENDPOINTS.APPLY_SUBSCRIPTION,
     getCurrentSubscription: API_ENDPOINTS.CURRENT_SUBSCRIPTION,
+    calculateProratedAmount: API_ENDPOINTS.CALCULATE_PRORATED_AMOUNT,
+    changeSubscription: API_ENDPOINTS.CHANGE_SUBSCRIPTION,
+    cancelSubscription: API_ENDPOINTS.CANCEL_SUBSCRIPTION,
+    uploadPaymentProof: API_ENDPOINTS.UPLOAD_PAYMENT_PROOF,
     
     // Entity endpoints
     getEntities: API_ENDPOINTS.ENTITIES,
@@ -1453,6 +1461,103 @@ export const subscriptionsApi = {
       // Always cleanup the temporary endpoint
       delete apiRepository.getConfig().endpoints[uniqueKey];
     }
+  },
+
+  // Calculate prorated amount when changing subscription
+  calculateProratedAmount: async (
+    data: import('../types/schema').CalculateProratedAmountRequest
+  ): Promise<import('../types/schema').CalculateProratedAmountResponse> => {
+    const response = await apiRepository.call<import('../types/schema').CalculateProratedAmountResponse>(
+      'calculateProratedAmount',
+      'POST',
+      data,
+      {},
+      true
+    );
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    
+    if (!response.data) {
+      throw new Error('Failed to calculate prorated amount');
+    }
+    
+    return response.data;
+  },
+
+  // Change subscription plan
+  changeSubscription: async (
+    data: import('../types/schema').ChangeSubscriptionRequest
+  ): Promise<import('../types/schema').ChangeSubscriptionResponse> => {
+    const response = await apiRepository.call<import('../types/schema').ChangeSubscriptionResponse>(
+      'changeSubscription',
+      'POST',
+      data,
+      {},
+      true
+    );
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    
+    if (!response.data) {
+      throw new Error('Failed to change subscription');
+    }
+    
+    return response.data;
+  },
+
+  // Cancel subscription
+  cancelSubscription: async (
+    data: import('../types/schema').CancelSubscriptionRequest
+  ): Promise<import('../types/schema').CancelSubscriptionResponse> => {
+    const response = await apiRepository.call<import('../types/schema').CancelSubscriptionResponse>(
+      'cancelSubscription',
+      'POST',
+      data,
+      {},
+      true
+    );
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    
+    if (!response.data) {
+      throw new Error('Failed to cancel subscription');
+    }
+    
+    return response.data;
+  },
+
+  // Upload payment proof
+  uploadPaymentProof: async (
+    branchSubscriptionId: number,
+    proofOfPayment: File
+  ): Promise<import('../types/schema').UploadPaymentProofResponse> => {
+    const formData = new FormData();
+    formData.append('BranchSubscriptionId', branchSubscriptionId.toString());
+    formData.append('ProofOfPayment', proofOfPayment);
+    
+    const response = await apiRepository.call<import('../types/schema').UploadPaymentProofResponse>(
+      'uploadPaymentProof',
+      'POST',
+      formData,
+      {},
+      true
+    );
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    
+    if (!response.data) {
+      throw new Error('Failed to upload payment proof');
+    }
+    
+    return response.data;
   },
 };
 
