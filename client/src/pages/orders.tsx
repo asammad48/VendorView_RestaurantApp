@@ -965,12 +965,16 @@ export default function Orders() {
                         Payment: {currentSubscription.paymentStatus}
                       </Badge>
                     )}
-                    {currentSubscription.paymentStatus === 'Pending' && currentSubscription.branchSubscriptionId && (
+                    {currentSubscription.paymentStatus === 'Pending' && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          setBranchSubscriptionIdForProof(currentSubscription.branchSubscriptionId!);
+                          // Use branchSubscriptionId from current subscription if available, otherwise use the stored one
+                          const subscriptionId = currentSubscription.branchSubscriptionId || branchSubscriptionIdForProof;
+                          if (subscriptionId) {
+                            setBranchSubscriptionIdForProof(subscriptionId);
+                          }
                           setShowUploadProofDialog(true);
                         }}
                         className="text-xs"
@@ -3075,6 +3079,14 @@ export default function Orders() {
           </DialogHeader>
 
           <div className="space-y-4">
+            {!branchSubscriptionIdForProof && (
+              <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  Unable to determine subscription ID. Please try changing your plan again or contact support.
+                </p>
+              </div>
+            )}
+            
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <input
                 type="file"
@@ -3115,11 +3127,11 @@ export default function Orders() {
                 }}
                 data-testid="button-skip-upload"
               >
-                Skip for Now
+                {branchSubscriptionIdForProof ? 'Skip for Now' : 'Close'}
               </Button>
               <Button
                 className="flex-1 bg-green-500 hover:bg-green-600"
-                disabled={!paymentProofFile || uploadPaymentProofMutation.isPending}
+                disabled={!paymentProofFile || !branchSubscriptionIdForProof || uploadPaymentProofMutation.isPending}
                 onClick={() => {
                   if (paymentProofFile && branchSubscriptionIdForProof) {
                     uploadPaymentProofMutation.mutate({
