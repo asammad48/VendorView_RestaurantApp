@@ -4,7 +4,18 @@
 This is a full-stack restaurant and hotel management application. Its main purpose is to provide comprehensive entity management functionality for both hotels and restaurants, including user management, analytics, and reporting through an intuitive dashboard. It supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics.
 
 ## Recent Changes
-Last updated: October 2, 2025
+Last updated: October 8, 2025
+
+### Subscription Management Enhancements - COMPLETE (October 8, 2025)
+- Enhanced subscription mutation handlers to automatically refresh current plan after operations:
+  - Apply subscription (new purchase) now calls getCurrentPlan API
+  - Change subscription now calls getCurrentPlan API
+  - Upload payment proof now calls getCurrentPlan API
+- Added "Upload Proof" button in subscription card area when payment status is "Pending"
+- Button appears next to payment status badge for easy access
+- Clicking "Upload Proof" opens file upload dialog with FormData support
+- All subscription operations properly refresh the current plan to show latest status
+- Enhanced TypeScript types with branchSubscriptionId field in Subscription interface
 
 ### localStorage Consistency Fix - COMPLETE
 - Fixed inconsistent localStorage usage across authentication and user management

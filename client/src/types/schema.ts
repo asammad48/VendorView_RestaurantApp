@@ -174,6 +174,7 @@ export interface Subscription {
   startDate?: string;
   endDate?: string;
   paymentStatus?: string;
+  branchSubscriptionId?: number;
 }
 
 export interface ApplySubscriptionRequest {

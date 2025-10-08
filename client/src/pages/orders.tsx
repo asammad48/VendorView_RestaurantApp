@@ -782,6 +782,8 @@ export default function Orders() {
         title: "Success",
         description: data.status || "Subscription applied successfully",
       });
+      // Refresh current subscription after purchase
+      refetchCurrentSubscription();
       queryClient.invalidateQueries({ queryKey: ['current-subscription', branchId] });
       setShowSubscriptionsModal(false);
     },
@@ -822,6 +824,8 @@ export default function Orders() {
         title: "Success",
         description: data.status || "Subscription changed successfully",
       });
+      // Refresh current subscription after change
+      refetchCurrentSubscription();
       queryClient.invalidateQueries({ queryKey: ['current-subscription', branchId] });
       setShowChangePlanDialog(false);
       setShowSubscriptionsModal(false);
@@ -873,6 +877,8 @@ export default function Orders() {
         title: "Success",
         description: data.status || "Payment proof uploaded successfully",
       });
+      // Refresh current subscription after upload
+      refetchCurrentSubscription();
       setShowUploadProofDialog(false);
       setPaymentProofFile(null);
       setBranchSubscriptionIdForProof(null);
@@ -944,20 +950,36 @@ export default function Orders() {
                       Valid until: {new Date(currentSubscription.endDate).toLocaleDateString()}
                     </p>
                   )}
-                  {currentSubscription.paymentStatus && (
-                    <Badge 
-                      className={`mt-2 ${
-                        currentSubscription.paymentStatus === 'Pending' 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : currentSubscription.paymentStatus === 'Paid'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                      data-testid="payment-status-badge"
-                    >
-                      Payment: {currentSubscription.paymentStatus}
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-3 mt-2">
+                    {currentSubscription.paymentStatus && (
+                      <Badge 
+                        className={`${
+                          currentSubscription.paymentStatus === 'Pending' 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : currentSubscription.paymentStatus === 'Paid'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                        data-testid="payment-status-badge"
+                      >
+                        Payment: {currentSubscription.paymentStatus}
+                      </Badge>
+                    )}
+                    {currentSubscription.paymentStatus === 'Pending' && currentSubscription.branchSubscriptionId && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setBranchSubscriptionIdForProof(currentSubscription.branchSubscriptionId!);
+                          setShowUploadProofDialog(true);
+                        }}
+                        className="text-xs"
+                        data-testid="button-upload-proof-pending"
+                      >
+                        Upload Proof
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div>
