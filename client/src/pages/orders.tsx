@@ -200,6 +200,16 @@ export default function Orders() {
   const [showSubscriptionsModal, setShowSubscriptionsModal] = useState(false);
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<BillingCycle>(0); // 0 = Monthly
   const [selectedTable, setSelectedTable] = useState<TableWithBranchData | null>(null);
+  
+  // New subscription management states
+  const [showChangePlanDialog, setShowChangePlanDialog] = useState(false);
+  const [showCancelSubscriptionDialog, setShowCancelSubscriptionDialog] = useState(false);
+  const [showUploadProofDialog, setShowUploadProofDialog] = useState(false);
+  const [selectedSubscriptionForChange, setSelectedSubscriptionForChange] = useState<Subscription | null>(null);
+  const [proratedCalculation, setProratedCalculation] = useState<any>(null);
+  const [cancelImmediately, setCancelImmediately] = useState(true);
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [branchSubscriptionIdForProof, setBranchSubscriptionIdForProof] = useState<number | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<DetailedOrder | null>(null);
   const [showViewOrderModal, setShowViewOrderModal] = useState(false);
   const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
@@ -784,6 +794,110 @@ export default function Orders() {
     },
   });
 
+  // Mutation for calculating prorated amount
+  const calculateProratedMutation = useMutation({
+    mutationFn: async (data: { branchId: number; newSubscriptionId: number; billingCycle: BillingCycle }) => {
+      return await subscriptionsApi.calculateProratedAmount(data);
+    },
+    onSuccess: (data) => {
+      setProratedCalculation(data);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to calculate prorated amount",
+        variant: "destructive",
+      });
+      setShowChangePlanDialog(false);
+    },
+  });
+
+  // Mutation for changing subscription
+  const changeSubscriptionMutation = useMutation({
+    mutationFn: async (data: { branchId: number; newSubscriptionId: number; billingCycle: BillingCycle; currencyCode: string }) => {
+      return await subscriptionsApi.changeSubscription(data);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: data.status || "Subscription changed successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['current-subscription', branchId] });
+      setShowChangePlanDialog(false);
+      setShowSubscriptionsModal(false);
+      setProratedCalculation(null);
+      setSelectedSubscriptionForChange(null);
+      
+      // Show upload proof dialog with the new branch subscription ID
+      setBranchSubscriptionIdForProof(data.newBranchSubscriptionId);
+      setShowUploadProofDialog(true);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to change subscription",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for canceling subscription
+  const cancelSubscriptionMutation = useMutation({
+    mutationFn: async (data: { branchId: number; cancelImmediately: boolean }) => {
+      return await subscriptionsApi.cancelSubscription(data);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: data.status || "Subscription canceled successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['current-subscription', branchId] });
+      setShowCancelSubscriptionDialog(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to cancel subscription",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for uploading payment proof
+  const uploadPaymentProofMutation = useMutation({
+    mutationFn: async (data: { branchSubscriptionId: number; proofOfPayment: File }) => {
+      return await subscriptionsApi.uploadPaymentProof(data.branchSubscriptionId, data.proofOfPayment);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: data.status || "Payment proof uploaded successfully",
+      });
+      setShowUploadProofDialog(false);
+      setPaymentProofFile(null);
+      setBranchSubscriptionIdForProof(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload payment proof",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handler for selecting subscription to change
+  const handleSelectSubscriptionForChange = (subscription: Subscription) => {
+    setSelectedSubscriptionForChange(subscription);
+    // Calculate prorated amount
+    calculateProratedMutation.mutate({
+      branchId,
+      newSubscriptionId: subscription.id,
+      billingCycle: selectedBillingCycle,
+    });
+    setShowChangePlanDialog(true);
+  };
+
   // This local formatPrice function is no longer used - replaced with formatBranchPrice from useBranchCurrency
 
   return (
@@ -856,13 +970,25 @@ export default function Orders() {
                 </div>
               )}
             </div>
-            <Button
-              onClick={() => setShowSubscriptionsModal(true)}
-              className="bg-green-500 hover:bg-green-600 text-white"
-              data-testid="button-view-plans"
-            >
-              {currentSubscription ? 'Change Plan' : 'View Plans'}
-            </Button>
+            <div className="flex gap-2">
+              {currentSubscription && (
+                <Button
+                  onClick={() => setShowCancelSubscriptionDialog(true)}
+                  variant="outline"
+                  className="border-red-500 text-red-500 hover:bg-red-50"
+                  data-testid="button-cancel-subscription"
+                >
+                  Cancel Subscription
+                </Button>
+              )}
+              <Button
+                onClick={() => setShowSubscriptionsModal(true)}
+                className="bg-green-500 hover:bg-green-600 text-white"
+                data-testid="button-view-plans"
+              >
+                {currentSubscription ? 'Change Plan' : 'View Plans'}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -2419,20 +2545,26 @@ export default function Orders() {
                     <Button
                       onClick={() => {
                         if (priceInfo) {
-                          applySubscriptionMutation.mutate({
-                            branchId: branchId,
-                            subscriptionId: subscription.id,
-                            billingCycle: selectedBillingCycle,
-                            currencyCode: priceInfo.currencyCode,
-                            paymentMethodId: "Online"
-                          });
+                          if (currentSubscription) {
+                            // If there's an existing subscription, use change plan flow
+                            handleSelectSubscriptionForChange(subscription);
+                          } else {
+                            // If no existing subscription, use apply subscription flow
+                            applySubscriptionMutation.mutate({
+                              branchId: branchId,
+                              subscriptionId: subscription.id,
+                              billingCycle: selectedBillingCycle,
+                              currencyCode: priceInfo.currencyCode,
+                              paymentMethodId: "Online"
+                            });
+                          }
                         }
                       }}
                       disabled={applySubscriptionMutation.isPending}
                       className="w-full py-3 text-sm font-medium rounded-lg transition-all bg-gray-900 hover:bg-gray-800 text-white"
                       data-testid={`button-apply-subscription-${subscription.id}`}
                     >
-                      {applySubscriptionMutation.isPending ? 'Applying...' : 'Select Plan'}
+                      {applySubscriptionMutation.isPending ? 'Applying...' : (currentSubscription ? 'Change to This Plan' : 'Select Plan')}
                     </Button>
                   </div>
                 );
@@ -2764,6 +2896,224 @@ export default function Orders() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Change Plan Dialog with Prorated Calculation */}
+      <Dialog open={showChangePlanDialog} onOpenChange={setShowChangePlanDialog}>
+        <DialogContent className="max-w-md" data-testid="change-plan-dialog">
+          <DialogHeader>
+            <DialogTitle data-testid="change-plan-title">Change Subscription Plan</DialogTitle>
+            <DialogDescription data-testid="change-plan-description">
+              Review the prorated amount for changing your plan
+            </DialogDescription>
+          </DialogHeader>
+          
+          {calculateProratedMutation.isPending ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+              <p className="text-gray-600 mt-4">Calculating prorated amount...</p>
+            </div>
+          ) : proratedCalculation && selectedSubscriptionForChange ? (
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-900 mb-2">New Plan</h3>
+                <p className="text-lg font-bold text-green-600">{selectedSubscriptionForChange.name}</p>
+                <p className="text-sm text-gray-600">{selectedBillingCycle === 0 ? 'Monthly' : 'Yearly'}</p>
+              </div>
+
+              <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Remaining Credit:</span>
+                  <span className="font-semibold">{formatBranchPrice(proratedCalculation.remainingAmount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">New Plan Amount:</span>
+                  <span className="font-semibold">{formatBranchPrice(proratedCalculation.newPlanAmount)}</span>
+                </div>
+                <div className="h-px bg-gray-300 my-2"></div>
+                <div className="flex justify-between text-lg">
+                  <span className="font-bold text-gray-900">Amount Due:</span>
+                  <span className="font-bold text-green-600">{formatBranchPrice(proratedCalculation.amountDue)}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowChangePlanDialog(false);
+                    setProratedCalculation(null);
+                    setSelectedSubscriptionForChange(null);
+                  }}
+                  data-testid="button-cancel-change"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 bg-green-500 hover:bg-green-600"
+                  disabled={changeSubscriptionMutation.isPending}
+                  onClick={() => {
+                    if (selectedSubscriptionForChange && branchData) {
+                      changeSubscriptionMutation.mutate({
+                        branchId,
+                        newSubscriptionId: selectedSubscriptionForChange.id,
+                        billingCycle: selectedBillingCycle,
+                        currencyCode: branchData.currency,
+                      });
+                    }
+                  }}
+                  data-testid="button-confirm-change"
+                >
+                  {changeSubscriptionMutation.isPending ? 'Processing...' : 'Confirm Change'}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Subscription Dialog */}
+      <Dialog open={showCancelSubscriptionDialog} onOpenChange={setShowCancelSubscriptionDialog}>
+        <DialogContent className="max-w-md" data-testid="cancel-subscription-dialog">
+          <DialogHeader>
+            <DialogTitle data-testid="cancel-subscription-title">Cancel Subscription</DialogTitle>
+            <DialogDescription data-testid="cancel-subscription-description">
+              Are you sure you want to cancel your subscription?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                This action will cancel your subscription. You can choose to cancel immediately or at the end of your billing period.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="cancelTiming"
+                  checked={cancelImmediately}
+                  onChange={() => setCancelImmediately(true)}
+                  className="w-4 h-4 text-green-500"
+                  data-testid="radio-cancel-immediately"
+                />
+                <span className="text-sm text-gray-700">Cancel immediately</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="cancelTiming"
+                  checked={!cancelImmediately}
+                  onChange={() => setCancelImmediately(false)}
+                  className="w-4 h-4 text-green-500"
+                  data-testid="radio-cancel-end-period"
+                />
+                <span className="text-sm text-gray-700">Cancel at end of billing period</span>
+              </label>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowCancelSubscriptionDialog(false)}
+                data-testid="button-cancel-cancel"
+              >
+                Keep Subscription
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                disabled={cancelSubscriptionMutation.isPending}
+                onClick={() => {
+                  cancelSubscriptionMutation.mutate({
+                    branchId,
+                    cancelImmediately,
+                  });
+                }}
+                data-testid="button-confirm-cancel"
+              >
+                {cancelSubscriptionMutation.isPending ? 'Canceling...' : 'Cancel Subscription'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Payment Proof Dialog */}
+      <Dialog open={showUploadProofDialog} onOpenChange={setShowUploadProofDialog}>
+        <DialogContent className="max-w-md" data-testid="upload-proof-dialog">
+          <DialogHeader>
+            <DialogTitle data-testid="upload-proof-title">Upload Payment Proof</DialogTitle>
+            <DialogDescription data-testid="upload-proof-description">
+              Please upload your payment proof to complete the subscription change
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setPaymentProofFile(file);
+                  }
+                }}
+                className="hidden"
+                id="payment-proof-upload"
+                data-testid="input-payment-proof"
+              />
+              <label htmlFor="payment-proof-upload" className="cursor-pointer">
+                <div className="mb-2">
+                  <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-600">
+                  {paymentProofFile ? paymentProofFile.name : 'Click to upload or drag and drop'}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  PNG, JPG, PDF up to 10MB
+                </p>
+              </label>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowUploadProofDialog(false);
+                  setPaymentProofFile(null);
+                  setBranchSubscriptionIdForProof(null);
+                }}
+                data-testid="button-skip-upload"
+              >
+                Skip for Now
+              </Button>
+              <Button
+                className="flex-1 bg-green-500 hover:bg-green-600"
+                disabled={!paymentProofFile || uploadPaymentProofMutation.isPending}
+                onClick={() => {
+                  if (paymentProofFile && branchSubscriptionIdForProof) {
+                    uploadPaymentProofMutation.mutate({
+                      branchSubscriptionId: branchSubscriptionIdForProof,
+                      proofOfPayment: paymentProofFile,
+                    });
+                  }
+                }}
+                data-testid="button-upload-proof"
+              >
+                {uploadPaymentProofMutation.isPending ? 'Uploading...' : 'Upload Proof'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
