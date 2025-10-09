@@ -2443,7 +2443,7 @@ export default function Orders() {
 
       {/* Subscriptions Modal */}
       <Dialog open={showSubscriptionsModal} onOpenChange={setShowSubscriptionsModal}>
-        <DialogContent className="w-[min(95vw,75rem)] max-h-[calc(100svh-2rem)] overflow-y-auto p-4 sm:p-6" data-testid="subscriptions-modal">
+        <DialogContent className="w-[95vw] max-w-[1600px] max-h-[calc(100svh-2rem)] overflow-y-auto p-4 sm:p-6" data-testid="subscriptions-modal">
           <DialogHeader className="text-center pb-6">
             <DialogTitle className="text-4xl font-bold text-gray-900 mb-4" data-testid="subscriptions-modal-title">
               Subscription Plans
