@@ -445,6 +445,9 @@ export const API_ENDPOINTS = {
   INVENTORY_CATEGORY_BY_ID: '/api/inventory/categories/{id}',
   INVENTORY_SUPPLIERS: '/api/inventory/suppliers',
   INVENTORY_SUPPLIER_BY_ID: '/api/inventory/suppliers/{id}',
+  INVENTORY_ITEMS: '/api/inventory/items',
+  INVENTORY_ITEMS_BY_BRANCH: '/api/inventory/items/branch/{branchId}',
+  INVENTORY_ITEM_BY_ID: '/api/inventory/items/{id}',
   
   // Order endpoints
   ORDERS: '/api/orders',
@@ -657,6 +660,11 @@ export const defaultApiConfig: ApiConfig = {
     createInventorySupplier: API_ENDPOINTS.INVENTORY_SUPPLIERS,
     updateInventorySupplier: API_ENDPOINTS.INVENTORY_SUPPLIER_BY_ID,
     deleteInventorySupplier: API_ENDPOINTS.INVENTORY_SUPPLIER_BY_ID,
+    getInventoryItems: API_ENDPOINTS.INVENTORY_ITEMS,
+    getInventoryItemsByBranch: API_ENDPOINTS.INVENTORY_ITEMS_BY_BRANCH,
+    createInventoryItem: API_ENDPOINTS.INVENTORY_ITEMS,
+    updateInventoryItem: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
+    deleteInventoryItem: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
     
     // Reservation endpoints
     getReservationsByBranch: API_ENDPOINTS.RESERVATIONS_BY_BRANCH,
@@ -1791,6 +1799,42 @@ export const inventoryApi = {
   // Delete inventory supplier
   deleteInventorySupplier: async (supplierId: number) => {
     const response = await apiRepository.call('deleteInventorySupplier', 'DELETE', undefined, {}, true, { id: supplierId });
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Get inventory items by branch
+  getInventoryItemsByBranch: async (branchId: number) => {
+    const response = await apiRepository.call('getInventoryItemsByBranch', 'GET', undefined, {}, true, { branchId });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data || [];
+  },
+
+  // Create inventory item
+  createInventoryItem: async (itemData: { name: string; categoryId: number; branchId: number; unit: string; reorderLevel: number; defaultSupplierId?: number }) => {
+    const response = await apiRepository.call('createInventoryItem', 'POST', itemData);
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Update inventory item
+  updateInventoryItem: async (itemId: number, itemData: { name: string; categoryId: number; unit: string; reorderLevel: number; defaultSupplierId?: number }) => {
+    const response = await apiRepository.call('updateInventoryItem', 'PUT', itemData, {}, true, { id: itemId });
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Delete inventory item
+  deleteInventoryItem: async (itemId: number) => {
+    const response = await apiRepository.call('deleteInventoryItem', 'DELETE', undefined, {}, true, { id: itemId });
     if (response.error && response.status >= 400) {
       throw new Error(response.error);
     }
