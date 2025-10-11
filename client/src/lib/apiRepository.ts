@@ -449,6 +449,18 @@ export const API_ENDPOINTS = {
   INVENTORY_ITEMS_BY_BRANCH: '/api/inventory/items/branch/{branchId}',
   INVENTORY_ITEM_BY_ID: '/api/inventory/items/{id}',
   
+  // Inventory Stock endpoints
+  INVENTORY_STOCK_BY_BRANCH: '/api/inventory/branch/{branchId}/stock',
+  INVENTORY_STOCK_UPDATE: '/api/inventory/branch/{branchId}/stock/update',
+  INVENTORY_LOW_STOCK_BY_BRANCH: '/api/inventory/branch/{branchId}/low-stock',
+  
+  // Purchase Order endpoints
+  PURCHASE_ORDERS: '/api/inventory/purchase-orders',
+  PURCHASE_ORDERS_BY_BRANCH: '/api/inventory/purchase-orders/branch/{branchId}',
+  PURCHASE_ORDER_BY_ID: '/api/inventory/purchase-orders/{id}',
+  PURCHASE_ORDER_RECEIVE: '/api/inventory/purchase-orders/{id}/receive',
+  PURCHASE_ORDER_CANCEL: '/api/inventory/purchase-orders/{id}/cancel',
+  
   // Order endpoints
   ORDERS: '/api/orders',
   ORDER_BY_ID: '/api/orders/{id}',
@@ -665,6 +677,18 @@ export const defaultApiConfig: ApiConfig = {
     createInventoryItem: API_ENDPOINTS.INVENTORY_ITEMS,
     updateInventoryItem: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
     deleteInventoryItem: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
+    
+    // Inventory Stock endpoints
+    getInventoryStockByBranch: API_ENDPOINTS.INVENTORY_STOCK_BY_BRANCH,
+    updateInventoryStock: API_ENDPOINTS.INVENTORY_STOCK_UPDATE,
+    getInventoryLowStockByBranch: API_ENDPOINTS.INVENTORY_LOW_STOCK_BY_BRANCH,
+    
+    // Purchase Order endpoints
+    createPurchaseOrder: API_ENDPOINTS.PURCHASE_ORDERS,
+    getPurchaseOrdersByBranch: API_ENDPOINTS.PURCHASE_ORDERS_BY_BRANCH,
+    getPurchaseOrderById: API_ENDPOINTS.PURCHASE_ORDER_BY_ID,
+    receivePurchaseOrder: API_ENDPOINTS.PURCHASE_ORDER_RECEIVE,
+    cancelPurchaseOrder: API_ENDPOINTS.PURCHASE_ORDER_CANCEL,
     
     // Reservation endpoints
     getReservationsByBranch: API_ENDPOINTS.RESERVATIONS_BY_BRANCH,
@@ -1835,6 +1859,78 @@ export const inventoryApi = {
   // Delete inventory item
   deleteInventoryItem: async (itemId: number) => {
     const response = await apiRepository.call('deleteInventoryItem', 'DELETE', undefined, {}, true, { id: itemId });
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Get inventory stock by branch
+  getInventoryStockByBranch: async (branchId: number) => {
+    const response = await apiRepository.call('getInventoryStockByBranch', 'GET', undefined, {}, true, { branchId });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data || [];
+  },
+
+  // Update inventory stock
+  updateInventoryStock: async (branchId: number, stockData: { inventoryItemId: number; newStock: number; reason: string }) => {
+    const response = await apiRepository.call('updateInventoryStock', 'POST', stockData, {}, true, { branchId });
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Get inventory low stock by branch
+  getInventoryLowStockByBranch: async (branchId: number) => {
+    const response = await apiRepository.call('getInventoryLowStockByBranch', 'GET', undefined, {}, true, { branchId });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data || [];
+  },
+
+  // Create purchase order
+  createPurchaseOrder: async (orderData: { supplierId: number; branchId: number; orderDate: string; status: number; items: { inventoryItemId: number; quantity: number; unitPrice: number }[] }) => {
+    const response = await apiRepository.call('createPurchaseOrder', 'POST', orderData);
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Get purchase orders by branch
+  getPurchaseOrdersByBranch: async (branchId: number) => {
+    const response = await apiRepository.call('getPurchaseOrdersByBranch', 'GET', undefined, {}, true, { branchId });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data || [];
+  },
+
+  // Get purchase order by ID
+  getPurchaseOrderById: async (orderId: number) => {
+    const response = await apiRepository.call('getPurchaseOrderById', 'GET', undefined, {}, true, { id: orderId });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Receive purchase order
+  receivePurchaseOrder: async (orderId: number, items: { purchaseOrderItemId: number; receivedQuantity: number }[]) => {
+    const response = await apiRepository.call('receivePurchaseOrder', 'PUT', { items }, {}, true, { id: orderId });
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Cancel purchase order
+  cancelPurchaseOrder: async (orderId: number) => {
+    const response = await apiRepository.call('cancelPurchaseOrder', 'PUT', undefined, {}, true, { id: orderId });
     if (response.error && response.status >= 400) {
       throw new Error(response.error);
     }
