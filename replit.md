@@ -6,6 +6,28 @@ This is a full-stack restaurant and hotel management application. Its main purpo
 ## Recent Changes
 Last updated: October 11, 2025
 
+### Inventory Items Management Enhancement - COMPLETE (October 11, 2025)
+- Extended inventory management system with full InventoryItems functionality
+- Added third tab "Items" to inventory management page alongside Categories and Suppliers
+- Implemented complete CRUD operations for inventory items:
+  - Create: Add new items with category, unit, reorder level, and optional default supplier
+  - Read: Display items in table with name, category, unit, reorder level, and supplier
+  - Update: Edit items with category and unit fields disabled (as per requirements)
+  - Delete: Remove items with confirmation modal
+- Built AddInventoryItemModal component with smart ID mapping:
+  - Maps categoryName to categoryId and supplierName to supplierId for edit mode
+  - Category and Unit fields are read-only during updates
+  - Default supplier is optional
+- API Integration:
+  - POST `/api/inventory/items` - Create new inventory item
+  - GET `/api/inventory/items/branch/{branchId}` - Fetch items by branch
+  - PUT `/api/inventory/items/{id}` - Update inventory item (204 response)
+  - DELETE `/api/inventory/items/{id}` - Delete inventory item (204 response)
+- Enhanced table refresh logic for all tabs (Categories, Suppliers, Items):
+  - All operations properly invalidate React Query cache
+  - Tables automatically refetch data after add/update/delete operations
+  - Consistent UX with loading states and toast notifications
+
 ### Inventory Management System - COMPLETE (October 11, 2025)
 - Implemented comprehensive inventory management system with Categories and Suppliers
 - Added "Inventory Management" button to branch cards with routing to dedicated page
