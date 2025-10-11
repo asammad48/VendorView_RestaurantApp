@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,13 +44,7 @@ export default function AddInventorySupplierModal({ open, onClose, branchId, sup
   
   const form = useForm<SupplierFormData>({
     resolver: zodResolver(supplierSchema),
-    defaultValues: supplier ? {
-      name: supplier.name,
-      contactPerson: supplier.contactPerson,
-      phone: supplier.phone,
-      email: supplier.email,
-      address: supplier.address,
-    } : {
+    defaultValues: {
       name: "",
       contactPerson: "",
       phone: "",
@@ -57,6 +52,27 @@ export default function AddInventorySupplierModal({ open, onClose, branchId, sup
       address: "",
     },
   });
+
+  // Reset form when supplier changes or modal opens/closes
+  useEffect(() => {
+    if (open && supplier) {
+      form.reset({
+        name: supplier.name,
+        contactPerson: supplier.contactPerson,
+        phone: supplier.phone,
+        email: supplier.email,
+        address: supplier.address,
+      });
+    } else if (open && !supplier) {
+      form.reset({
+        name: "",
+        contactPerson: "",
+        phone: "",
+        email: "",
+        address: "",
+      });
+    }
+  }, [supplier, open, form]);
 
   const createSupplierMutation = useMutation({
     mutationFn: (data: { name: string; contactPerson: string; phone: string; email: string; address: string; branchId: number }) => 
@@ -67,8 +83,14 @@ export default function AddInventorySupplierModal({ open, onClose, branchId, sup
         description: "Supplier created successfully",
       });
       onSuccess?.();
+      form.reset({
+        name: "",
+        contactPerson: "",
+        phone: "",
+        email: "",
+        address: "",
+      });
       onClose();
-      form.reset();
     },
     onError: (error: any) => {
       toast({
