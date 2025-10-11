@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -48,6 +48,16 @@ export default function StockUpdateModal({
       reason: "",
     },
   });
+
+  // Reset form when stockItem changes or modal opens
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        newStock: stockItem.currentStock,
+        reason: "",
+      });
+    }
+  }, [open, stockItem, form]);
 
   const onSubmit = async (data: StockUpdateFormData) => {
     setIsSubmitting(true);
