@@ -400,7 +400,13 @@ export default function InventoryManagement() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              setSelectedItem(item as any);
+                              const category = categories.find(c => c.name === item.categoryName);
+                              const supplier = suppliers.find(s => s.name === item.defaultSupplierName);
+                              setSelectedItem({
+                                ...item,
+                                categoryId: category?.id,
+                                defaultSupplierId: supplier?.id,
+                              });
                               setShowEditItemModal(true);
                             }}
                             data-testid={`button-edit-item-${item.id}`}
