@@ -4,7 +4,21 @@
 This is a full-stack restaurant and hotel management application. Its main purpose is to provide comprehensive entity management functionality for both hotels and restaurants, including user management, analytics, and reporting through an intuitive dashboard. It supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics.
 
 ## Recent Changes
-Last updated: October 8, 2025
+Last updated: October 11, 2025
+
+### Inventory Management System - COMPLETE (October 11, 2025)
+- Implemented comprehensive inventory management system with Categories and Suppliers
+- Added "Inventory Management" button to branch cards with routing to dedicated page
+- Created tab-based navigation page with Categories and Suppliers tabs
+- Implemented full CRUD operations:
+  - Categories: Create and Delete functionality with real-time data refresh
+  - Suppliers: Create, Read, Update, and Delete with comprehensive form validation
+- Built reusable modals: AddInventoryCategoryModal and AddInventorySupplierModal
+- Fixed supplier edit modal to properly reset form state when switching between suppliers using useEffect
+- Integrated with inventory API endpoints using generic API repository pattern
+- Added proper error handling, loading states, and toast notifications
+- All operations properly invalidate React Query cache for immediate UI updates
+- Consistent UI/UX following existing design patterns from orders and restaurant management
 
 ### Subscription Management Enhancements - COMPLETE (October 8, 2025)
 - Enhanced subscription mutation handlers to automatically refresh current plan after operations:
@@ -100,7 +114,7 @@ Technical preferences:
 - **Unified Entity Management**: Supports both hotels and restaurants, replacing previous restaurant-only system.
 - **File Upload**: Image-only file upload for profile/certificate pictures (Base64 encoding, FormData for API).
 - **Mobile Responsiveness**: Full responsive design across all components.
-- **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, and Tickets.
+- **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, Tickets, and Inventory (Categories and Suppliers).
 - **User Management**: Comprehensive Add/Edit User modal with profile pictures, role, and branch assignment, real API integration.
 - **Dashboard Analytics**: Sales summary, item performance, occupancy, peak hours, customer feedback with date range toggles and 7 specialized categories.
 - **Appearance Customization**: Gradient color picker for real-time UI previews.
