@@ -9,6 +9,7 @@ import { useLocation } from "wouter";
 import { inventoryApi, branchApi } from "@/lib/apiRepository";
 import AddInventoryCategoryModal from "@/components/add-inventory-category-modal";
 import AddInventorySupplierModal from "@/components/add-inventory-supplier-modal";
+import AddInventoryItemModal from "@/components/add-inventory-item-modal";
 import SimpleDeleteModal from "@/components/simple-delete-modal";
 
 interface InventoryCategory {
@@ -27,6 +28,16 @@ interface InventorySupplier {
   branchId: number;
 }
 
+interface InventoryItem {
+  id: number;
+  branchId: number;
+  name: string;
+  categoryName: string;
+  unit: string;
+  reorderLevel: number;
+  defaultSupplierName: string | null;
+}
+
 export default function InventoryManagement() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
@@ -35,8 +46,11 @@ export default function InventoryManagement() {
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
   const [showEditSupplierModal, setShowEditSupplierModal] = useState(false);
+  const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const [showEditItemModal, setShowEditItemModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<InventorySupplier | null>(null);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem & { categoryId?: number; defaultSupplierId?: number } | null>(null);
   const [deleteItem, setDeleteItem] = useState<{ type: string; id: string; name: string } | null>(null);
 
   const branchId = parseInt(new URLSearchParams(window.location.search).get('branchId') || '0');
@@ -71,6 +85,16 @@ export default function InventoryManagement() {
     enabled: !!branchId,
   });
 
+  // Fetch inventory items
+  const { data: items = [], isLoading: isLoadingItems, refetch: refetchItems } = useQuery({
+    queryKey: ["inventory-items", branchId],
+    queryFn: async () => {
+      const result = await inventoryApi.getInventoryItemsByBranch(branchId);
+      return result as InventoryItem[];
+    },
+    enabled: !!branchId,
+  });
+
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
     mutationFn: (categoryId: number) => inventoryApi.deleteInventoryCategory(categoryId),
@@ -97,6 +121,19 @@ export default function InventoryManagement() {
     },
   });
 
+  // Delete item mutation
+  const deleteItemMutation = useMutation({
+    mutationFn: (itemId: number) => inventoryApi.deleteInventoryItem(itemId),
+    onSuccess: () => {
+      toast({ title: "Success", description: "Item deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["inventory-items", branchId] });
+      refetchItems();
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to delete item", variant: "destructive" });
+    },
+  });
+
   const handleDelete = () => {
     if (!deleteItem) return;
     
@@ -104,6 +141,8 @@ export default function InventoryManagement() {
       deleteCategoryMutation.mutate(parseInt(deleteItem.id));
     } else if (deleteItem.type === 'supplier') {
       deleteSupplierMutation.mutate(parseInt(deleteItem.id));
+    } else if (deleteItem.type === 'item') {
+      deleteItemMutation.mutate(parseInt(deleteItem.id));
     }
     
     setShowDeleteModal(false);
@@ -136,12 +175,15 @@ export default function InventoryManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-2 w-full max-w-md" data-testid="inventory-tabs">
+        <TabsList className="grid grid-cols-3 w-full max-w-2xl" data-testid="inventory-tabs">
           <TabsTrigger value="categories" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Categories
           </TabsTrigger>
           <TabsTrigger value="suppliers" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Suppliers
+          </TabsTrigger>
+          <TabsTrigger value="items" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+            Items
           </TabsTrigger>
         </TabsList>
 
@@ -295,6 +337,96 @@ export default function InventoryManagement() {
             </Table>
           </div>
         </TabsContent>
+
+        {/* Items Tab */}
+        <TabsContent value="items" className="space-y-6">
+          <div className="flex justify-end">
+            <Button 
+              className="bg-green-500 hover:bg-green-600 text-white"
+              onClick={() => setShowAddItemModal(true)}
+              data-testid="button-add-item"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Item
+            </Button>
+          </div>
+
+          <div className="bg-white rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead>Reorder Level</TableHead>
+                  <TableHead>Default Supplier</TableHead>
+                  <TableHead className="w-[120px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoadingItems ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      Loading items...
+                    </TableCell>
+                  </TableRow>
+                ) : items.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      No items found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  items.map((item) => (
+                    <TableRow key={item.id} data-testid={`item-row-${item.id}`}>
+                      <TableCell className="font-medium" data-testid={`item-name-${item.id}`}>
+                        {item.name}
+                      </TableCell>
+                      <TableCell data-testid={`item-category-${item.id}`}>
+                        {item.categoryName}
+                      </TableCell>
+                      <TableCell data-testid={`item-unit-${item.id}`}>
+                        {item.unit}
+                      </TableCell>
+                      <TableCell data-testid={`item-reorder-${item.id}`}>
+                        {item.reorderLevel}
+                      </TableCell>
+                      <TableCell data-testid={`item-supplier-${item.id}`}>
+                        {item.defaultSupplierName || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedItem(item as any);
+                              setShowEditItemModal(true);
+                            }}
+                            data-testid={`button-edit-item-${item.id}`}
+                          >
+                            <Edit className="w-4 h-4 text-blue-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setDeleteItem({ type: 'item', id: item.id.toString(), name: item.name });
+                              setShowDeleteModal(true);
+                            }}
+                            data-testid={`button-delete-item-${item.id}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
       </Tabs>
 
       {/* Modals */}
@@ -338,6 +470,38 @@ export default function InventoryManagement() {
         />
       )}
 
+      {showAddItemModal && (
+        <AddInventoryItemModal
+          open={showAddItemModal}
+          onClose={() => setShowAddItemModal(false)}
+          branchId={branchId}
+          categories={categories}
+          suppliers={suppliers}
+          onSuccess={() => {
+            refetchItems();
+            queryClient.invalidateQueries({ queryKey: ["inventory-items", branchId] });
+          }}
+        />
+      )}
+
+      {showEditItemModal && selectedItem && (
+        <AddInventoryItemModal
+          open={showEditItemModal}
+          onClose={() => {
+            setShowEditItemModal(false);
+            setSelectedItem(null);
+          }}
+          branchId={branchId}
+          item={selectedItem}
+          categories={categories}
+          suppliers={suppliers}
+          onSuccess={() => {
+            refetchItems();
+            queryClient.invalidateQueries({ queryKey: ["inventory-items", branchId] });
+          }}
+        />
+      )}
+
       {showDeleteModal && deleteItem && (
         <SimpleDeleteModal
           open={showDeleteModal}
@@ -347,7 +511,7 @@ export default function InventoryManagement() {
               setDeleteItem(null);
             }
           }}
-          title={`Delete ${deleteItem.type === 'category' ? 'Category' : 'Supplier'}`}
+          title={`Delete ${deleteItem.type === 'category' ? 'Category' : deleteItem.type === 'supplier' ? 'Supplier' : 'Item'}`}
           description={`Are you sure you want to delete "${deleteItem.name}"? This action cannot be undone.`}
           itemName={deleteItem.name}
           onConfirm={handleDelete}
