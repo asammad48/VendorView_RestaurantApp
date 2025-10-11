@@ -1,97 +1,7 @@
 # Restaurant Management System
 
 ## Overview
-This is a full-stack restaurant and hotel management application. Its main purpose is to provide comprehensive entity management functionality for both hotels and restaurants, including user management, analytics, and reporting through an intuitive dashboard. It supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics.
-
-## Recent Changes
-Last updated: October 11, 2025
-
-### Inventory Items Management Enhancement - COMPLETE (October 11, 2025)
-- Extended inventory management system with full InventoryItems functionality
-- Added third tab "Items" to inventory management page alongside Categories and Suppliers
-- Implemented complete CRUD operations for inventory items:
-  - Create: Add new items with category, unit, reorder level, and optional default supplier
-  - Read: Display items in table with name, category, unit, reorder level, and supplier
-  - Update: Edit items with category and unit fields disabled (as per requirements)
-  - Delete: Remove items with confirmation modal
-- Built AddInventoryItemModal component with smart ID mapping:
-  - Maps categoryName to categoryId and supplierName to supplierId for edit mode
-  - Category and Unit fields are read-only during updates
-  - Default supplier is optional
-- API Integration:
-  - POST `/api/inventory/items` - Create new inventory item
-  - GET `/api/inventory/items/branch/{branchId}` - Fetch items by branch
-  - PUT `/api/inventory/items/{id}` - Update inventory item (204 response)
-  - DELETE `/api/inventory/items/{id}` - Delete inventory item (204 response)
-- Enhanced table refresh logic for all tabs (Categories, Suppliers, Items):
-  - All operations properly invalidate React Query cache
-  - Tables automatically refetch data after add/update/delete operations
-  - Consistent UX with loading states and toast notifications
-
-### Inventory Management System - COMPLETE (October 11, 2025)
-- Implemented comprehensive inventory management system with Categories and Suppliers
-- Added "Inventory Management" button to branch cards with routing to dedicated page
-- Created tab-based navigation page with Categories and Suppliers tabs
-- Implemented full CRUD operations:
-  - Categories: Create and Delete functionality with real-time data refresh
-  - Suppliers: Create, Read, Update, and Delete with comprehensive form validation
-- Built reusable modals: AddInventoryCategoryModal and AddInventorySupplierModal
-- Fixed supplier edit modal to properly reset form state when switching between suppliers using useEffect
-- Integrated with inventory API endpoints using generic API repository pattern
-- Added proper error handling, loading states, and toast notifications
-- All operations properly invalidate React Query cache for immediate UI updates
-- Consistent UI/UX following existing design patterns from orders and restaurant management
-
-### Subscription Management Enhancements - COMPLETE (October 8, 2025)
-- Enhanced subscription mutation handlers to automatically refresh current plan after operations:
-  - Apply subscription (new purchase) now calls getCurrentPlan API
-  - Change subscription now calls getCurrentPlan API
-  - Upload payment proof now calls getCurrentPlan API
-- Added "Upload Proof" button in subscription card area when payment status is "Pending"
-- Button appears next to payment status badge for easy access
-- Clicking "Upload Proof" opens file upload dialog with FormData support
-- All subscription operations properly refresh the current plan to show latest status
-- Enhanced TypeScript types with branchSubscriptionId field in Subscription interface
-
-### localStorage Consistency Fix - COMPLETE
-- Fixed inconsistent localStorage usage across authentication and user management
-- Consolidated user data storage to single source of truth: `STORAGE_KEYS.CURRENT_USER`
-- Removed redundant individual field storage (auth_token, user_email, user_mobile, user_fullname, user_profile_picture, user_roles, user_role)
-- Standardized token storage to access_token and refresh_token only (managed by ApiRepository)
-- Fixed update-profile-modal to use consistent storage keys
-- Eliminated data synchronization issues and improved maintainability
-
-### Replit Environment Setup - COMPLETE (October 2, 2025)
-- Successfully imported GitHub repository to Replit environment
-- Frontend application is fully configured and running on port 5000 with webview output
-- All npm dependencies installed and working properly (431 packages)
-- Vite development server configured correctly:
-  - Port 5000 with host 0.0.0.0 for Replit proxy compatibility
-  - allowedHosts: true to bypass host header verification
-  - Proper asset and component path aliases configured
-- Workflow "Start application" configured with npm run dev
-- Deployment configuration set up for autoscale target with build and serve commands
-- External API integration working correctly with development tunnel endpoints
-- Login page verified and displaying correctly in Replit webview
-
-### Issues Reporting API Integration - COMPLETE
-- Integrated real Issues Reporting API with proper pagination support
-- Replaced mock data with live API endpoints using Generic API Repository pattern
-- Added comprehensive view details modal with image/video attachment support
-- Implemented proper pagination controls matching project standards
-- Added API endpoints for GetIssuesReporting (paginated) and individual issue details
-- Enhanced reporting page with real-time search, sorting, and pagination functionality
-- Added loading states, error handling, and proper TypeScript typing
-- Issues display includes ID, date, title, category, status, and severity information
-- Details modal shows complete issue information including attachments and comments
-
-### Import Configuration Details
-- **Project Type**: Frontend-only React application
-- **Build System**: Vite with TypeScript  
-- **Port Configuration**: Frontend on port 5000 (webview output)
-- **Host Configuration**: 0.0.0.0 to work with Replit proxy
-- **API Integration**: External development API endpoints via tunnels
-- **Deployment**: Configured for autoscale with npm build and serve
+This full-stack restaurant and hotel management application provides comprehensive entity management functionality for both hotels and restaurants. It includes user management, analytics, and reporting via an intuitive dashboard. The system supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics. Recent additions include a full inventory management system with stock tracking, low stock monitoring, and purchase order capabilities.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -119,12 +29,10 @@ Technical preferences:
 
 ### Data Management (Frontend-Only with External APIs)
 - **Architecture**: Pure client-side React application with real API integration.
-- **External API Integration**: Generic API repository pattern for all external API calls.
+- **External API Integration**: Generic API repository pattern for all external API calls, handling 400/401/403/404/422/500 status codes.
 - **Data Storage**: localStorage for session management and authentication tokens.
 - **Real API Integration**: Users API, Roles API, Entities/Branches API with proper authentication.
-- **API Repository**: Centralized error handling, token management, and configurable endpoints, handling 400/401/403/404/422/500 status codes.
 - **Pagination System**: Generic pagination utilities with configurable page sizes (5, 10, 20, 50, 100).
-- **Server Removal**: All Node.js/Express server code, database dependencies (Drizzle ORM, PostgreSQL) have been removed.
 
 ### Authentication & Authorization
 - **Strategy**: Username/password authentication with role-based access.
@@ -133,17 +41,15 @@ Technical preferences:
 - **Protected Routes**: Route-level protection with authentication checks.
 
 ### Core Features & Design
-- **Unified Entity Management**: Supports both hotels and restaurants, replacing previous restaurant-only system.
+- **Unified Entity Management**: Supports both hotels and restaurants.
 - **File Upload**: Image-only file upload for profile/certificate pictures (Base64 encoding, FormData for API).
 - **Mobile Responsiveness**: Full responsive design across all components.
-- **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, Tickets, and Inventory (Categories and Suppliers).
-- **User Management**: Comprehensive Add/Edit User modal with profile pictures, role, and branch assignment, real API integration.
+- **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, Tickets, User, and Inventory (Categories, Suppliers, Items, Stock, Purchase Orders).
+- **User Management**: Add/Edit User modal with profile pictures, role, and branch assignment, with real API integration and name-only search filtering.
 - **Dashboard Analytics**: Sales summary, item performance, occupancy, peak hours, customer feedback with date range toggles and 7 specialized categories.
 - **Appearance Customization**: Gradient color picker for real-time UI previews.
-- **Enhanced Search**: Name-only search filter in user table with real-time API integration.
 - **Card Design**: Attractive entity and branch cards with gradient overlays, hover effects, and animated buttons.
-- **Generic Pagination**: Reusable pagination system with configurable page sizes and proper API integration.
-- **Advanced MenuItem Management**: Enhanced Add/Edit MenuItem modal with API-based modifier section using SubMenuItems with multi-select functionality. Modifiers now use the required API format with `subMenuItemId` structure for all CRUD operations.
+- **Advanced MenuItem Management**: Enhanced Add/Edit MenuItem modal with API-based modifier section using SubMenuItems with multi-select functionality.
 
 ## External Dependencies
 
@@ -172,19 +78,15 @@ Technical preferences:
 - **wouter**: Minimalist routing library.
 
 ### Environment Configuration
-- **Configuration File**: `client/src/config/environment.ts` - Centralized environment management
-- **Development API**: `https://5dtrtpzg-7261.inc1.devtunnels.ms` (used in Replit)
+- **Configuration File**: `client/src/config/environment.ts`
+- **Development API**: `https://5dtrtpzg-7261.inc1.devtunnels.ms`
 - **QA API**: `https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net`
-- **Environment Detection**: Automatic detection based on hostname or explicit `VITE_API_BASE_URL` environment variable
-- **SignalR Integration**: Automatically derives SignalR hub URL from API base URL (`${apiBaseUrl}/orderHub`)
-- **Production Safety**: Includes validation warnings to prevent development URLs in production
+- **Environment Detection**: Automatic detection or explicit `VITE_API_BASE_URL`.
+- **SignalR Integration**: Automatically derives SignalR hub URL (`${apiBaseUrl}/orderHub`).
 
 ### API Endpoints
-- **Base URL**: Configured via environment detection (see Environment Configuration above)
+- **Base URL**: Configured via environment detection.
 - **Signup API**: `${apiBaseUrl}/api/User/restaurant-owner`
 - **Entity API**: `${apiBaseUrl}/api/Entity`
 - **MenuCategory API**: `${apiBaseUrl}/api/MenuCategory`
 - **SubMenuItems API**: `${apiBaseUrl}/api/SubMenuItems`
-  - GET `/api/SubMenuItems/branch/{branchId}/simple` - Fetch simple SubMenuItems for modifiers
-  - PUT `/api/SubMenuItems/{id}` - Update SubMenuItem 
-  - DELETE `/api/SubMenuItems/{id}` - Delete SubMenuItem
