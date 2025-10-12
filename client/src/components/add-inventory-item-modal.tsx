@@ -234,14 +234,14 @@ export default function AddInventoryItemModal({
           <div>
             <Label htmlFor="defaultSupplierId">Default Supplier (Optional)</Label>
             <Select
-              value={form.watch("defaultSupplierId")?.toString() || ""}
-              onValueChange={(value) => form.setValue("defaultSupplierId", value ? parseInt(value) : undefined)}
+              value={form.watch("defaultSupplierId")?.toString() || "none"}
+              onValueChange={(value) => form.setValue("defaultSupplierId", value === "none" ? undefined : parseInt(value))}
             >
               <SelectTrigger data-testid="select-supplier">
                 <SelectValue placeholder="Select supplier (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {suppliers.map((supplier) => (
                   <SelectItem key={supplier.id} value={supplier.id.toString()}>
                     {supplier.name}
