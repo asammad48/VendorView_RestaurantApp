@@ -825,3 +825,37 @@ export const insertRecipeSchema = z.object({
 
 export type InsertRecipeItem = z.infer<typeof insertRecipeItemSchema>;
 export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
+
+// Inventory Item types for recipe management
+export interface InventoryItemSimple {
+  id: number;
+  branchId: number;
+  name: string;
+  categoryName: string;
+  unit: string;
+  reorderLevel: number;
+  defaultSupplierName: string | null;
+}
+
+// Menu Item Search types for recipe selection
+export interface MenuItemSearchVariant {
+  id: number;
+  menuItemId: number;
+  name: string;
+}
+
+export interface MenuItemSearchMenuItem {
+  id: number;
+  name: string;
+}
+
+export interface MenuItemSearchSubMenuItem {
+  id: number;
+  name: string;
+}
+
+export interface MenuItemSearchData {
+  menuItems: MenuItemSearchMenuItem[];
+  variants: MenuItemSearchVariant[];
+  subMenuItems: MenuItemSearchSubMenuItem[];
+}

@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { inventoryApi } from "@/lib/apiRepository";
-import { RecipeDetail } from "@/types/schema";
+import { RecipeDetail, MenuItemSearchData, InventoryItemSimple, MenuItemSearchVariant } from "@/types/schema";
 
 const recipeSchema = z.object({
   recipeType: z.enum(["menuItem", "subMenuItem"]),
@@ -59,16 +59,16 @@ export default function RecipeModal({
   const isEdit = !!recipe;
 
   // Fetch menu items search data
-  const { data: menuData } = useQuery<any>({
+  const { data: menuData } = useQuery<MenuItemSearchData>({
     queryKey: ["menu-items-search", branchId],
     queryFn: async () => await inventoryApi.getMenuItemsSearch(branchId),
     enabled: !!branchId && open,
   });
 
   // Fetch inventory items
-  const { data: inventoryItems = [] } = useQuery<any[]>({
+  const { data: inventoryItems = [] } = useQuery<InventoryItemSimple[]>({
     queryKey: ["inventory-items", branchId],
-    queryFn: async () => (await inventoryApi.getInventoryItemsByBranch(branchId)) as any[],
+    queryFn: async () => await inventoryApi.getInventoryItemsByBranch(branchId),
     enabled: !!branchId && open,
   });
 
@@ -92,8 +92,8 @@ export default function RecipeModal({
   const selectedMenuItemId = form.watch("menuItemId");
 
   // Get variants for selected menu item
-  const selectedMenuItemVariants = menuData?.variants?.filter(
-    (v: any) => v.menuItemId === selectedMenuItemId
+  const selectedMenuItemVariants: MenuItemSearchVariant[] = menuData?.variants?.filter(
+    (v) => v.menuItemId === selectedMenuItemId
   ) || [];
 
   // Reset variant when menu item changes
@@ -111,7 +111,7 @@ export default function RecipeModal({
         menuItemId: recipe.menuItemId || 0,
         variantId: recipe.variantId || 0,
         subMenuItemId: recipe.subMenuItemId || 0,
-        items: recipe.items?.map((item: any) => ({
+        items: recipe.items?.map((item) => ({
           id: item.id,
           inventoryItemId: item.inventoryItemId,
           quantity: item.quantity,
@@ -162,10 +162,11 @@ export default function RecipeModal({
       onSuccess();
       onClose();
       form.reset();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to save recipe";
       toast({
         title: "Error",
-        description: error.message || "Failed to save recipe",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -241,7 +242,7 @@ export default function RecipeModal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {menuData?.menuItems?.map((item: any) => (
+                          {menuData?.menuItems?.map((item) => (
                             <SelectItem key={item.id} value={item.id.toString()}>
                               {item.name}
                             </SelectItem>
@@ -270,7 +271,7 @@ export default function RecipeModal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {selectedMenuItemVariants.map((variant: any) => (
+                          {selectedMenuItemVariants.map((variant) => (
                             <SelectItem key={variant.id} value={variant.id.toString()}>
                               {variant.name}
                             </SelectItem>
@@ -300,7 +301,7 @@ export default function RecipeModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {menuData?.subMenuItems?.map((item: any) => (
+                        {menuData?.subMenuItems?.map((item) => (
                           <SelectItem key={item.id} value={item.id.toString()}>
                             {item.name}
                           </SelectItem>
@@ -358,7 +359,7 @@ export default function RecipeModal({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {inventoryItems.map((item: any) => (
+                            {inventoryItems.map((item) => (
                               <SelectItem key={item.id} value={item.id.toString()}>
                                 {item.name} ({item.unit})
                               </SelectItem>
