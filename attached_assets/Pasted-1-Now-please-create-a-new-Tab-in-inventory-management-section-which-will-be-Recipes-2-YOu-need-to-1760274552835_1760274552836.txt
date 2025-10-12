@@ -1,0 +1,146 @@
+1. Now please create a new Tab in inventory management section which will be Recipes
+2. YOu need to call the API to get ManuItem and Its varaints, and SubMenuItems(Modifiers)
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/MenuItem/search/2' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJBbGkgYmhhaSIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwianRpIjoiZTA1NmRlZjQtOWNhNC00MDAwLTg5MzctNDFmNmE5ZTMwZDA2IiwibmJmIjoxNzU5ODU2MzMwLCJleHAiOjE3NjA0NjExMzAsImlhdCI6MTc1OTg1NjMzMCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.o0zYBi_dwJFfOZIe_t7jq0zDiqegUzSLcRQeOK7VfP8'
+Response:-
+{
+  "menuItems": [
+    {
+      "id": 6,
+      "name": "Pizza Peperonni"
+    },
+    {
+      "id": 7,
+      "name": "Pizza Fajita"
+    }
+  ],
+  "variants": [
+    {
+      "id": 5,
+      "name": "Small",
+      "menuItemId": 6
+    },
+    {
+      "id": 6,
+      "name": "Medium",
+      "menuItemId": 6
+    },
+    {
+      "id": 7,
+      "name": "Large",
+      "menuItemId": 6
+    },
+    {
+      "id": 10,
+      "name": "Small",
+      "menuItemId": 7
+    }
+  ],
+  "subMenuItems": [
+    {
+      "id": 4,
+      "name": "Pepsi"
+    }
+  ]
+}
+
+Now in add Recipe Modal you need to either MenuItems and Its VairantId, or SubMenuItems (either you need to MenuItem and Variant Dropdown or SubMenuItem Dropdown)
+5. Now for creating a Recipe you need to integrate the API
+Request:-
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/recipes' \
+  -H 'accept: text/plain' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "menuItemId": 8,
+  "variantId": 24,
+  "subMenuItemId": null,
+  "branchId": 3,
+  "items": [
+    {
+      "inventoryItemId": 3,
+      "quantity": 2,
+      "unit": "Gram"
+    }
+  ]
+}'
+
+Response:-
+{
+  "id": 1
+}
+
+6. Now for viewing and populating data in Edit modal Recipe in Modal you need to integrate the API
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/recipes/1' \
+  -H 'accept: text/plain'
+Response:-
+{
+  "id": 1,
+  "menuItemId": 8,
+  "menuItemName": "Pizza Peperonni",
+  "variantId": 24,
+  "variantName": "Small",
+  "subMenuItemId": null,
+  "subMenuItemName": null,
+  "branchId": 3,
+  "createdAt": "2025-10-12T12:57:17.232222",
+  "items": [
+    {
+      "id": 1,
+      "inventoryItemId": 3,
+      "itemName": "Garam Masla",
+      "quantity": 2,
+      "unit": "Gram"
+    }
+  ]
+}
+
+7. Now for Displaying recipe in the table you need to integrate the below API
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/recipes?branchId=3' \
+  -H 'accept: text/plain'
+Response:-
+[
+  {
+    "id": 1,
+    "name": "Pizza Peperonni",
+    "type": "Menu Item",
+    "branchId": 3
+  }
+]
+
+8. For updating Recipe Please integrate the API 
+Request:-
+curl -X 'PUT' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/recipes/1' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "menuItemId": 8,
+  "variantId": 24,
+  "subMenuItemId": null,
+  "items": [
+    {
+      "id": 1,
+      "inventoryItemId": 3,
+      "quantity": 1,
+      "unit": "Gram"
+    }
+  ]
+}'
+
+Response:-
+204
+
+9. For deleting the recipe you need to integrate the below API
+Request:-
+curl -X 'DELETE' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/recipes/1' \
+  -H 'accept: */*'
+Response:- 204

@@ -461,6 +461,11 @@ export const API_ENDPOINTS = {
   PURCHASE_ORDER_RECEIVE: '/api/inventory/purchase-orders/{id}/receive',
   PURCHASE_ORDER_CANCEL: '/api/inventory/purchase-orders/{id}/cancel',
   
+  // Recipe endpoints
+  RECIPES: '/api/inventory/recipes',
+  RECIPE_BY_ID: '/api/inventory/recipes/{id}',
+  MENU_ITEM_SEARCH: '/api/MenuItem/search/{branchId}',
+  
   // Order endpoints
   ORDERS: '/api/orders',
   ORDER_BY_ID: '/api/orders/{id}',
@@ -689,6 +694,14 @@ export const defaultApiConfig: ApiConfig = {
     getPurchaseOrderById: API_ENDPOINTS.PURCHASE_ORDER_BY_ID,
     receivePurchaseOrder: API_ENDPOINTS.PURCHASE_ORDER_RECEIVE,
     cancelPurchaseOrder: API_ENDPOINTS.PURCHASE_ORDER_CANCEL,
+    
+    // Recipe endpoints
+    getRecipes: API_ENDPOINTS.RECIPES,
+    getRecipeById: API_ENDPOINTS.RECIPE_BY_ID,
+    createRecipe: API_ENDPOINTS.RECIPES,
+    updateRecipe: API_ENDPOINTS.RECIPE_BY_ID,
+    deleteRecipe: API_ENDPOINTS.RECIPE_BY_ID,
+    getMenuItemsSearch: API_ENDPOINTS.MENU_ITEM_SEARCH,
     
     // Reservation endpoints
     getReservationsByBranch: API_ENDPOINTS.RESERVATIONS_BY_BRANCH,
@@ -1931,6 +1944,66 @@ export const inventoryApi = {
   // Cancel purchase order
   cancelPurchaseOrder: async (orderId: number) => {
     const response = await apiRepository.call('cancelPurchaseOrder', 'PUT', undefined, {}, true, { id: orderId });
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Get menu items search (for recipe form)
+  getMenuItemsSearch: async (branchId: number) => {
+    const response = await apiRepository.call('getMenuItemsSearch', 'GET', undefined, {}, true, { branchId });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Get recipes by branch
+  getRecipesByBranch: async (branchId: number) => {
+    const params = new URLSearchParams({ branchId: branchId.toString() });
+    const originalEndpoint = apiRepository.getConfig().endpoints['getRecipes'];
+    apiRepository.updateEndpoint('getRecipes', `${originalEndpoint}?${params.toString()}`);
+    
+    const response = await apiRepository.call('getRecipes', 'GET');
+    apiRepository.updateEndpoint('getRecipes', originalEndpoint);
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data || [];
+  },
+
+  // Get recipe by ID
+  getRecipeById: async (recipeId: number) => {
+    const response = await apiRepository.call('getRecipeById', 'GET', undefined, {}, true, { id: recipeId });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Create recipe
+  createRecipe: async (recipeData: { menuItemId?: number; variantId?: number; subMenuItemId?: number; branchId: number; items: { inventoryItemId: number; quantity: number; unit: string }[] }) => {
+    const response = await apiRepository.call('createRecipe', 'POST', recipeData);
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Update recipe
+  updateRecipe: async (recipeId: number, recipeData: { menuItemId?: number; variantId?: number; subMenuItemId?: number; items: { id?: number; inventoryItemId: number; quantity: number; unit: string }[] }) => {
+    const response = await apiRepository.call('updateRecipe', 'PUT', recipeData, {}, true, { id: recipeId });
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Delete recipe
+  deleteRecipe: async (recipeId: number) => {
+    const response = await apiRepository.call('deleteRecipe', 'DELETE', undefined, {}, true, { id: recipeId });
     if (response.error && response.status >= 400) {
       throw new Error(response.error);
     }
