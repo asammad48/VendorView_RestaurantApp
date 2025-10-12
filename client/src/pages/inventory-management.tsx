@@ -15,8 +15,11 @@ import StockUpdateModal from "@/components/stock-update-modal";
 import PurchaseOrderModal from "@/components/purchase-order-modal";
 import PurchaseOrderViewModal from "@/components/purchase-order-view-modal";
 import RecipeModal from "@/components/recipe-modal";
+import StockWastageModal from "@/components/stock-wastage-modal";
 import { Badge } from "@/components/ui/badge";
 import { Recipe, RecipeDetail } from "@/types/schema";
+import { Input } from "@/components/ui/input";
+import { format, subMonths, addDays } from "date-fns";
 
 interface InventoryCategory {
   id: number;
@@ -68,6 +71,16 @@ interface PurchaseOrder {
   totalAmount: number;
 }
 
+interface WastageItem {
+  id: number;
+  branchName: string;
+  itemName: string;
+  quantity: number;
+  reason: string;
+  createdBy: number;
+  createdAt: string;
+}
+
 
 const purchaseOrderStatusMap: { [key: number]: { label: string; variant: "default" | "secondary" | "outline" | "destructive" } } = {
   0: { label: "Draft", variant: "secondary" },
@@ -83,6 +96,10 @@ export default function InventoryManagement() {
   const [activeTab, setActiveTab] = useState("categories");
   const [stockSubTab, setStockSubTab] = useState("manage-stock");
   
+  // Date filter states (default: 3 months before to 1 day after current date)
+  const [wastageFromDate, setWastageFromDate] = useState(() => format(subMonths(new Date(), 3), 'yyyy-MM-dd'));
+  const [wastageToDate, setWastageToDate] = useState(() => format(addDays(new Date(), 1), 'yyyy-MM-dd'));
+  
   // Modal states
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
@@ -95,6 +112,7 @@ export default function InventoryManagement() {
   const [showPurchaseOrderViewModal, setShowPurchaseOrderViewModal] = useState(false);
   const [showRecipeModal, setShowRecipeModal] = useState(false);
   const [showEditRecipeModal, setShowEditRecipeModal] = useState(false);
+  const [showStockWastageModal, setShowStockWastageModal] = useState(false);
   
   // Selection states
   const [selectedSupplier, setSelectedSupplier] = useState<InventorySupplier | null>(null);
@@ -176,6 +194,16 @@ export default function InventoryManagement() {
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "purchase-orders",
   });
 
+  // Fetch wastage (lazy load)
+  const { data: wastageItems = [], isLoading: isLoadingWastage, refetch: refetchWastage } = useQuery({
+    queryKey: ["inventory-wastage", branchId, wastageFromDate, wastageToDate],
+    queryFn: async () => {
+      const result = await inventoryApi.getInventoryWastageByBranch(branchId, wastageFromDate, wastageToDate);
+      return result as WastageItem[];
+    },
+    enabled: !!branchId && activeTab === "stock" && stockSubTab === "stock-wastage",
+  });
+
   // Fetch recipes (lazy load)
   const { data: recipes = [], isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery<Recipe[]>({
     queryKey: ["recipes", branchId],
@@ -193,6 +221,7 @@ export default function InventoryManagement() {
     if (activeTab === "stock" && stockSubTab === "manage-stock") refetchStock();
     if (activeTab === "stock" && stockSubTab === "low-stock") refetchLowStock();
     if (activeTab === "stock" && stockSubTab === "purchase-orders") refetchPurchaseOrders();
+    if (activeTab === "stock" && stockSubTab === "stock-wastage") refetchWastage();
     if (activeTab === "recipes") refetchRecipes();
   }, [activeTab, stockSubTab]);
 
@@ -761,8 +790,82 @@ export default function InventoryManagement() {
 
             {/* Stock Wastage Sub-tab */}
             <TabsContent value="stock-wastage" className="space-y-6">
-              <div className="text-center py-8 text-gray-500">
-                Stock Wastage feature coming soon...
+              <div className="flex justify-between items-center gap-4">
+                <div className="flex gap-4 items-center">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">From:</label>
+                    <Input
+                      type="date"
+                      value={wastageFromDate}
+                      onChange={(e) => setWastageFromDate(e.target.value)}
+                      className="w-40"
+                      data-testid="input-from-date"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">To:</label>
+                    <Input
+                      type="date"
+                      value={wastageToDate}
+                      onChange={(e) => setWastageToDate(e.target.value)}
+                      className="w-40"
+                      data-testid="input-to-date"
+                    />
+                  </div>
+                </div>
+                <Button 
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                  onClick={() => setShowStockWastageModal(true)}
+                  data-testid="button-add-wastage"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Wastage
+                </Button>
+              </div>
+
+              <div className="bg-white rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Item Name</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Reason</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingWastage ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8">
+                          Loading wastage records...
+                        </TableCell>
+                      </TableRow>
+                    ) : wastageItems.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                          No wastage records found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      wastageItems.map((wastage) => (
+                        <TableRow key={wastage.id} data-testid={`wastage-row-${wastage.id}`}>
+                          <TableCell data-testid={`wastage-date-${wastage.id}`}>
+                            {new Date(wastage.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="font-medium" data-testid={`wastage-item-${wastage.id}`}>
+                            {wastage.itemName}
+                          </TableCell>
+                          <TableCell data-testid={`wastage-quantity-${wastage.id}`}>
+                            {wastage.quantity}
+                          </TableCell>
+                          <TableCell data-testid={`wastage-reason-${wastage.id}`}>
+                            {wastage.reason}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </TabsContent>
           </Tabs>
@@ -1008,6 +1111,21 @@ export default function InventoryManagement() {
           onSuccess={() => {
             refetchRecipes();
             queryClient.invalidateQueries({ queryKey: ["recipes", branchId] });
+          }}
+        />
+      )}
+
+      {showStockWastageModal && (
+        <StockWastageModal
+          open={showStockWastageModal}
+          onClose={() => setShowStockWastageModal(false)}
+          branchId={branchId}
+          inventoryItems={stock}
+          onSuccess={() => {
+            refetchWastage();
+            refetchStock();
+            queryClient.invalidateQueries({ queryKey: ["inventory-wastage", branchId, wastageFromDate, wastageToDate] });
+            queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
           }}
         />
       )}
