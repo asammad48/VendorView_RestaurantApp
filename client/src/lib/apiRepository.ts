@@ -1,4 +1,4 @@
-import { Deal, Service, BranchService, DetailedOrder } from '../types/schema';
+import { Deal, Service, BranchService, DetailedOrder, Recipe, RecipeDetail, InsertRecipe } from '../types/schema';
 import { PaginationResponse } from '../types/pagination';
 import { signalRService } from '../services/signalRService';
 
@@ -1960,7 +1960,7 @@ export const inventoryApi = {
   },
 
   // Get recipes by branch
-  getRecipesByBranch: async (branchId: number) => {
+  getRecipesByBranch: async (branchId: number): Promise<Recipe[]> => {
     const params = new URLSearchParams({ branchId: branchId.toString() });
     const originalEndpoint = apiRepository.getConfig().endpoints['getRecipes'];
     apiRepository.updateEndpoint('getRecipes', `${originalEndpoint}?${params.toString()}`);
@@ -1971,43 +1971,42 @@ export const inventoryApi = {
     if (response.error) {
       throw new Error(response.error);
     }
-    return response.data || [];
+    return (response.data || []) as Recipe[];
   },
 
   // Get recipe by ID
-  getRecipeById: async (recipeId: number) => {
+  getRecipeById: async (recipeId: number): Promise<RecipeDetail> => {
     const response = await apiRepository.call('getRecipeById', 'GET', undefined, {}, true, { id: recipeId });
     if (response.error) {
       throw new Error(response.error);
     }
-    return response.data;
+    return response.data as RecipeDetail;
   },
 
   // Create recipe
-  createRecipe: async (recipeData: { menuItemId?: number; variantId?: number; subMenuItemId?: number; branchId: number; items: { inventoryItemId: number; quantity: number; unit: string }[] }) => {
+  createRecipe: async (recipeData: InsertRecipe): Promise<RecipeDetail> => {
     const response = await apiRepository.call('createRecipe', 'POST', recipeData);
     if (response.error) {
       throw new Error(response.error);
     }
-    return response.data;
+    return response.data as RecipeDetail;
   },
 
   // Update recipe
-  updateRecipe: async (recipeId: number, recipeData: { menuItemId?: number; variantId?: number; subMenuItemId?: number; items: { id?: number; inventoryItemId: number; quantity: number; unit: string }[] }) => {
+  updateRecipe: async (recipeId: number, recipeData: InsertRecipe): Promise<RecipeDetail> => {
     const response = await apiRepository.call('updateRecipe', 'PUT', recipeData, {}, true, { id: recipeId });
     if (response.error && response.status >= 400) {
       throw new Error(response.error);
     }
-    return response.data;
+    return response.data as RecipeDetail;
   },
 
   // Delete recipe
-  deleteRecipe: async (recipeId: number) => {
+  deleteRecipe: async (recipeId: number): Promise<void> => {
     const response = await apiRepository.call('deleteRecipe', 'DELETE', undefined, {}, true, { id: recipeId });
     if (response.error && response.status >= 400) {
       throw new Error(response.error);
     }
-    return response.data;
   },
 };
 

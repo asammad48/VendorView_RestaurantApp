@@ -16,6 +16,7 @@ import PurchaseOrderModal from "@/components/purchase-order-modal";
 import PurchaseOrderViewModal from "@/components/purchase-order-view-modal";
 import RecipeModal from "@/components/recipe-modal";
 import { Badge } from "@/components/ui/badge";
+import { Recipe, RecipeDetail } from "@/types/schema";
 
 interface InventoryCategory {
   id: number;
@@ -67,12 +68,6 @@ interface PurchaseOrder {
   totalAmount: number;
 }
 
-interface Recipe {
-  id: number;
-  name: string;
-  type: string;
-  branchId: number;
-}
 
 const purchaseOrderStatusMap: { [key: number]: { label: string; variant: "default" | "secondary" | "outline" | "destructive" } } = {
   0: { label: "Draft", variant: "secondary" },
@@ -106,7 +101,7 @@ export default function InventoryManagement() {
   const [deleteItem, setDeleteItem] = useState<{ type: string; id: string; name: string } | null>(null);
   const [selectedStockItem, setSelectedStockItem] = useState<StockItem | null>(null);
   const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<number | null>(null);
-  const [selectedRecipe, setSelectedRecipe] = useState<any | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetail | null>(null);
 
   const branchId = parseInt(new URLSearchParams(window.location.search).get('branchId') || '0');
 
@@ -181,11 +176,10 @@ export default function InventoryManagement() {
   });
 
   // Fetch recipes (lazy load)
-  const { data: recipes = [], isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery({
+  const { data: recipes = [], isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery<Recipe[]>({
     queryKey: ["recipes", branchId],
     queryFn: async () => {
-      const result = await inventoryApi.getRecipesByBranch(branchId);
-      return result as Recipe[];
+      return await inventoryApi.getRecipesByBranch(branchId);
     },
     enabled: !!branchId && activeTab === "recipes",
   });

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { inventoryApi } from "@/lib/apiRepository";
+import { RecipeDetail } from "@/types/schema";
 
 const recipeSchema = z.object({
   recipeType: z.enum(["menuItem", "subMenuItem"]),
@@ -42,7 +43,7 @@ interface RecipeModalProps {
   open: boolean;
   onClose: () => void;
   branchId: number;
-  recipe?: any;
+  recipe?: RecipeDetail;
   onSuccess: () => void;
 }
 

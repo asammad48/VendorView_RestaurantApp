@@ -778,3 +778,50 @@ export const insertIssueReportingSchema = z.object({
 });
 
 export type InsertIssueReporting = z.infer<typeof insertIssueReportingSchema>;
+
+// Recipe types based on API response
+export interface RecipeItem {
+  id?: number;
+  inventoryItemId: number;
+  inventoryItemName?: string;
+  quantity: number;
+  unit: string;
+}
+
+export interface Recipe {
+  id: number;
+  name: string;
+  type: string;
+  branchId: number;
+}
+
+export interface RecipeDetail {
+  id: number;
+  menuItemId?: number;
+  menuItemName?: string;
+  variantId?: number;
+  variantName?: string;
+  subMenuItemId?: number;
+  subMenuItemName?: string;
+  branchId: number;
+  items: RecipeItem[];
+}
+
+// Insert schema for creating new recipes
+export const insertRecipeItemSchema = z.object({
+  id: z.number().optional(),
+  inventoryItemId: z.number().min(1, "Inventory item is required"),
+  quantity: z.number().min(0.01, "Quantity must be greater than 0"),
+  unit: z.string().min(1, "Unit is required"),
+});
+
+export const insertRecipeSchema = z.object({
+  menuItemId: z.number().optional(),
+  variantId: z.number().optional(),
+  subMenuItemId: z.number().optional(),
+  branchId: z.number().min(1, "Branch is required"),
+  items: z.array(insertRecipeItemSchema).min(1, "At least one item is required"),
+});
+
+export type InsertRecipeItem = z.infer<typeof insertRecipeItemSchema>;
+export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
