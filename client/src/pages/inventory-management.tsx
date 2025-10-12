@@ -81,6 +81,7 @@ export default function InventoryManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("categories");
+  const [stockSubTab, setStockSubTab] = useState("manage-stock");
   
   // Modal states
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
@@ -152,7 +153,7 @@ export default function InventoryManagement() {
       const result = await inventoryApi.getInventoryStockByBranch(branchId);
       return result as StockItem[];
     },
-    enabled: !!branchId && activeTab === "stock",
+    enabled: !!branchId && activeTab === "stock" && stockSubTab === "manage-stock",
   });
 
   // Fetch low stock (lazy load)
@@ -162,7 +163,7 @@ export default function InventoryManagement() {
       const result = await inventoryApi.getInventoryLowStockByBranch(branchId);
       return result as LowStockItem[];
     },
-    enabled: !!branchId && activeTab === "low-stock",
+    enabled: !!branchId && activeTab === "stock" && stockSubTab === "low-stock",
   });
 
   // Fetch purchase orders (lazy load)
@@ -172,7 +173,7 @@ export default function InventoryManagement() {
       const result = await inventoryApi.getPurchaseOrdersByBranch(branchId);
       return result as PurchaseOrder[];
     },
-    enabled: !!branchId && activeTab === "purchase-orders",
+    enabled: !!branchId && activeTab === "stock" && stockSubTab === "purchase-orders",
   });
 
   // Fetch recipes (lazy load)
@@ -189,11 +190,11 @@ export default function InventoryManagement() {
     if (activeTab === "categories") refetchCategories();
     if (activeTab === "suppliers") refetchSuppliers();
     if (activeTab === "items") refetchItems();
-    if (activeTab === "stock") refetchStock();
-    if (activeTab === "low-stock") refetchLowStock();
-    if (activeTab === "purchase-orders") refetchPurchaseOrders();
+    if (activeTab === "stock" && stockSubTab === "manage-stock") refetchStock();
+    if (activeTab === "stock" && stockSubTab === "low-stock") refetchLowStock();
+    if (activeTab === "stock" && stockSubTab === "purchase-orders") refetchPurchaseOrders();
     if (activeTab === "recipes") refetchRecipes();
-  }, [activeTab]);
+  }, [activeTab, stockSubTab]);
 
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
@@ -290,7 +291,7 @@ export default function InventoryManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-7 w-full" data-testid="inventory-tabs">
+        <TabsList className="grid grid-cols-5 w-full" data-testid="inventory-tabs">
           <TabsTrigger value="categories" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Categories
           </TabsTrigger>
@@ -302,12 +303,6 @@ export default function InventoryManagement() {
           </TabsTrigger>
           <TabsTrigger value="stock" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Stock
-          </TabsTrigger>
-          <TabsTrigger value="low-stock" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
-            Low Stock
-          </TabsTrigger>
-          <TabsTrigger value="purchase-orders" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
-            Purchase Orders
           </TabsTrigger>
           <TabsTrigger value="recipes" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Recipes
@@ -561,189 +556,216 @@ export default function InventoryManagement() {
           </div>
         </TabsContent>
 
-        {/* Stock Tab */}
+        {/* Stock Tab with Sub-tabs */}
         <TabsContent value="stock" className="space-y-6">
-          <div className="bg-white rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Item Name</TableHead>
-                  <TableHead>Current Stock</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoadingStock ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
-                      Loading stock...
-                    </TableCell>
-                  </TableRow>
-                ) : stock.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                      No stock found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  stock.map((item) => (
-                    <TableRow key={item.inventoryItemId} data-testid={`stock-row-${item.inventoryItemId}`}>
-                      <TableCell className="font-medium" data-testid={`stock-name-${item.inventoryItemId}`}>
-                        {item.itemName}
-                      </TableCell>
-                      <TableCell data-testid={`stock-current-${item.inventoryItemId}`}>
-                        {item.currentStock}
-                      </TableCell>
-                      <TableCell data-testid={`stock-unit-${item.inventoryItemId}`}>
-                        {item.unit}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStockItem(item);
-                            setShowStockUpdateModal(true);
-                          }}
-                          data-testid={`button-update-stock-${item.inventoryItemId}`}
-                        >
-                          <Edit className="w-4 h-4 text-blue-600" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
+          <Tabs value={stockSubTab} onValueChange={setStockSubTab} className="space-y-6">
+            <TabsList className="grid grid-cols-4 w-full" data-testid="stock-sub-tabs">
+              <TabsTrigger value="manage-stock" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+                Manage Stock
+              </TabsTrigger>
+              <TabsTrigger value="low-stock" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+                Low Stock
+              </TabsTrigger>
+              <TabsTrigger value="purchase-orders" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+                Purchase Orders
+              </TabsTrigger>
+              <TabsTrigger value="stock-wastage" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+                Stock Wastage
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Low Stock Tab */}
-        <TabsContent value="low-stock" className="space-y-6">
-          <div className="bg-white rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Item Name</TableHead>
-                  <TableHead>Current Stock</TableHead>
-                  <TableHead>Reorder Level</TableHead>
-                  <TableHead>Unit</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoadingLowStock ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
-                      Loading low stock...
-                    </TableCell>
-                  </TableRow>
-                ) : lowStock.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                      No low stock items
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  lowStock.map((item) => (
-                    <TableRow key={item.inventoryItemId} data-testid={`low-stock-row-${item.inventoryItemId}`}>
-                      <TableCell className="font-medium" data-testid={`low-stock-name-${item.inventoryItemId}`}>
-                        {item.itemName}
-                      </TableCell>
-                      <TableCell data-testid={`low-stock-current-${item.inventoryItemId}`}>
-                        <span className="text-red-600 font-semibold">{item.currentStock}</span>
-                      </TableCell>
-                      <TableCell data-testid={`low-stock-reorder-${item.inventoryItemId}`}>
-                        {item.reorderLevel}
-                      </TableCell>
-                      <TableCell data-testid={`low-stock-unit-${item.inventoryItemId}`}>
-                        {item.unit}
-                      </TableCell>
+            {/* Manage Stock Sub-tab */}
+            <TabsContent value="manage-stock" className="space-y-6">
+              <div className="bg-white rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item Name</TableHead>
+                      <TableHead>Current Stock</TableHead>
+                      <TableHead>Unit</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingStock ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8">
+                          Loading stock...
+                        </TableCell>
+                      </TableRow>
+                    ) : stock.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                          No stock found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      stock.map((item) => (
+                        <TableRow key={item.inventoryItemId} data-testid={`stock-row-${item.inventoryItemId}`}>
+                          <TableCell className="font-medium" data-testid={`stock-name-${item.inventoryItemId}`}>
+                            {item.itemName}
+                          </TableCell>
+                          <TableCell data-testid={`stock-current-${item.inventoryItemId}`}>
+                            {item.currentStock}
+                          </TableCell>
+                          <TableCell data-testid={`stock-unit-${item.inventoryItemId}`}>
+                            {item.unit}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStockItem(item);
+                                setShowStockUpdateModal(true);
+                              }}
+                              data-testid={`button-update-stock-${item.inventoryItemId}`}
+                            >
+                              <Edit className="w-4 h-4 text-blue-600" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
 
-        {/* Purchase Orders Tab */}
-        <TabsContent value="purchase-orders" className="space-y-6">
-          <div className="flex justify-end">
-            <Button 
-              className="bg-green-500 hover:bg-green-600 text-white"
-              onClick={() => setShowPurchaseOrderModal(true)}
-              data-testid="button-add-purchase-order"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Purchase Order
-            </Button>
-          </div>
-
-          <div className="bg-white rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Order Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Total Amount</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoadingPurchaseOrders ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      Loading purchase orders...
-                    </TableCell>
-                  </TableRow>
-                ) : purchaseOrders.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                      No purchase orders found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  purchaseOrders.map((order) => (
-                    <TableRow key={order.id} data-testid={`purchase-order-row-${order.id}`}>
-                      <TableCell className="font-medium" data-testid={`purchase-order-id-${order.id}`}>
-                        #{order.id}
-                      </TableCell>
-                      <TableCell data-testid={`purchase-order-supplier-${order.id}`}>
-                        {order.supplierName}
-                      </TableCell>
-                      <TableCell data-testid={`purchase-order-date-${order.id}`}>
-                        {new Date(order.orderDate).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell data-testid={`purchase-order-status-${order.id}`}>
-                        <Badge variant={purchaseOrderStatusMap[order.status]?.variant || "default"}>
-                          {purchaseOrderStatusMap[order.status]?.label || "Unknown"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell data-testid={`purchase-order-amount-${order.id}`}>
-                        {order.totalAmount.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedPurchaseOrder(order.id);
-                            setShowPurchaseOrderViewModal(true);
-                          }}
-                          data-testid={`button-view-purchase-order-${order.id}`}
-                        >
-                          <Eye className="w-4 h-4 text-blue-600" />
-                        </Button>
-                      </TableCell>
+            {/* Low Stock Sub-tab */}
+            <TabsContent value="low-stock" className="space-y-6">
+              <div className="bg-white rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item Name</TableHead>
+                      <TableHead>Current Stock</TableHead>
+                      <TableHead>Reorder Level</TableHead>
+                      <TableHead>Unit</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingLowStock ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8">
+                          Loading low stock...
+                        </TableCell>
+                      </TableRow>
+                    ) : lowStock.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                          No low stock items
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      lowStock.map((item) => (
+                        <TableRow key={item.inventoryItemId} data-testid={`low-stock-row-${item.inventoryItemId}`}>
+                          <TableCell className="font-medium" data-testid={`low-stock-name-${item.inventoryItemId}`}>
+                            {item.itemName}
+                          </TableCell>
+                          <TableCell data-testid={`low-stock-current-${item.inventoryItemId}`}>
+                            <span className="text-red-600 font-semibold">{item.currentStock}</span>
+                          </TableCell>
+                          <TableCell data-testid={`low-stock-reorder-${item.inventoryItemId}`}>
+                            {item.reorderLevel}
+                          </TableCell>
+                          <TableCell data-testid={`low-stock-unit-${item.inventoryItemId}`}>
+                            {item.unit}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+
+            {/* Purchase Orders Sub-tab */}
+            <TabsContent value="purchase-orders" className="space-y-6">
+              <div className="flex justify-end">
+                <Button 
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                  onClick={() => setShowPurchaseOrderModal(true)}
+                  data-testid="button-add-purchase-order"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Purchase Order
+                </Button>
+              </div>
+
+              <div className="bg-white rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Supplier</TableHead>
+                      <TableHead>Order Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Total Amount</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingPurchaseOrders ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          Loading purchase orders...
+                        </TableCell>
+                      </TableRow>
+                    ) : purchaseOrders.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                          No purchase orders found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      purchaseOrders.map((order) => (
+                        <TableRow key={order.id} data-testid={`purchase-order-row-${order.id}`}>
+                          <TableCell className="font-medium" data-testid={`purchase-order-id-${order.id}`}>
+                            #{order.id}
+                          </TableCell>
+                          <TableCell data-testid={`purchase-order-supplier-${order.id}`}>
+                            {order.supplierName}
+                          </TableCell>
+                          <TableCell data-testid={`purchase-order-date-${order.id}`}>
+                            {new Date(order.orderDate).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell data-testid={`purchase-order-status-${order.id}`}>
+                            <Badge variant={purchaseOrderStatusMap[order.status]?.variant || "default"}>
+                              {purchaseOrderStatusMap[order.status]?.label || "Unknown"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell data-testid={`purchase-order-amount-${order.id}`}>
+                            {order.totalAmount.toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedPurchaseOrder(order.id);
+                                setShowPurchaseOrderViewModal(true);
+                              }}
+                              data-testid={`button-view-purchase-order-${order.id}`}
+                            >
+                              <Eye className="w-4 h-4 text-blue-600" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+
+            {/* Stock Wastage Sub-tab */}
+            <TabsContent value="stock-wastage" className="space-y-6">
+              <div className="text-center py-8 text-gray-500">
+                Stock Wastage feature coming soon...
+              </div>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         {/* Recipes Tab */}
