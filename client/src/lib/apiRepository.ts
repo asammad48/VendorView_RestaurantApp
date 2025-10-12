@@ -454,6 +454,10 @@ export const API_ENDPOINTS = {
   INVENTORY_STOCK_UPDATE: '/api/inventory/branch/{branchId}/stock/update',
   INVENTORY_LOW_STOCK_BY_BRANCH: '/api/inventory/branch/{branchId}/low-stock',
   
+  // Inventory Wastage endpoints
+  INVENTORY_WASTAGE_CREATE: '/api/inventory/wastage',
+  INVENTORY_WASTAGE_BY_BRANCH: '/api/inventory/wastage',
+  
   // Purchase Order endpoints
   PURCHASE_ORDERS: '/api/inventory/purchase-orders',
   PURCHASE_ORDERS_BY_BRANCH: '/api/inventory/purchase-orders/branch/{branchId}',
@@ -687,6 +691,10 @@ export const defaultApiConfig: ApiConfig = {
     getInventoryStockByBranch: API_ENDPOINTS.INVENTORY_STOCK_BY_BRANCH,
     updateInventoryStock: API_ENDPOINTS.INVENTORY_STOCK_UPDATE,
     getInventoryLowStockByBranch: API_ENDPOINTS.INVENTORY_LOW_STOCK_BY_BRANCH,
+    
+    // Inventory Wastage endpoints
+    createInventoryWastage: API_ENDPOINTS.INVENTORY_WASTAGE_CREATE,
+    getInventoryWastageByBranch: API_ENDPOINTS.INVENTORY_WASTAGE_BY_BRANCH,
     
     // Purchase Order endpoints
     createPurchaseOrder: API_ENDPOINTS.PURCHASE_ORDERS,
@@ -2007,6 +2015,34 @@ export const inventoryApi = {
     if (response.error && response.status >= 400) {
       throw new Error(response.error);
     }
+  },
+
+  // Create inventory wastage
+  createInventoryWastage: async (wastageData: { branchId: number; inventoryItemId: number; quantity: number; reason: string }) => {
+    const response = await apiRepository.call('createInventoryWastage', 'POST', wastageData);
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  // Get inventory wastage by branch with date filters
+  getInventoryWastageByBranch: async (branchId: number, from: string, to: string) => {
+    const params = new URLSearchParams({ 
+      branchId: branchId.toString(),
+      from: from,
+      to: to
+    });
+    const originalEndpoint = apiRepository.getConfig().endpoints['getInventoryWastageByBranch'];
+    apiRepository.updateEndpoint('getInventoryWastageByBranch', `${originalEndpoint}?${params.toString()}`);
+    
+    const response = await apiRepository.call('getInventoryWastageByBranch', 'GET');
+    apiRepository.updateEndpoint('getInventoryWastageByBranch', originalEndpoint);
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data || [];
   },
 };
 
