@@ -1,7 +1,7 @@
 # Restaurant Management System
 
 ## Overview
-This full-stack restaurant and hotel management application provides comprehensive entity management functionality for both hotels and restaurants. It includes user management, analytics, and reporting via an intuitive dashboard. The system supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics. Recent additions include a full inventory management system with stock tracking, low stock monitoring, and purchase order capabilities.
+This full-stack restaurant and hotel management application provides comprehensive entity management functionality for both hotels and restaurants. It includes user management, analytics, and reporting via an intuitive dashboard. The system supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics. Recent additions include a full inventory management system with stock tracking, low stock monitoring, purchase order capabilities, and stock wastage tracking with date-filtered historical viewing.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -44,7 +44,7 @@ Technical preferences:
 - **Unified Entity Management**: Supports both hotels and restaurants.
 - **File Upload**: Image-only file upload for profile/certificate pictures (Base64 encoding, FormData for API).
 - **Mobile Responsiveness**: Full responsive design across all components.
-- **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, Tickets, User, and Inventory (Categories, Suppliers, Items, Stock, Purchase Orders).
+- **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, Tickets, User, and Inventory (Categories, Suppliers, Items, Stock, Purchase Orders, Stock Wastage).
 - **User Management**: Add/Edit User modal with profile pictures, role, and branch assignment, with real API integration and name-only search filtering.
 - **Dashboard Analytics**: Sales summary, item performance, occupancy, peak hours, customer feedback with date range toggles and 7 specialized categories.
 - **Appearance Customization**: Gradient color picker for real-time UI previews.
@@ -90,3 +90,16 @@ Technical preferences:
 - **Entity API**: `${apiBaseUrl}/api/Entity`
 - **MenuCategory API**: `${apiBaseUrl}/api/MenuCategory`
 - **SubMenuItems API**: `${apiBaseUrl}/api/SubMenuItems`
+- **Inventory Wastage API**: 
+  - POST `${apiBaseUrl}/api/inventory/wastage` - Create wastage entry
+  - GET `${apiBaseUrl}/api/inventory/wastage?branchId={id}&from={date}&to={date}` - Retrieve wastage records with date filtering
+
+### Stock Wastage Feature
+- **Location**: Inventory Management > Stock > Stock Wastage sub-tab
+- **Functionality**: Track and record inventory wastage with reasons
+- **Date Filters**: Default range is 3 months before to 1 day after current date
+- **Components**:
+  - Stock Wastage Modal: Form to add new wastage entries (item, quantity, reason)
+  - Wastage Table: Displays historical wastage records with date, item name, quantity, and reason
+  - Date Range Filters: From/To date inputs for filtering wastage records
+- **Integration**: Real-time API integration with automatic cache invalidation on new entries
