@@ -14,6 +14,7 @@ import SimpleDeleteModal from "@/components/simple-delete-modal";
 import StockUpdateModal from "@/components/stock-update-modal";
 import PurchaseOrderModal from "@/components/purchase-order-modal";
 import PurchaseOrderViewModal from "@/components/purchase-order-view-modal";
+import RecipeModal from "@/components/recipe-modal";
 import { Badge } from "@/components/ui/badge";
 
 interface InventoryCategory {
@@ -66,6 +67,13 @@ interface PurchaseOrder {
   totalAmount: number;
 }
 
+interface Recipe {
+  id: number;
+  name: string;
+  type: string;
+  branchId: number;
+}
+
 const purchaseOrderStatusMap: { [key: number]: { label: string; variant: "default" | "secondary" | "outline" | "destructive" } } = {
   0: { label: "Draft", variant: "secondary" },
   1: { label: "Ordered", variant: "default" },
@@ -89,6 +97,8 @@ export default function InventoryManagement() {
   const [showStockUpdateModal, setShowStockUpdateModal] = useState(false);
   const [showPurchaseOrderModal, setShowPurchaseOrderModal] = useState(false);
   const [showPurchaseOrderViewModal, setShowPurchaseOrderViewModal] = useState(false);
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
+  const [showEditRecipeModal, setShowEditRecipeModal] = useState(false);
   
   // Selection states
   const [selectedSupplier, setSelectedSupplier] = useState<InventorySupplier | null>(null);
@@ -96,6 +106,7 @@ export default function InventoryManagement() {
   const [deleteItem, setDeleteItem] = useState<{ type: string; id: string; name: string } | null>(null);
   const [selectedStockItem, setSelectedStockItem] = useState<StockItem | null>(null);
   const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<number | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<any | null>(null);
 
   const branchId = parseInt(new URLSearchParams(window.location.search).get('branchId') || '0');
 
@@ -169,6 +180,16 @@ export default function InventoryManagement() {
     enabled: !!branchId && activeTab === "purchase-orders",
   });
 
+  // Fetch recipes (lazy load)
+  const { data: recipes = [], isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery({
+    queryKey: ["recipes", branchId],
+    queryFn: async () => {
+      const result = await inventoryApi.getRecipesByBranch(branchId);
+      return result as Recipe[];
+    },
+    enabled: !!branchId && activeTab === "recipes",
+  });
+
   // Refetch data when tab changes
   useEffect(() => {
     if (activeTab === "categories") refetchCategories();
@@ -177,6 +198,7 @@ export default function InventoryManagement() {
     if (activeTab === "stock") refetchStock();
     if (activeTab === "low-stock") refetchLowStock();
     if (activeTab === "purchase-orders") refetchPurchaseOrders();
+    if (activeTab === "recipes") refetchRecipes();
   }, [activeTab]);
 
   // Delete category mutation
@@ -218,6 +240,19 @@ export default function InventoryManagement() {
     },
   });
 
+  // Delete recipe mutation
+  const deleteRecipeMutation = useMutation({
+    mutationFn: (recipeId: number) => inventoryApi.deleteRecipe(recipeId),
+    onSuccess: () => {
+      toast({ title: "Success", description: "Recipe deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["recipes", branchId] });
+      refetchRecipes();
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to delete recipe", variant: "destructive" });
+    },
+  });
+
   const handleDelete = () => {
     if (!deleteItem) return;
     
@@ -227,6 +262,8 @@ export default function InventoryManagement() {
       deleteSupplierMutation.mutate(parseInt(deleteItem.id));
     } else if (deleteItem.type === 'item') {
       deleteItemMutation.mutate(parseInt(deleteItem.id));
+    } else if (deleteItem.type === 'recipe') {
+      deleteRecipeMutation.mutate(parseInt(deleteItem.id));
     }
     
     setShowDeleteModal(false);
@@ -259,7 +296,7 @@ export default function InventoryManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-6 w-full" data-testid="inventory-tabs">
+        <TabsList className="grid grid-cols-7 w-full" data-testid="inventory-tabs">
           <TabsTrigger value="categories" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Categories
           </TabsTrigger>
@@ -277,6 +314,9 @@ export default function InventoryManagement() {
           </TabsTrigger>
           <TabsTrigger value="purchase-orders" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Purchase Orders
+          </TabsTrigger>
+          <TabsTrigger value="recipes" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+            Recipes
           </TabsTrigger>
         </TabsList>
 
@@ -711,6 +751,85 @@ export default function InventoryManagement() {
             </Table>
           </div>
         </TabsContent>
+
+        {/* Recipes Tab */}
+        <TabsContent value="recipes" className="space-y-6">
+          <div className="flex justify-end">
+            <Button 
+              className="bg-purple-500 hover:bg-purple-600 text-white"
+              onClick={() => setShowRecipeModal(true)}
+              data-testid="button-add-recipe"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Recipe
+            </Button>
+          </div>
+
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoadingRecipes ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center">
+                      Loading recipes...
+                    </TableCell>
+                  </TableRow>
+                ) : recipes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-gray-500">
+                      No recipes found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  recipes.map((recipe) => (
+                    <TableRow key={recipe.id}>
+                      <TableCell className="font-medium" data-testid={`recipe-name-${recipe.id}`}>
+                        {recipe.name}
+                      </TableCell>
+                      <TableCell data-testid={`recipe-type-${recipe.id}`}>
+                        {recipe.type}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
+                              const recipeDetails = await inventoryApi.getRecipeById(recipe.id);
+                              setSelectedRecipe(recipeDetails);
+                              setShowEditRecipeModal(true);
+                            }}
+                            data-testid={`button-edit-recipe-${recipe.id}`}
+                          >
+                            <Edit className="w-4 h-4 text-blue-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setDeleteItem({ type: 'recipe', id: recipe.id.toString(), name: recipe.name });
+                              setShowDeleteModal(true);
+                            }}
+                            data-testid={`button-delete-recipe-${recipe.id}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
       </Tabs>
 
       {/* Modals */}
@@ -845,6 +964,34 @@ export default function InventoryManagement() {
             queryClient.invalidateQueries({ queryKey: ["purchase-orders", branchId] });
             queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
             queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", branchId] });
+          }}
+        />
+      )}
+
+      {showRecipeModal && (
+        <RecipeModal
+          open={showRecipeModal}
+          onClose={() => setShowRecipeModal(false)}
+          branchId={branchId}
+          onSuccess={() => {
+            refetchRecipes();
+            queryClient.invalidateQueries({ queryKey: ["recipes", branchId] });
+          }}
+        />
+      )}
+
+      {showEditRecipeModal && selectedRecipe && (
+        <RecipeModal
+          open={showEditRecipeModal}
+          onClose={() => {
+            setShowEditRecipeModal(false);
+            setSelectedRecipe(null);
+          }}
+          branchId={branchId}
+          recipe={selectedRecipe}
+          onSuccess={() => {
+            refetchRecipes();
+            queryClient.invalidateQueries({ queryKey: ["recipes", branchId] });
           }}
         />
       )}

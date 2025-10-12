@@ -132,9 +132,9 @@ export default function RecipeModal({
     setIsSubmitting(true);
     try {
       const payload = {
-        menuItemId: data.recipeType === "menuItem" ? data.menuItemId : null,
-        variantId: data.recipeType === "menuItem" ? data.variantId : null,
-        subMenuItemId: data.recipeType === "subMenuItem" ? data.subMenuItemId : null,
+        menuItemId: data.recipeType === "menuItem" ? data.menuItemId : undefined,
+        variantId: data.recipeType === "menuItem" ? data.variantId : undefined,
+        subMenuItemId: data.recipeType === "subMenuItem" ? data.subMenuItemId : undefined,
         branchId: branchId,
         items: data.items.map((item) => ({
           id: item.id,
