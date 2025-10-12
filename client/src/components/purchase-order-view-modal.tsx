@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -69,7 +69,7 @@ export default function PurchaseOrderViewModal({
   });
 
   // Update form when order details load
-  useState(() => {
+  useEffect(() => {
     if (orderDetails?.items) {
       form.reset({
         items: orderDetails.items.map((item: any) => ({
@@ -78,7 +78,7 @@ export default function PurchaseOrderViewModal({
         })),
       });
     }
-  });
+  }, [orderDetails]);
 
   // Receive mutation
   const receiveMutation = useMutation({

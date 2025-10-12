@@ -191,7 +191,7 @@ export default function PurchaseOrderModal({
             />
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-3">
                 <FormLabel>Items</FormLabel>
                 <Button
                   type="button"
@@ -203,6 +203,19 @@ export default function PurchaseOrderModal({
                   <Plus className="w-4 h-4 mr-1" />
                   Add Item
                 </Button>
+              </div>
+
+              <div className="flex gap-2 items-center mb-2">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-700">Item Name</p>
+                </div>
+                <div className="w-32">
+                  <p className="text-sm font-medium text-gray-700">Quantity</p>
+                </div>
+                <div className="w-32">
+                  <p className="text-sm font-medium text-gray-700">Unit Price</p>
+                </div>
+                <div className="w-10"></div>
               </div>
 
               {fields.map((field, index) => (
@@ -242,7 +255,7 @@ export default function PurchaseOrderModal({
                         <FormControl>
                           <Input
                             type="number"
-                            placeholder="Qty"
+                            placeholder="Enter quantity"
                             {...field}
                             data-testid={`input-quantity-${index}`}
                           />
@@ -261,7 +274,7 @@ export default function PurchaseOrderModal({
                           <Input
                             type="number"
                             step="0.01"
-                            placeholder="Price"
+                            placeholder="Enter price"
                             {...field}
                             data-testid={`input-price-${index}`}
                           />
