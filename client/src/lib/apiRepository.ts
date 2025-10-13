@@ -458,6 +458,13 @@ export const API_ENDPOINTS = {
   INVENTORY_WASTAGE_CREATE: '/api/inventory/wastage',
   INVENTORY_WASTAGE_BY_BRANCH: '/api/inventory/wastage',
   
+  // Utility Expense endpoints
+  UTILITY_EXPENSE_CREATE: '/api/facilityutilityrecords',
+  UTILITY_EXPENSE_BY_BRANCH: '/api/facilityutilityrecords/branch/{branchId}',
+  UTILITY_EXPENSE_BY_ID: '/api/facilityutilityrecords/{id}',
+  UTILITY_EXPENSE_UPDATE: '/api/facilityutilityrecords/{id}',
+  UTILITY_EXPENSE_DELETE: '/api/facilityutilityrecords/{id}',
+  
   // Purchase Order endpoints
   PURCHASE_ORDERS: '/api/inventory/purchase-orders',
   PURCHASE_ORDERS_BY_BRANCH: '/api/inventory/purchase-orders/branch/{branchId}',
@@ -695,6 +702,13 @@ export const defaultApiConfig: ApiConfig = {
     // Inventory Wastage endpoints
     createInventoryWastage: API_ENDPOINTS.INVENTORY_WASTAGE_CREATE,
     getInventoryWastageByBranch: API_ENDPOINTS.INVENTORY_WASTAGE_BY_BRANCH,
+    
+    // Utility Expense endpoints
+    createUtilityExpense: API_ENDPOINTS.UTILITY_EXPENSE_CREATE,
+    getUtilityExpensesByBranch: API_ENDPOINTS.UTILITY_EXPENSE_BY_BRANCH,
+    getUtilityExpenseById: API_ENDPOINTS.UTILITY_EXPENSE_BY_ID,
+    updateUtilityExpense: API_ENDPOINTS.UTILITY_EXPENSE_UPDATE,
+    deleteUtilityExpense: API_ENDPOINTS.UTILITY_EXPENSE_DELETE,
     
     // Purchase Order endpoints
     createPurchaseOrder: API_ENDPOINTS.PURCHASE_ORDERS,
@@ -2043,6 +2057,63 @@ export const inventoryApi = {
       throw new Error(response.error);
     }
     return response.data || [];
+  },
+
+  // Utility Expense API methods
+  createUtilityExpense: async (expenseData: { 
+    branchId: number; 
+    utilityType: string; 
+    usageUnit: number; 
+    unitCost: number; 
+    billingPeriodStart: string; 
+    billingPeriodEnd: string; 
+    billNumber: string;
+  }) => {
+    const response = await apiRepository.call('createUtilityExpense', 'POST', expenseData);
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  getUtilityExpensesByBranch: async (branchId: number) => {
+    const response = await apiRepository.call('getUtilityExpensesByBranch', 'GET', undefined, undefined, true, { branchId });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data || [];
+  },
+
+  getUtilityExpenseById: async (id: number) => {
+    const response = await apiRepository.call('getUtilityExpenseById', 'GET', undefined, undefined, true, { id });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  updateUtilityExpense: async (id: number, expenseData: { 
+    utilityType: string; 
+    usageUnit: number; 
+    unitCost: number; 
+    billingPeriodStart: string; 
+    billingPeriodEnd: string; 
+    billNumber: string;
+    isActive: boolean;
+  }) => {
+    const response = await apiRepository.call('updateUtilityExpense', 'PUT', expenseData, undefined, true, { id });
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
+  deleteUtilityExpense: async (id: number) => {
+    const response = await apiRepository.call('deleteUtilityExpense', 'DELETE', undefined, undefined, true, { id });
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+    return response.data;
   },
 };
 
