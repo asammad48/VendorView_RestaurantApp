@@ -16,6 +16,8 @@ import PurchaseOrderModal from "@/components/purchase-order-modal";
 import PurchaseOrderViewModal from "@/components/purchase-order-view-modal";
 import RecipeModal from "@/components/recipe-modal";
 import StockWastageModal from "@/components/stock-wastage-modal";
+import UtilityExpenseModal from "@/components/utility-expense-modal";
+import ViewUtilityExpenseModal from "@/components/view-utility-expense-modal";
 import { Badge } from "@/components/ui/badge";
 import { Recipe, RecipeDetail } from "@/types/schema";
 import { Input } from "@/components/ui/input";
@@ -1270,6 +1272,33 @@ export default function InventoryManagement() {
             refetchStock();
             queryClient.invalidateQueries({ queryKey: ["inventory-wastage", branchId, wastageFromDate, wastageToDate] });
             queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
+          }}
+        />
+      )}
+
+      {showUtilityExpenseModal && (
+        <UtilityExpenseModal
+          open={showUtilityExpenseModal}
+          onClose={() => setShowUtilityExpenseModal(false)}
+          branchId={branchId}
+          onSuccess={() => {
+            refetchUtilityExpenses();
+            queryClient.invalidateQueries({ queryKey: ["utility-expenses", branchId] });
+          }}
+        />
+      )}
+
+      {showViewUtilityExpenseModal && selectedUtilityExpense && (
+        <ViewUtilityExpenseModal
+          open={showViewUtilityExpenseModal}
+          onClose={() => {
+            setShowViewUtilityExpenseModal(false);
+            setSelectedUtilityExpense(null);
+          }}
+          expense={selectedUtilityExpense}
+          onSuccess={() => {
+            refetchUtilityExpenses();
+            queryClient.invalidateQueries({ queryKey: ["utility-expenses", branchId] });
           }}
         />
       )}
