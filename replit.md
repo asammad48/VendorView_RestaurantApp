@@ -1,7 +1,7 @@
 # Restaurant Management System
 
 ## Overview
-This full-stack restaurant and hotel management application provides comprehensive entity management functionality for both hotels and restaurants. It includes user management, analytics, and reporting via an intuitive dashboard. The system supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics. Recent additions include a full inventory management system with stock tracking, low stock monitoring, purchase order capabilities, and stock wastage tracking with date-filtered historical viewing.
+This full-stack restaurant and hotel management application provides comprehensive entity management functionality for both hotels and restaurants. It includes user management, analytics, and reporting via an intuitive dashboard. The system supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics. Recent additions include a full inventory management system with stock tracking, low stock monitoring, purchase order capabilities, stock wastage tracking with date-filtered historical viewing, and expense management with utility expense tracking.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -44,7 +44,7 @@ Technical preferences:
 - **Unified Entity Management**: Supports both hotels and restaurants.
 - **File Upload**: Image-only file upload for profile/certificate pictures (Base64 encoding, FormData for API).
 - **Mobile Responsiveness**: Full responsive design across all components.
-- **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, Tickets, User, and Inventory (Categories, Suppliers, Items, Stock, Purchase Orders, Stock Wastage).
+- **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, Tickets, User, Inventory (Categories, Suppliers, Items, Stock, Purchase Orders, Stock Wastage), and Expense Management (Utility Expenses).
 - **User Management**: Add/Edit User modal with profile pictures, role, and branch assignment, with real API integration and name-only search filtering.
 - **Dashboard Analytics**: Sales summary, item performance, occupancy, peak hours, customer feedback with date range toggles and 7 specialized categories.
 - **Appearance Customization**: Gradient color picker for real-time UI previews.
@@ -103,3 +103,23 @@ Technical preferences:
   - Wastage Table: Displays historical wastage records with date, item name, quantity, and reason
   - Date Range Filters: From/To date inputs for filtering wastage records
 - **Integration**: Real-time API integration with automatic cache invalidation on new entries
+
+### Expense Management Feature
+- **Location**: Inventory Management > Expense Management main tab
+- **Functionality**: Track and manage utility expenses (Electric, Water, Gas, Internet, Phone, Other)
+- **API Endpoints**:
+  - POST `/api/facilityutilityrecords` - Create utility expense
+  - GET `/api/facilityutilityrecords/branch/{branchId}` - Get all expenses for a branch
+  - GET `/api/facilityutilityrecords/{id}` - Get single expense by ID
+  - PUT `/api/facilityutilityrecords/{id}` - Update expense
+  - DELETE `/api/facilityutilityrecords/{id}` - Delete expense
+- **Components**:
+  - Utility Expense Modal: Form to add new utility expenses with automatic total cost calculation
+  - View/Edit Expense Modal: View expense details with inline editing capability
+  - Expense Table: Displays all utility expenses with type, usage, costs, billing period, and status
+- **Features**:
+  - Automatic total cost calculation (usage × unit cost)
+  - Active/Inactive status toggle
+  - Billing period date range selection
+  - Real-time data refresh after Add/Update/Delete operations
+  - Full CRUD operations with proper cache invalidation
