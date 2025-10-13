@@ -81,6 +81,18 @@ interface WastageItem {
   createdAt: string;
 }
 
+interface UtilityExpense {
+  id: number;
+  branchId: number;
+  utilityType: string;
+  usageUnit: number;
+  unitCost: number;
+  totalCost: number;
+  billingPeriodStart: string;
+  billingPeriodEnd: string;
+  billNumber: string;
+  isActive: boolean;
+}
 
 const purchaseOrderStatusMap: { [key: number]: { label: string; variant: "default" | "secondary" | "outline" | "destructive" } } = {
   0: { label: "Draft", variant: "secondary" },
@@ -113,6 +125,8 @@ export default function InventoryManagement() {
   const [showRecipeModal, setShowRecipeModal] = useState(false);
   const [showEditRecipeModal, setShowEditRecipeModal] = useState(false);
   const [showStockWastageModal, setShowStockWastageModal] = useState(false);
+  const [showUtilityExpenseModal, setShowUtilityExpenseModal] = useState(false);
+  const [showViewUtilityExpenseModal, setShowViewUtilityExpenseModal] = useState(false);
   
   // Selection states
   const [selectedSupplier, setSelectedSupplier] = useState<InventorySupplier | null>(null);
@@ -121,6 +135,7 @@ export default function InventoryManagement() {
   const [selectedStockItem, setSelectedStockItem] = useState<StockItem | null>(null);
   const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<number | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetail | null>(null);
+  const [selectedUtilityExpense, setSelectedUtilityExpense] = useState<UtilityExpense | null>(null);
 
   const branchId = parseInt(new URLSearchParams(window.location.search).get('branchId') || '0');
 
@@ -204,6 +219,16 @@ export default function InventoryManagement() {
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "stock-wastage",
   });
 
+  // Fetch utility expenses (lazy load)
+  const { data: utilityExpenses = [], isLoading: isLoadingUtilityExpenses, refetch: refetchUtilityExpenses } = useQuery({
+    queryKey: ["utility-expenses", branchId],
+    queryFn: async () => {
+      const result = await inventoryApi.getUtilityExpensesByBranch(branchId);
+      return result as UtilityExpense[];
+    },
+    enabled: !!branchId && activeTab === "expense",
+  });
+
   // Fetch recipes (lazy load)
   const { data: recipes = [], isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery<Recipe[]>({
     queryKey: ["recipes", branchId],
@@ -222,6 +247,7 @@ export default function InventoryManagement() {
     if (activeTab === "stock" && stockSubTab === "low-stock") refetchLowStock();
     if (activeTab === "stock" && stockSubTab === "purchase-orders") refetchPurchaseOrders();
     if (activeTab === "stock" && stockSubTab === "stock-wastage") refetchWastage();
+    if (activeTab === "expense") refetchUtilityExpenses();
     if (activeTab === "recipes") refetchRecipes();
   }, [activeTab, stockSubTab]);
 
@@ -277,6 +303,19 @@ export default function InventoryManagement() {
     },
   });
 
+  // Delete utility expense mutation
+  const deleteUtilityExpenseMutation = useMutation({
+    mutationFn: (expenseId: number) => inventoryApi.deleteUtilityExpense(expenseId),
+    onSuccess: () => {
+      toast({ title: "Success", description: "Utility expense deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["utility-expenses", branchId] });
+      refetchUtilityExpenses();
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to delete utility expense", variant: "destructive" });
+    },
+  });
+
   const handleDelete = () => {
     if (!deleteItem) return;
     
@@ -288,6 +327,8 @@ export default function InventoryManagement() {
       deleteItemMutation.mutate(parseInt(deleteItem.id));
     } else if (deleteItem.type === 'recipe') {
       deleteRecipeMutation.mutate(parseInt(deleteItem.id));
+    } else if (deleteItem.type === 'utility-expense') {
+      deleteUtilityExpenseMutation.mutate(parseInt(deleteItem.id));
     }
     
     setShowDeleteModal(false);
@@ -320,7 +361,7 @@ export default function InventoryManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-5 w-full" data-testid="inventory-tabs">
+        <TabsList className="grid grid-cols-6 w-full" data-testid="inventory-tabs">
           <TabsTrigger value="categories" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Categories
           </TabsTrigger>
@@ -332,6 +373,9 @@ export default function InventoryManagement() {
           </TabsTrigger>
           <TabsTrigger value="stock" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Stock
+          </TabsTrigger>
+          <TabsTrigger value="expense" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+            Expense Management
           </TabsTrigger>
           <TabsTrigger value="recipes" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             Recipes
@@ -869,6 +913,106 @@ export default function InventoryManagement() {
               </div>
             </TabsContent>
           </Tabs>
+        </TabsContent>
+
+        {/* Expense Management Tab */}
+        <TabsContent value="expense" className="space-y-6">
+          <div className="flex justify-end">
+            <Button 
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+              onClick={() => setShowUtilityExpenseModal(true)}
+              data-testid="button-add-utility-expense"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Utility Expense
+            </Button>
+          </div>
+
+          <div className="bg-white rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Utility Type</TableHead>
+                  <TableHead>Usage Unit</TableHead>
+                  <TableHead>Unit Cost</TableHead>
+                  <TableHead>Total Cost</TableHead>
+                  <TableHead>Bill Number</TableHead>
+                  <TableHead>Billing Period</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[120px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoadingUtilityExpenses ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8">
+                      Loading utility expenses...
+                    </TableCell>
+                  </TableRow>
+                ) : utilityExpenses.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      No utility expenses found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  utilityExpenses.map((expense) => (
+                    <TableRow key={expense.id} data-testid={`expense-row-${expense.id}`}>
+                      <TableCell className="font-medium" data-testid={`expense-type-${expense.id}`}>
+                        {expense.utilityType}
+                      </TableCell>
+                      <TableCell data-testid={`expense-usage-${expense.id}`}>
+                        {expense.usageUnit}
+                      </TableCell>
+                      <TableCell data-testid={`expense-unitcost-${expense.id}`}>
+                        ${expense.unitCost.toFixed(2)}
+                      </TableCell>
+                      <TableCell data-testid={`expense-totalcost-${expense.id}`}>
+                        ${expense.totalCost.toFixed(2)}
+                      </TableCell>
+                      <TableCell data-testid={`expense-billnumber-${expense.id}`}>
+                        {expense.billNumber}
+                      </TableCell>
+                      <TableCell data-testid={`expense-period-${expense.id}`}>
+                        {new Date(expense.billingPeriodStart).toLocaleDateString()} - {new Date(expense.billingPeriodEnd).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell data-testid={`expense-status-${expense.id}`}>
+                        <Badge variant={expense.isActive ? "default" : "secondary"}>
+                          {expense.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUtilityExpense(expense);
+                              setShowViewUtilityExpenseModal(true);
+                            }}
+                            data-testid={`button-view-expense-${expense.id}`}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setDeleteItem({ type: 'utility-expense', id: expense.id.toString(), name: expense.utilityType });
+                              setShowDeleteModal(true);
+                            }}
+                            data-testid={`button-delete-expense-${expense.id}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </TabsContent>
 
         {/* Recipes Tab */}
