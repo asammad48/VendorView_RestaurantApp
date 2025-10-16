@@ -136,9 +136,21 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
   // Refetch SubMenuItems whenever the modal opens
   useEffect(() => {
     if (isOpen && branchId) {
-      refetchSubMenuItems();
+      console.log('🔄 Menu Item Modal Opened - Invalidating and Refetching SubMenuItems for branchId:', branchId);
+      // Invalidate the cache and then explicitly refetch to guarantee a fresh fetch
+      queryClient.invalidateQueries({ queryKey: [`submenu-items-simple-branch-${branchId}`] })
+        .then(() => {
+          console.log('✅ Cache invalidated, now refetching SubMenuItems...');
+          return refetchSubMenuItems();
+        })
+        .then(() => {
+          console.log('✅ SubMenuItems refetch completed successfully');
+        })
+        .catch((error) => {
+          console.error('❌ Error refetching SubMenuItems:', error);
+        });
     }
-  }, [isOpen, branchId, refetchSubMenuItems]);
+  }, [isOpen, branchId, queryClient, refetchSubMenuItems]);
 
   // Fetch allergens
   const { data: allergens, isLoading: allergensLoading, isError: allergensError } = useQuery({
