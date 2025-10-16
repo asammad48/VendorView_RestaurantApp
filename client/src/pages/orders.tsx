@@ -772,34 +772,14 @@ export default function Orders() {
       categoryItemsPerPage,
     ],
     queryFn: async () => {
-      const response = await apiRepository.call<{
-        items: MenuCategory[];
-        pageNumber: number;
-        pageSize: number;
-        totalCount: number;
-        totalPages: number;
-        hasPrevious: boolean;
-        hasNext: boolean;
-      }>(
-        "getMenuCategoriesByBranch",
-        "GET",
-        undefined,
-        {
-          PageNumber: categoryCurrentPage.toString(),
-          PageSize: categoryItemsPerPage.toString(),
-          SortBy: "createdAt",
-          IsAscending: "false",
-          ...(categorySearchTerm && { SearchTerm: categorySearchTerm }),
-        },
-        true,
-        { branchId },
+      return await menuCategoryApi.getMenuCategoriesByBranch(
+        branchId,
+        categoryCurrentPage,
+        categoryItemsPerPage,
+        'createdAt',
+        false,
+        categorySearchTerm,
       );
-
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      return response.data;
     },
     enabled: activeMainTab === "menu", // LAZY LOADING: Only fetch when menu tab is active
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
