@@ -699,8 +699,8 @@ export default function Orders() {
         {
           PageNumber: dealsCurrentPage.toString(),
           PageSize: dealsItemsPerPage.toString(),
-          SortBy: 'name',
-          IsAscending: 'true',
+          SortBy: 'createdAt',
+          IsAscending: 'false',
           ...(dealsSearchTerm && { SearchTerm: dealsSearchTerm })
         },
         true,
@@ -2086,40 +2086,46 @@ export default function Orders() {
                       setDealsCurrentPage(1); // Reset to first page
                     }}
                   >
-                    <SelectTrigger className="w-16">
+                    <SelectTrigger className="w-20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
-                        <SelectItem key={pageSize} value={pageSize.toString()}>
-                          {pageSize}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="6">6</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    disabled={dealsCurrentPage === 1}
-                    onClick={() => setDealsCurrentPage(Math.max(1, dealsCurrentPage - 1))}
-                  >
-                    &lt;
-                  </Button>
-                  <span className="text-sm text-gray-600">
-                    Page {dealsCurrentPage} of {dealsTotalPages}
-                  </span>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
-                    disabled={dealsCurrentPage === dealsTotalPages}
-                    onClick={() => {
-                      const maxPage = dealsTotalPages || 1;
-                      setDealsCurrentPage(Math.min(maxPage, dealsCurrentPage + 1));
-                    }}
+                    onClick={() => setDealsCurrentPage(Math.max(1, dealsCurrentPage - 1))}
+                    disabled={dealsCurrentPage === 1}
                   >
-                    &gt;
+                    Previous
+                  </Button>
+                  
+                  {Array.from({ length: dealsTotalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={dealsCurrentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDealsCurrentPage(page)}
+                      className={dealsCurrentPage === page ? "bg-green-500 hover:bg-green-600" : ""}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDealsCurrentPage(Math.min(dealsTotalPages, dealsCurrentPage + 1))}
+                    disabled={dealsCurrentPage === dealsTotalPages}
+                  >
+                    Next
                   </Button>
                 </div>
               </div>
