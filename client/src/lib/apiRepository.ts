@@ -1300,16 +1300,54 @@ export const subMenuItemApi = {
     );
   },
 
-  // Get detailed SubMenuItems by branch ID
-  getSubMenuItemsByBranch: async (branchId: number) => {
-    return await apiRepository.call(
+  // Get detailed SubMenuItems by branch ID with pagination
+  getSubMenuItemsByBranch: async (
+    branchId: number,
+    pageNumber: number = 1,
+    pageSize: number = 6,
+    sortBy: string = "createdAt",
+    isAscending: boolean = false,
+    searchTerm?: string,
+  ): Promise<any> => {
+    const params = new URLSearchParams({
+      PageNumber: pageNumber.toString(),
+      PageSize: pageSize.toString(),
+      SortBy: sortBy,
+      IsAscending: isAscending.toString(),
+    });
+
+    if (searchTerm) {
+      params.append("SearchTerm", searchTerm);
+    }
+
+    // Update endpoint with query parameters
+    const originalEndpoint =
+      apiRepository.getConfig().endpoints["getSubMenusByBranch"];
+    const endpointWithPath = originalEndpoint.replace(
+      "{branchId}",
+      branchId.toString(),
+    );
+    apiRepository.updateEndpoint(
+      "getSubMenusByBranch",
+      `${endpointWithPath}?${params.toString()}`,
+    );
+
+    const response = await apiRepository.call(
       "getSubMenusByBranch",
       "GET",
       undefined,
       {},
       true,
-      { branchId },
     );
+
+    // Restore original endpoint
+    apiRepository.updateEndpoint("getSubMenusByBranch", originalEndpoint);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
   },
 
   // Get SubMenuItem by ID
