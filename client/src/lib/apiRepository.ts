@@ -1390,6 +1390,104 @@ export const subMenuItemApi = {
   },
 };
 
+// MenuCategory API Helper Functions
+export const menuCategoryApi = {
+  // Get menu categories by branch ID with pagination
+  getMenuCategoriesByBranch: async (
+    branchId: number,
+    pageNumber: number = 1,
+    pageSize: number = 6,
+    sortBy: string = "createdAt",
+    isAscending: boolean = false,
+    searchTerm?: string,
+  ): Promise<any> => {
+    const params = new URLSearchParams({
+      PageNumber: pageNumber.toString(),
+      PageSize: pageSize.toString(),
+      SortBy: sortBy,
+      IsAscending: isAscending.toString(),
+    });
+
+    if (searchTerm) {
+      params.append("SearchTerm", searchTerm);
+    }
+
+    // Update endpoint with query parameters
+    const originalEndpoint =
+      apiRepository.getConfig().endpoints["getMenuCategoriesByBranch"];
+    const endpointWithPath = originalEndpoint.replace(
+      "{branchId}",
+      branchId.toString(),
+    );
+    apiRepository.updateEndpoint(
+      "getMenuCategoriesByBranch",
+      `${endpointWithPath}?${params.toString()}`,
+    );
+
+    const response = await apiRepository.call(
+      "getMenuCategoriesByBranch",
+      "GET",
+      undefined,
+      {},
+      true,
+    );
+
+    // Restore original endpoint
+    apiRepository.updateEndpoint("getMenuCategoriesByBranch", originalEndpoint);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  },
+
+  // Get menu category by ID
+  getMenuCategoryById: async (categoryId: number) => {
+    return await apiRepository.call(
+      "getMenuCategoryById",
+      "GET",
+      undefined,
+      {},
+      true,
+      { id: categoryId },
+    );
+  },
+
+  // Create menu category
+  createMenuCategory: async (categoryData: any) => {
+    return await apiRepository.call(
+      "createMenuCategory",
+      "POST",
+      categoryData,
+    );
+  },
+
+  // Update menu category
+  updateMenuCategory: async (categoryId: number, categoryData: any) => {
+    return await apiRepository.call(
+      "updateMenuCategory",
+      "PUT",
+      categoryData,
+      {},
+      true,
+      { id: categoryId },
+    );
+  },
+
+  // Delete menu category
+  deleteMenuCategory: async (categoryId: number) => {
+    return await apiRepository.call(
+      "deleteMenuCategory",
+      "DELETE",
+      undefined,
+      {},
+      true,
+      { id: categoryId },
+    );
+  },
+};
+
 // Deals API Helper Functions
 export const dealsApi = {
   // Create a new deal
