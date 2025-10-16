@@ -425,8 +425,8 @@ export default function Orders() {
         {
           PageNumber: menuCurrentPage.toString(),
           PageSize: menuItemsPerPage.toString(),
-          SortBy: 'name',
-          IsAscending: 'true',
+          SortBy: 'createdAt',
+          IsAscending: 'false',
           ...(menuSearchTerm && { SearchTerm: menuSearchTerm })
         },
         true,
@@ -470,8 +470,8 @@ export default function Orders() {
         {
           PageNumber: subMenuCurrentPage.toString(),
           PageSize: subMenuItemsPerPage.toString(),
-          SortBy: 'name',
-          IsAscending: 'true',
+          SortBy: 'createdAt',
+          IsAscending: 'false',
           ...(subMenuSearchTerm && { SearchTerm: subMenuSearchTerm })
         },
         true,
@@ -539,8 +539,8 @@ export default function Orders() {
         branchId,
         reservationsCurrentPage,
         reservationsItemsPerPage,
-        'name',
-        true
+        'createdAt',
+        false
       );
     },
     enabled: activeMainTab === "reservations", // LAZY LOADING: Only fetch when reservations tab is active
