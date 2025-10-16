@@ -86,6 +86,9 @@ import {
   ordersApi,
   reservationApi,
   subscriptionsApi,
+  menuItemApi,
+  subMenuItemApi,
+  menuCategoryApi,
 } from "@/lib/apiRepository";
 import { useBranchCurrency } from "@/hooks/useBranchCurrency";
 import type {
@@ -579,34 +582,14 @@ export default function Orders() {
       menuItemsPerPage,
     ],
     queryFn: async () => {
-      const response = await apiRepository.call<{
-        items: MenuItem[];
-        pageNumber: number;
-        pageSize: number;
-        totalCount: number;
-        totalPages: number;
-        hasPrevious: boolean;
-        hasNext: boolean;
-      }>(
-        "getMenuItemsByBranch",
-        "GET",
-        undefined,
-        {
-          PageNumber: menuCurrentPage.toString(),
-          PageSize: menuItemsPerPage.toString(),
-          SortBy: "createdAt",
-          IsAscending: "false",
-          ...(menuSearchTerm && { SearchTerm: menuSearchTerm }),
-        },
-        true,
-        { branchId },
+      return await menuItemApi.getMenuItemsByBranch(
+        branchId,
+        menuCurrentPage,
+        menuItemsPerPage,
+        'createdAt',
+        false,
+        menuSearchTerm,
       );
-
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      return response.data;
     },
     enabled: activeMainTab === "menu", // LAZY LOADING: Only fetch when menu tab is active
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
