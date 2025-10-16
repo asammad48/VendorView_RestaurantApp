@@ -615,27 +615,14 @@ export default function Orders() {
       subMenuItemsPerPage,
     ],
     queryFn: async () => {
-      const response = await apiRepository.call<{
-        items: SubMenu[];
-        pageNumber: number;
-        pageSize: number;
-        totalCount: number;
-        totalPages: number;
-        hasPrevious: boolean;
-        hasNext: boolean;
-      }>("getSubMenusByBranch", "GET", undefined, undefined, true, {
-        branchId: branchId,
-          pageNumber: subMenuCurrentPage,
-        pageSize: subMenuItemsPerPage,
-        sortBy: "createdAt",
-        isAscending: false,
-      });
-
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      return response.data;
+      return await subMenuItemApi.getSubMenuItemsByBranch(
+        branchId,
+        subMenuCurrentPage,
+        subMenuItemsPerPage,
+        'createdAt',
+        false,
+        subMenuSearchTerm,
+      );
     },
     enabled: activeMainTab === "menu", // LAZY LOADING: Only fetch when menu tab is active
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
