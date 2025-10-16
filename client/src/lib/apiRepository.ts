@@ -514,8 +514,7 @@ export const API_ENDPOINTS = {
   // SubMenu endpoints
   SUBMENUS: "/api/SubMenuItems",
   SUBMENU_BY_ID: "/api/SubMenuItems/{id}",
-  SUBMENUS_BY_BRANCH:
-    "/api/SubMenuItems/branch/{branchId}?PageNumber={pageNumber}&PageSize={pageSize}",
+  SUBMENUS_BY_BRANCH: "/api/SubMenuItems/branch/{branchId}",
   SUBMENUS_SIMPLE_BY_BRANCH: "/api/SubMenuItems/branch/{branchId}/simple",
   UPDATE_SUBMENU: "/api/SubMenuItems/{id}",
   DELETE_SUBMENU: "/api/SubMenuItems/{id}",
@@ -1456,11 +1455,7 @@ export const menuCategoryApi = {
 
   // Create menu category
   createMenuCategory: async (categoryData: any) => {
-    return await apiRepository.call(
-      "createMenuCategory",
-      "POST",
-      categoryData,
-    );
+    return await apiRepository.call("createMenuCategory", "POST", categoryData);
   },
 
   // Update menu category
