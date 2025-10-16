@@ -615,8 +615,8 @@ export default function Orders() {
         {
           PageNumber: categoryCurrentPage.toString(),
           PageSize: categoryItemsPerPage.toString(),
-          SortBy: 'name',
-          IsAscending: 'true',
+          SortBy: 'createdAt',
+          IsAscending: 'false',
           ...(categorySearchTerm && { SearchTerm: categorySearchTerm })
         },
         true,
@@ -1612,7 +1612,7 @@ export default function Orders() {
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600">Show result:</span>
               <Select defaultValue="6">
-                <SelectTrigger className="w-16">
+                <SelectTrigger className="w-20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1624,10 +1624,9 @@ export default function Orders() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
-                disabled={activeMenuTab === "Menu" ? !menuHasPrevious || isLoadingMenu : activeMenuTab === "Category" ? categoryCurrentPage === 1 : subMenuCurrentPage === 1}
                 onClick={() => {
                   if (activeMenuTab === "Menu") {
                     setMenuCurrentPage(Math.max(1, menuCurrentPage - 1));
@@ -1637,36 +1636,62 @@ export default function Orders() {
                     setSubMenuCurrentPage(Math.max(1, subMenuCurrentPage - 1));
                   }
                 }}
+                disabled={activeMenuTab === "Menu" ? menuCurrentPage === 1 : activeMenuTab === "Category" ? categoryCurrentPage === 1 : subMenuCurrentPage === 1}
               >
-                &lt;
+                Previous
               </Button>
               
-              <Button 
-                variant="default" 
-                size="sm" 
-                className="bg-green-500 hover:bg-green-600"
-              >
-                {activeMenuTab === "Menu" ? menuCurrentPage : activeMenuTab === "Category" ? categoryCurrentPage : subMenuCurrentPage}
-              </Button>
+              {activeMenuTab === "Menu" && Array.from({ length: menuTotalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={menuCurrentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMenuCurrentPage(page)}
+                  className={menuCurrentPage === page ? "bg-green-500 hover:bg-green-600" : ""}
+                >
+                  {page}
+                </Button>
+              ))}
               
-              <Button 
-                variant="outline" 
+              {activeMenuTab === "Category" && Array.from({ length: categoryTotalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={categoryCurrentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCategoryCurrentPage(page)}
+                  className={categoryCurrentPage === page ? "bg-green-500 hover:bg-green-600" : ""}
+                >
+                  {page}
+                </Button>
+              ))}
+              
+              {activeMenuTab === "SubMenu" && Array.from({ length: subMenuTotalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={subMenuCurrentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSubMenuCurrentPage(page)}
+                  className={subMenuCurrentPage === page ? "bg-green-500 hover:bg-green-600" : ""}
+                >
+                  {page}
+                </Button>
+              ))}
+              
+              <Button
+                variant="outline"
                 size="sm"
-                disabled={activeMenuTab === "Menu" ? !menuHasNext || isLoadingMenu : activeMenuTab === "Category" ? categoryCurrentPage === categoryTotalPages : subMenuCurrentPage === subMenuTotalPages}
                 onClick={() => {
                   if (activeMenuTab === "Menu") {
-                    const maxPage = menuTotalPages || 1;
-                    setMenuCurrentPage(Math.min(maxPage, menuCurrentPage + 1));
+                    setMenuCurrentPage(Math.min(menuTotalPages, menuCurrentPage + 1));
                   } else if (activeMenuTab === "Category") {
-                    const maxPage = categoryTotalPages || 1;
-                    setCategoryCurrentPage(Math.min(maxPage, categoryCurrentPage + 1));
+                    setCategoryCurrentPage(Math.min(categoryTotalPages, categoryCurrentPage + 1));
                   } else if (activeMenuTab === "SubMenu") {
-                    const maxPage = subMenuTotalPages || 1;
-                    setSubMenuCurrentPage(Math.min(maxPage, subMenuCurrentPage + 1));
+                    setSubMenuCurrentPage(Math.min(subMenuTotalPages, subMenuCurrentPage + 1));
                   }
                 }}
+                disabled={activeMenuTab === "Menu" ? menuCurrentPage === menuTotalPages : activeMenuTab === "Category" ? categoryCurrentPage === categoryTotalPages : subMenuCurrentPage === subMenuTotalPages}
               >
-                &gt;
+                Next
               </Button>
             </div>
           </div>
@@ -1902,39 +1927,44 @@ export default function Orders() {
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Show result:</span>
                 <Select value={reservationsItemsPerPage.toString()} onValueChange={(value) => setReservationsItemsPerPage(parseInt(value))}>
-                  <SelectTrigger className="w-16">
+                  <SelectTrigger className="w-20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="6">6</SelectItem>
                     <SelectItem value="10">10</SelectItem>
                     <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setReservationsCurrentPage(Math.max(1, reservationsCurrentPage - 1))}
                   disabled={reservationsCurrentPage === 1}
                 >
                   Previous
                 </Button>
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  className="bg-green-500 hover:bg-green-600"
-                >
-                  {reservationsCurrentPage}
-                </Button>
-                <Button 
-                  variant="outline" 
+                
+                {Array.from({ length: reservationsTotalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={reservationsCurrentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setReservationsCurrentPage(page)}
+                    className={reservationsCurrentPage === page ? "bg-green-500 hover:bg-green-600" : ""}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                
+                <Button
+                  variant="outline"
                   size="sm"
-                  onClick={() => setReservationsCurrentPage(reservationsCurrentPage + 1)}
-                  disabled={reservationsCurrentPage >= reservationsTotalPages}
+                  onClick={() => setReservationsCurrentPage(Math.min(reservationsTotalPages, reservationsCurrentPage + 1))}
+                  disabled={reservationsCurrentPage === reservationsTotalPages}
                 >
                   Next
                 </Button>
