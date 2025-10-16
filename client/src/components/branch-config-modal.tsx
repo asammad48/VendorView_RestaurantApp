@@ -118,6 +118,27 @@ export default function BranchConfigModal({ open, onClose, branch }: BranchConfi
 
   const isReservationEnabled = form.watch("isReservation");
   const isDeliveryEnabled = form.watch("isDelivery");
+  const isTakeawayEnabled = form.watch("isTakeaway");
+
+  // Clear delivery fields when delivery service is disabled
+  useEffect(() => {
+    if (!isDeliveryEnabled) {
+      form.setValue("deliveryTime", undefined);
+      form.setValue("deliveryMinimumOrder", undefined);
+      form.setValue("deliveryFee", undefined);
+      form.setValue("maxDeliveryDistance", undefined);
+    }
+  }, [isDeliveryEnabled, form]);
+
+  // Clear reservation fields when reservation service is disabled
+  useEffect(() => {
+    if (!isReservationEnabled) {
+      form.setValue("maxAdvanceDays", undefined);
+      form.setValue("minNoticeMinutes", undefined);
+      form.setValue("maxGuestsPerReservation", undefined);
+      form.setValue("holdTimeMinutes", undefined);
+    }
+  }, [isReservationEnabled, form]);
 
   // Fetch configuration data when modal opens
   useEffect(() => {

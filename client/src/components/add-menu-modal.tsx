@@ -106,7 +106,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
   });
 
   // Fetch SubMenuItems for modifiers
-  const { data: subMenuItems, isLoading: subMenuItemsLoading, error: subMenuItemsError } = useQuery({
+  const { data: subMenuItems, isLoading: subMenuItemsLoading, error: subMenuItemsError, refetch: refetchSubMenuItems } = useQuery({
     queryKey: [`submenu-items-simple-branch-${branchId}`],
     queryFn: async () => {
       console.log(`🔍 Fetching SubMenuItems for branchId: ${branchId}`);
@@ -132,6 +132,13 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
     enabled: !!branchId, // Only fetch when branchId is available
     retry: 1
   });
+
+  // Refetch SubMenuItems whenever the modal opens
+  useEffect(() => {
+    if (isOpen && branchId) {
+      refetchSubMenuItems();
+    }
+  }, [isOpen, branchId, refetchSubMenuItems]);
 
   // Fetch allergens
   const { data: allergens, isLoading: allergensLoading, isError: allergensError } = useQuery({
@@ -459,6 +466,27 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
       toast({
         title: "Failed to load allergen catalog",
         description: "Please retry. Your allergen selections cannot be saved.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate image is provided (mandatory for both add and edit)
+    if (!image || image.trim() === "") {
+      toast({
+        title: "Image Required",
+        description: "Please upload an image for the menu item.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate at least one variant with valid data
+    const validVariants = variants.filter(v => v.name.trim() !== "" && v.price > 0);
+    if (validVariants.length === 0) {
+      toast({
+        title: "Variant Required",
+        description: "Please add at least one variant with a name and price greater than 0.",
         variant: "destructive",
       });
       return;
