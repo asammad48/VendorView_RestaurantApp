@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { apiRepository, subMenuItemApi } from "@/lib/apiRepository";
+import { apiRepository, subMenuItemApi, menuCategoryApi } from "@/lib/apiRepository";
 import { createApiQuery, createApiMutation, formatApiError } from "@/lib/errorHandling";
 import { useBranchCurrency } from "@/hooks/useBranchCurrency";
 import { validateImage, getConstraintDescription } from "@/lib/imageValidation";
@@ -75,34 +75,18 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
   const [showCustomizations, setShowCustomizations] = useState<boolean>(true);
   const [showModifiers, setShowModifiers] = useState<boolean>(true);
 
-  // Fetch categories for dropdown
-  const { data: categories, isLoading: categoriesLoading } = useQuery({
-    queryKey: [`menu-categories-branch-${branchId}`],
+  // Fetch categories for dropdown - refreshes when modal opens
+  const { data: categories, isLoading: categoriesLoading, refetch: refetchCategories } = useQuery({
+    queryKey: [`menu-categories-simple-branch-${branchId}`, isOpen],
     queryFn: async () => {
-      const response = await apiRepository.call<{
-        items: MenuCategory[];
-        pageNumber: number;
-        pageSize: number;
-        totalCount: number;
-        totalPages: number;
-        hasPrevious: boolean;
-        hasNext: boolean;
-      }>(
-        'getMenuCategoriesByBranch',
-        'GET',
-        undefined,
-        {
-          PageNumber: '1',
-          PageSize: '100',
-          SortBy: 'name',
-          IsAscending: 'true'
-        },
-        true,
-        { branchId: branchId || 0 }
-      );
-      return response.data?.items || [];
+      if (!branchId) return [];
+      console.log(`🔍 Fetching Menu Categories for branchId: ${branchId}`);
+      const data = await menuCategoryApi.getMenuCategoriesSimpleByBranch(branchId);
+      console.log(`✅ Menu Categories fetched: ${data.length} items`, data);
+      return data;
     },
-    enabled: !!branchId, // Only fetch when branchId is available
+    enabled: isOpen && !!branchId,
+    staleTime: 0, // Always fetch fresh data when modal opens
   });
 
   // Fetch SubMenuItems for modifiers
@@ -133,14 +117,28 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
     retry: 1
   });
 
-  // Refetch SubMenuItems whenever the modal opens
+  // Refetch Categories and SubMenuItems whenever the modal opens
   useEffect(() => {
     if (isOpen && branchId) {
-      console.log('🔄 Menu Item Modal Opened - Invalidating and Refetching SubMenuItems for branchId:', branchId);
-      // Invalidate the cache and then explicitly refetch to guarantee a fresh fetch
+      console.log('🔄 Menu Item Modal Opened - Invalidating and Refetching data for branchId:', branchId);
+      
+      // Refetch Categories
+      queryClient.invalidateQueries({ queryKey: [`menu-categories-simple-branch-${branchId}`] })
+        .then(() => {
+          console.log('✅ Categories cache invalidated, now refetching...');
+          return refetchCategories();
+        })
+        .then(() => {
+          console.log('✅ Categories refetch completed successfully');
+        })
+        .catch((error) => {
+          console.error('❌ Error refetching Categories:', error);
+        });
+      
+      // Refetch SubMenuItems
       queryClient.invalidateQueries({ queryKey: [`submenu-items-simple-branch-${branchId}`] })
         .then(() => {
-          console.log('✅ Cache invalidated, now refetching SubMenuItems...');
+          console.log('✅ SubMenuItems cache invalidated, now refetching...');
           return refetchSubMenuItems();
         })
         .then(() => {
@@ -150,7 +148,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
           console.error('❌ Error refetching SubMenuItems:', error);
         });
     }
-  }, [isOpen, branchId, queryClient, refetchSubMenuItems]);
+  }, [isOpen, branchId, queryClient, refetchSubMenuItems, refetchCategories]);
 
   // Fetch allergens
   const { data: allergens, isLoading: allergensLoading, isError: allergensError } = useQuery({
@@ -517,6 +515,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
 
     // Prepare API payload according to the real API structure
     const menuItemData = {
+      branchId: branchId, // Include branchId for update
       menuCategoryId: data.categoryId,
       name: data.name,
       description: data.description || "",
@@ -632,7 +631,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
                 <SelectTrigger>
                   <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px] overflow-y-auto">
                   {categories?.map((category: MenuCategory) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name}

@@ -113,7 +113,7 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
         branchId: dealData.branchId,
         name: dealData.name || "",
         description: dealData.description || "",
-        price: dealData.price ? dealData.price / 100 : 0, // Convert cents to rupees
+        price: dealData.price || 0, // Use price as is, no conversion
         packagePicture: dealData.packagePicture || "",
         expiryDate: dealData.expiryDate ? convertUTCToLocalDate(dealData.expiryDate) : "", // Convert UTC to local date for input
         menuItems: dealData.menuItems?.map(item => ({
@@ -440,10 +440,12 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-6 bg-white rounded-lg max-h-[85vh] overflow-y-auto">
-        <DialogTitle className="text-xl font-semibold text-gray-900 mb-6">
-          {isEditMode ? 'Edit Deal' : 'Add Deal'}
-        </DialogTitle>
+      <DialogContent className="max-w-2xl p-0 bg-white rounded-lg max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="px-6 pt-6 pb-4 border-b">
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            {isEditMode ? 'Edit Deal' : 'Add Deal'}
+          </DialogTitle>
+        </div>
 
         {isDealLoading && isEditMode && (
           <div className="text-center py-4">
@@ -452,7 +454,8 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
         )}
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+            <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -691,7 +694,7 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
               </div>
             </div>
 
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center pt-6 border-t mt-6">
               <Button
                 type="submit"
                 disabled={createDealMutation.isPending || (
@@ -704,6 +707,7 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
               >
                 {createDealMutation.isPending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Deal" : "Create Deal")}
               </Button>
+            </div>
             </div>
           </form>
         </Form>
