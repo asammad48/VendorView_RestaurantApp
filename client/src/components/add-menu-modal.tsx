@@ -631,7 +631,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
                 <SelectTrigger>
                   <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px] overflow-y-auto">
                   {categories?.map((category: MenuCategory) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name}

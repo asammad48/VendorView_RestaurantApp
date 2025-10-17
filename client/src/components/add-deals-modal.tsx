@@ -113,7 +113,7 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
         branchId: dealData.branchId,
         name: dealData.name || "",
         description: dealData.description || "",
-        price: dealData.price ? dealData.price / 100 : 0, // Convert cents to rupees
+        price: dealData.price || 0, // Use price as is, no conversion
         packagePicture: dealData.packagePicture || "",
         expiryDate: dealData.expiryDate ? convertUTCToLocalDate(dealData.expiryDate) : "", // Convert UTC to local date for input
         menuItems: dealData.menuItems?.map(item => ({
