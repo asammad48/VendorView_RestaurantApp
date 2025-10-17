@@ -6,6 +6,7 @@ import {
   Recipe,
   RecipeDetail,
   InsertRecipe,
+  MenuCategory,
 } from "../types/schema";
 import { PaginationResponse } from "../types/pagination";
 import { signalRService } from "../services/signalRService";
@@ -510,6 +511,7 @@ export const API_ENDPOINTS = {
   MENU_CATEGORIES: "/api/MenuCategory",
   MENU_CATEGORY_BY_ID: "/api/MenuCategory/{id}",
   MENU_CATEGORIES_BY_BRANCH: "/api/MenuCategory/branch/{branchId}",
+  MENU_CATEGORIES_SIMPLE_BY_BRANCH: "/api/MenuCategory/GetBranchById/{branchId}",
 
   // SubMenu endpoints
   SUBMENUS: "/api/SubMenuItems",
@@ -664,6 +666,7 @@ export const defaultApiConfig: ApiConfig = {
     updateMenuCategory: API_ENDPOINTS.MENU_CATEGORY_BY_ID,
     deleteMenuCategory: API_ENDPOINTS.MENU_CATEGORY_BY_ID,
     getMenuCategoriesByBranch: API_ENDPOINTS.MENU_CATEGORIES_BY_BRANCH,
+    getMenuCategoriesSimpleByBranch: API_ENDPOINTS.MENU_CATEGORIES_SIMPLE_BY_BRANCH,
 
     // SubMenu endpoints
     getSubMenus: API_ENDPOINTS.SUBMENUS,
@@ -1480,6 +1483,24 @@ export const menuCategoryApi = {
       true,
       { id: categoryId },
     );
+  },
+
+  // Get simple menu categories by branch ID (no pagination)
+  getMenuCategoriesSimpleByBranch: async (branchId: number) => {
+    const response = await apiRepository.call<MenuCategory[]>(
+      "getMenuCategoriesSimpleByBranch",
+      "GET",
+      undefined,
+      {},
+      true,
+      { branchId },
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data || [];
   },
 };
 
