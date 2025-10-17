@@ -234,9 +234,15 @@ export default function Orders() {
   const [subMenuCurrentPage, setSubMenuCurrentPage] = useState(1);
   const [dealsCurrentPage, setDealsCurrentPage] = useState(1);
   const [discountsCurrentPage, setDiscountsCurrentPage] = useState(1);
-  const [menuItemsPerPage, setMenuItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
-  const [categoryItemsPerPage, setCategoryItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
-  const [subMenuItemsPerPage, setSubMenuItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  const [menuItemsPerPage, setMenuItemsPerPage] = useState(
+    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
+  );
+  const [categoryItemsPerPage, setCategoryItemsPerPage] = useState(
+    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
+  );
+  const [subMenuItemsPerPage, setSubMenuItemsPerPage] = useState(
+    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
+  );
   const [dealsItemsPerPage, setDealsItemsPerPage] = useState(
     DEFAULT_PAGINATION_CONFIG.defaultPageSize,
   );
@@ -586,7 +592,7 @@ export default function Orders() {
         branchId,
         menuCurrentPage,
         menuItemsPerPage,
-        'createdAt',
+        "createdAt",
         false,
         menuSearchTerm,
       );
@@ -619,7 +625,7 @@ export default function Orders() {
         branchId,
         subMenuCurrentPage,
         subMenuItemsPerPage,
-        'createdAt',
+        "createdAt",
         false,
         subMenuSearchTerm,
       );
@@ -776,7 +782,7 @@ export default function Orders() {
         branchId,
         categoryCurrentPage,
         categoryItemsPerPage,
-        'createdAt',
+        "createdAt",
         false,
         categorySearchTerm,
       );
@@ -1682,9 +1688,6 @@ export default function Orders() {
                   ) : (
                     paginatedMenuItems.map((item) => {
                       // Get category name from categories list
-                      const categoryName =
-                        categories.find((cat) => cat.id === item.menuCategoryId)
-                          ?.name || "Unknown Category";
 
                       return (
                         <TableRow
@@ -1725,7 +1728,7 @@ export default function Orders() {
                             data-testid={`menu-item-category-${item.id}`}
                           >
                             <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                              {categoryName}
+                              {item.menuCategoryName || "Unknown Category"}
                             </Badge>
                           </TableCell>
                           <TableCell
@@ -2469,11 +2472,13 @@ export default function Orders() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
-                      <SelectItem key={pageSize} value={pageSize.toString()}>
-                        {pageSize}
-                      </SelectItem>
-                    ))}
+                    {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map(
+                      (pageSize) => (
+                        <SelectItem key={pageSize} value={pageSize.toString()}>
+                          {pageSize}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -2716,11 +2721,16 @@ export default function Orders() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
-                        <SelectItem key={pageSize} value={pageSize.toString()}>
-                          {pageSize}
-                        </SelectItem>
-                      ))}
+                      {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map(
+                        (pageSize) => (
+                          <SelectItem
+                            key={pageSize}
+                            value={pageSize.toString()}
+                          >
+                            {pageSize}
+                          </SelectItem>
+                        ),
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -3017,7 +3027,9 @@ export default function Orders() {
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      setDiscountsCurrentPage(Math.max(1, discountsCurrentPage - 1))
+                      setDiscountsCurrentPage(
+                        Math.max(1, discountsCurrentPage - 1),
+                      )
                     }
                     disabled={discountsCurrentPage === 1}
                     data-testid="button-discounts-prev-page"
@@ -3025,31 +3037,34 @@ export default function Orders() {
                     Previous
                   </Button>
 
-                  {Array.from({ length: discountsTotalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <Button
-                        key={page}
-                        variant={discountsCurrentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setDiscountsCurrentPage(page)}
-                        className={
-                          discountsCurrentPage === page
-                            ? "bg-green-500 hover:bg-green-600"
-                            : ""
-                        }
-                        data-testid={`button-discounts-page-${page}`}
-                      >
-                        {page}
-                      </Button>
-                    ),
-                  )}
+                  {Array.from(
+                    { length: discountsTotalPages },
+                    (_, i) => i + 1,
+                  ).map((page) => (
+                    <Button
+                      key={page}
+                      variant={
+                        discountsCurrentPage === page ? "default" : "outline"
+                      }
+                      size="sm"
+                      onClick={() => setDiscountsCurrentPage(page)}
+                      className={
+                        discountsCurrentPage === page
+                          ? "bg-green-500 hover:bg-green-600"
+                          : ""
+                      }
+                      data-testid={`button-discounts-page-${page}`}
+                    >
+                      {page}
+                    </Button>
+                  ))}
 
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() =>
                       setDiscountsCurrentPage(
-                        Math.min(discountsTotalPages, discountsCurrentPage + 1)
+                        Math.min(discountsTotalPages, discountsCurrentPage + 1),
                       )
                     }
                     disabled={discountsCurrentPage === discountsTotalPages}
