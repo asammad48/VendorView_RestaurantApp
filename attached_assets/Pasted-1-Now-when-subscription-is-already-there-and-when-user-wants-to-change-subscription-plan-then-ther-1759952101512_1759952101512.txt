@@ -1,0 +1,78 @@
+1. Now when subscription is already there and when user wants to change subscription plan
+then there will be button where user will choose plan in popup when button is clicked
+and after that you need to integrate that api
+Request:-
+curl -X 'POST' \
+  'https://localhost:7261/api/Subscriptions/calculate-prorated-amount' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJBbGkgYmhhaSIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwianRpIjoiZTA1NmRlZjQtOWNhNC00MDAwLTg5MzctNDFmNmE5ZTMwZDA2IiwibmJmIjoxNzU5ODU2MzMwLCJleHAiOjE3NjA0NjExMzAsImlhdCI6MTc1OTg1NjMzMCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.o0zYBi_dwJFfOZIe_t7jq0zDiqegUzSLcRQeOK7VfP8' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "branchId": 7,
+  "newSubscriptionId": 2,
+  "billingCycle": 1
+}'
+
+response:-
+{
+  "remainingAmount": 1998.39,
+  "newPlanAmount": 54000,
+  "amountDue": 52001.61
+}
+
+2. After that you need to call an api to update that plan
+Request:-
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/Subscriptions/change' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJBbGkgYmhhaSIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwianRpIjoiZTA1NmRlZjQtOWNhNC00MDAwLTg5MzctNDFmNmE5ZTMwZDA2IiwibmJmIjoxNzU5ODU2MzMwLCJleHAiOjE3NjA0NjExMzAsImlhdCI6MTc1OTg1NjMzMCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.o0zYBi_dwJFfOZIe_t7jq0zDiqegUzSLcRQeOK7VfP8' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "branchId": 7,
+  "newSubscriptionId": 2,
+  "billingCycle": 1,
+  "currencyCode": "PKR"
+}'
+
+Response:-
+{
+  "newBranchSubscriptionId": 3,
+  "status": "Subscription changed successfully",
+  "amountDue": 52069
+}
+
+3. After that if you want cancel subscription then you need to call a new api
+Request
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/Subscriptions/cancel' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJBbGkgYmhhaSIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwianRpIjoiZTA1NmRlZjQtOWNhNC00MDAwLTg5MzctNDFmNmE5ZTMwZDA2IiwibmJmIjoxNzU5ODU2MzMwLCJleHAiOjE3NjA0NjExMzAsImlhdCI6MTc1OTg1NjMzMCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.o0zYBi_dwJFfOZIe_t7jq0zDiqegUzSLcRQeOK7VfP8' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "branchId": 7,
+  "cancelImmediately": true
+}'
+Response:-
+{
+  "status": "Subscription canceled successfully"
+}
+
+If he want to cancel inmmediately then you need to send "cancelImmediately" as true, or if he want it at the end of subscriptiontime then "cancelImmediately": false
+
+4. for uploading payment proff we will have a new api to cosnume the API
+REquest:-
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/Subscriptions/upload-proof' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJBbGkgYmhhaSIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwianRpIjoiZTA1NmRlZjQtOWNhNC00MDAwLTg5MzctNDFmNmE5ZTMwZDA2IiwibmJmIjoxNzU5ODU2MzMwLCJleHAiOjE3NjA0NjExMzAsImlhdCI6MTc1OTg1NjMzMCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.o0zYBi_dwJFfOZIe_t7jq0zDiqegUzSLcRQeOK7VfP8' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'BranchSubscriptionId=2' \
+  -F 'ProofOfPayment=@dealPic.jpg;type=image/jpeg'
+  
+Response:-
+{
+  "status": "Proof of payment uploaded successfully.",
+  "filePath": "uploads/proofs/f6b1c72c-819d-47ad-a266-f79c164ee2de_dealPic.jpg"
+}
+
+5. You need to consume all apis using generic api repository please

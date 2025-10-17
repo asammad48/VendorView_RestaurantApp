@@ -1,0 +1,150 @@
+1. you need add a section on the of page of restaurant-management page. where subscription will be managed, also you need to add button to purchase a plan.
+2. You need to remove subscription popup
+3. Integrate an API to display to display infomration of plan in pop when button is being clicked
+Request:-
+curl -X 'GET' \
+  'https://localhost:7261/api/Subscriptions/subscriptionsByBranch?branchId=7' \
+  -H 'accept: */*'
+Response:-
+[
+  {
+    "id": 1,
+    "subscriptionType": 1,
+    "trialPeriodInDays": 7,
+    "gracePeriodInDays": 7,
+    "name": "Basic Plan",
+    "description": "Entry-level plan with core features for small restaurants.",
+    "details": [
+      {
+        "feature": "Dashboard insights"
+      },
+      {
+        "feature": "Analytics"
+      },
+      {
+        "feature": "Customer can order through customer website"
+      }
+    ],
+    "prices": [
+      {
+        "currencyCode": "PKR",
+        "price": 2000,
+        "billingCycle": 0
+      }
+    ],
+    "discounts": [
+      {
+        "billingCycle": 1,
+        "discountPercentage": 20,
+        "discountAmount": null,
+        "validUntil": null
+      },
+      {
+        "billingCycle": 0,
+        "discountPercentage": 10,
+        "discountAmount": null,
+        "validUntil": null
+      }
+    ]
+  }
+]
+This is the list of Subscriptions you need to display as it is when button is clicked and the pop up will open.
+
+
+4. Now you need add two enums 
+public enum SubscriptionType
+{
+    Basic = 1,
+    Standard = 2,
+    Premium = 3
+}
+public enum BillingCycle
+{
+    Monthly,
+    Yearly
+}
+These enum will be used in subscriptionsByBranch API
+5.After that you need to apply subscription as well.
+Request:-
+curl -X 'POST' \
+  'https://localhost:7261/api/Subscriptions/apply' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJBbGkgYmhhaSIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwianRpIjoiZTA1NmRlZjQtOWNhNC00MDAwLTg5MzctNDFmNmE5ZTMwZDA2IiwibmJmIjoxNzU5ODU2MzMwLCJleHAiOjE3NjA0NjExMzAsImlhdCI6MTc1OTg1NjMzMCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.o0zYBi_dwJFfOZIe_t7jq0zDiqegUzSLcRQeOK7VfP8' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "branchId": 7,
+  "subscriptionId": 1,
+  "billingCycle": 0,
+  "currencyCode": "PKR",
+  "paymentMethodId": "Online"
+}'
+
+Response:-
+{
+  "branchSubscriptionId": 1,
+  "status": "Subscription applied successfully"
+}
+
+6.you need to get current plan as well
+Request:
+curl -X 'GET' \
+  'https://localhost:7261/api/Subscriptions/current?branchId=7' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJBbGkgYmhhaSIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwianRpIjoiZTA1NmRlZjQtOWNhNC00MDAwLTg5MzctNDFmNmE5ZTMwZDA2IiwibmJmIjoxNzU5ODU2MzMwLCJleHAiOjE3NjA0NjExMzAsImlhdCI6MTc1OTg1NjMzMCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.o0zYBi_dwJFfOZIe_t7jq0zDiqegUzSLcRQeOK7VfP8'
+  
+Response:-
+{
+  "id": 1,
+  "subscriptionType": "Basic",
+  "trialPeriodInDays": 7,
+  "gracePeriodInDays": 7,
+  "name": "Basic Plan",
+  "description": "Entry-level plan with core features for small restaurants.",
+  "details": [
+    {
+      "feature": "Dashboard insights"
+    },
+    {
+      "feature": "Analytics"
+    },
+    {
+      "feature": "Customer can order through customer website"
+    }
+  ],
+  "prices": [
+    {
+      "currencyCode": "PKR",
+      "price": 2000,
+      "billingCycle": 0
+    },
+    {
+      "currencyCode": "USD",
+      "price": 10,
+      "billingCycle": 0
+    },
+    {
+      "currencyCode": "GBP",
+      "price": 8,
+      "billingCycle": 0
+    }
+  ],
+  "discounts": [
+    {
+      "billingCycle": 1,
+      "discountPercentage": 20,
+      "discountAmount": null,
+      "validUntil": null
+    },
+    {
+      "billingCycle": 0,
+      "discountPercentage": 10,
+      "discountAmount": null,
+      "validUntil": null
+    }
+  ],
+  "startDate": "2025-10-07T17:19:42.912662",
+  "endDate": "2025-11-07T17:19:42.912662",
+  "paymentStatus": "Pending"
+}
+
+7. You need to use generic API repository to integrate APIs

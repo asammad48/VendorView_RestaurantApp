@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -87,6 +88,16 @@ export default function AddCategoryModal({ isOpen, onClose, branchId, editCatego
       });
     },
   });
+
+  // Reset form when modal opens or editCategory changes
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: editCategory?.name || "",
+        branchId: branchId,
+      });
+    }
+  }, [isOpen, editCategory, branchId, form]);
 
   const onSubmit = (data: AddCategoryFormData) => {
     if (isEditMode) {

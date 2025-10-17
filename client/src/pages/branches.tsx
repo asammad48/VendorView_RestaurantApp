@@ -112,6 +112,14 @@ export default function Branches() {
     setShowConfigModal(true);
   };
 
+  const handleInventory = (branch: Branch) => {
+    const queryParams = new URLSearchParams({
+      branchId: branch.id.toString(),
+      entityType: entityType || "restaurant"
+    });
+    navigate(`/inventory-management?${queryParams.toString()}`);
+  };
+
   if (isLoading) {
     return (
       <div className="p-4 md:p-6">
@@ -236,6 +244,7 @@ export default function Branches() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onConfigure={handleConfigure}
+              onInventory={handleInventory}
             />
           ))}
         </div>

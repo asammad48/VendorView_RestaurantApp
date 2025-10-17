@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,9 @@ import { SubMenu, InsertSubMenu } from "@/types/schema";
 
 const addSubMenuSchema = z.object({
   name: z.string().min(1, "SubMenu name is required"),
-  price: z.number().min(0, "Price must be positive"),
+  price: z.coerce.number().refine((val) => val >= 0, {
+    message: "Price must be 0 or greater",
+  }),
   branchId: z.number().min(1, "Branch ID is required"),
 });
 
@@ -39,11 +42,27 @@ export default function AddSubMenuModal({ isOpen, onClose, branchId, editSubMenu
   const form = useForm<AddSubMenuFormData>({
     resolver: zodResolver(addSubMenuSchema),
     defaultValues: {
-      name: editSubMenu?.name || "",
-      price: editSubMenu?.price || 0,
+      name: "",
+      price: 0,
       branchId: branchId,
     },
   });
+
+  useEffect(() => {
+    if (editSubMenu) {
+      form.reset({
+        name: editSubMenu.name,
+        price: editSubMenu.price,
+        branchId: branchId,
+      });
+    } else {
+      form.reset({
+        name: "",
+        price: 0,
+        branchId: branchId,
+      });
+    }
+  }, [editSubMenu, branchId, form]);
 
   const createSubMenuMutation = useMutation({
     mutationFn: createApiMutation<SubMenu, InsertSubMenu>(async (data: InsertSubMenu) => {
@@ -154,7 +173,11 @@ export default function AddSubMenuModal({ isOpen, onClose, branchId, editSubMenu
                       step="0.01"
                       placeholder="0.00" 
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === '' ? '' : value);
+                      }}
+                      value={field.value}
                       data-testid="input-submenu-price"
                     />
                   </FormControl>

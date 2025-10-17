@@ -1,0 +1,96 @@
+1. Now We have Expense Management Section in Inventory Management
+2. Now you have to create Utility expense tab
+3. For creating utility expense you need to integrate an API
+Request:-
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/facilityutilityrecords' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "branchId": 3,
+  "utilityType": "Electric",
+  "usageUnit": 120,
+  "unitCost": 23,
+  "billingPeriodStart": "2025-09-13T20:25:18.647Z",
+  "billingPeriodEnd": "2025-10-13T20:25:18.647Z",
+  "billNumber": "8956565656512"
+}'
+Response:-
+{
+  "id": 1,
+  "branchId": 3,
+  "utilityType": "Electric",
+  "usageUnit": 120,
+  "unitCost": 23,
+  "totalCost": 2760,
+  "billingPeriodStart": "2025-09-13T20:25:18.647Z",
+  "billingPeriodEnd": "2025-10-13T20:25:18.647Z",
+  "billNumber": "8956565656512",
+  "isActive": true
+}
+4. For displaying utility expense in table , you need to integrate an API
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/facilityutilityrecords/branch/3' \
+  -H 'accept: */*'
+Response:-
+[
+  {
+    "id": 1,
+    "branchId": 3,
+    "utilityType": "Electric",
+    "usageUnit": 120,
+    "unitCost": 23,
+    "totalCost": 2760,
+    "billingPeriodStart": "2025-09-13T20:25:18.647",
+    "billingPeriodEnd": "2025-10-13T20:25:18.647",
+    "billNumber": "8956565656512",
+    "isActive": true
+  }
+]
+5. To display expense in view or update modal , you need to integrate an API
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/facilityutilityrecords/1' \
+  -H 'accept: */*'
+Response:-
+{
+  "id": 1,
+  "branchId": 3,
+  "utilityType": "Electric",
+  "usageUnit": 120,
+  "unitCost": 23,
+  "totalCost": 2760,
+  "billingPeriodStart": "2025-09-13T20:25:18.647",
+  "billingPeriodEnd": "2025-10-13T20:25:18.647",
+  "billNumber": "8956565656512",
+  "isActive": true
+}
+
+6. To update expense , please integrate an API
+Request:-
+curl -X 'PUT' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/facilityutilityrecords/1' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "utilityType": "Electricity",
+  "usageUnit": 120,
+  "unitCost": 23,
+  "billingPeriodStart": "2025-10-13T21:36:29.309Z",
+  "billingPeriodEnd": "2025-10-13T21:36:29.309Z",
+  "billNumber": "898988989898989",
+  "isActive": true
+}'
+
+Response:- 204 (No content)
+
+7. To remove an expense, you need to integrate an API
+Request:-
+curl -X 'DELETE' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/facilityutilityrecords/1' \
+  -H 'accept: */*'
+Response:- 204 (No content)
+
+8. Now after every Add, Update or Delete call you need to refresh the table data
+9. Also please make sure to use Generic API repostiory to call the APIs

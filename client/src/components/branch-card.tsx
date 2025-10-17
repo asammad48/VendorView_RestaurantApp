@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Settings, MapPin, Phone, Edit, Trash2, Building, Cog, Clock, DollarSign, AlertTriangle } from "lucide-react";
+import { Settings, MapPin, Phone, Edit, Trash2, Building, Cog, Clock, DollarSign, AlertTriangle, Package } from "lucide-react";
 import type { Branch } from "@/types/schema";
 import { getBranchImageUrl } from "@/lib/imageUtils";
 
@@ -12,9 +12,10 @@ interface BranchCardProps {
   onEdit?: (branch: Branch) => void;
   onDelete?: (branch: Branch) => void;
   onConfigure?: (branch: Branch) => void;
+  onInventory?: (branch: Branch) => void;
 }
 
-export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfigure }: BranchCardProps) {
+export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfigure, onInventory }: BranchCardProps) {
   return (
     <Card className="group bg-white border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden rounded-2xl" data-testid={`card-branch-${branch.id}`}>
       {/* Header Image Section */}
@@ -130,6 +131,18 @@ export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfi
             <Settings className="w-4 h-4 mr-2" />
             Manage Branch
           </Button>
+          
+          {/* Inventory Management Button */}
+          {onInventory && (
+            <Button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium h-10"
+              onClick={() => onInventory(branch)}
+              data-testid={`button-inventory-${branch.id}`}
+            >
+              <Package className="w-4 h-4 mr-2" />
+              Inventory Management
+            </Button>
+          )}
           
           {/* Secondary Actions */}
           <div className="w-full flex flex-wrap gap-2 justify-center">

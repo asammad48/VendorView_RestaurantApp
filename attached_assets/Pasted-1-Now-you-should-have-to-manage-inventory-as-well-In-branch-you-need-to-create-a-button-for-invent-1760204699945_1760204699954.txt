@@ -1,0 +1,96 @@
+1. Now you should have to manage inventory as well, In branch you need to create a button for inventory management , when user will click you will redirect him to inventory management page for branch.
+2. On that page you need to get branch Information from api ,get branch by id.
+3. On that page we will manage all of the inventory related thing.
+4. We need to create just like we have create it in restaurant management page.(Like tab menu)
+4. Now for adding inventory category we will have to integrate an API
+Request:-
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/categories' \
+  -H 'accept: text/plain' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJBbGkgYmhhaSIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwianRpIjoiZTA1NmRlZjQtOWNhNC00MDAwLTg5MzctNDFmNmE5ZTMwZDA2IiwibmJmIjoxNzU5ODU2MzMwLCJleHAiOjE3NjA0NjExMzAsImlhdCI6MTc1OTg1NjMzMCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.o0zYBi_dwJFfOZIe_t7jq0zDiqegUzSLcRQeOK7VfP8' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Dry Goods & Grains",
+  "branchId": 1
+}'
+Response:-
+{
+  "id": 1,
+  "name": "Dry Goods & Grains",
+  "branchId": 1
+}
+
+5. For displaying inventory in table we will have an API
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/categories?BranchId=1' \
+  -H 'accept: text/plain' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJBbGkgYmhhaSIsInJvbGUiOiJBY2NvdW50IE93bmVyIiwianRpIjoiZTA1NmRlZjQtOWNhNC00MDAwLTg5MzctNDFmNmE5ZTMwZDA2IiwibmJmIjoxNzU5ODU2MzMwLCJleHAiOjE3NjA0NjExMzAsImlhdCI6MTc1OTg1NjMzMCwiaXNzIjoiUmVzdGF1cmFudEFwcCIsImF1ZCI6IlJlc3RhdXJhbnRBcHAifQ.o0zYBi_dwJFfOZIe_t7jq0zDiqegUzSLcRQeOK7VfP8'  
+Repsonse:-
+[
+  {
+    "id": 1,
+    "name": "Dry Goods & Grains",
+    "branchId": 1
+  }
+]
+
+6. We will have suppliers section as well first of all we need to add Supplier as well
+Request:-
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/suppliers' \
+  -H 'accept: text/plain' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Pak Food By Hilal",
+  "contactPerson": "Ali nawaz",
+  "phone": "0330256565",
+  "email": "asammad48@gmail.com",
+  "address": "Dhok Ilahi buksh",
+  "branchId": 1
+}'
+Response:-
+{
+  "id": 2
+}
+7. then we have to display it in the table as well.
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/suppliers?branchId=1' \
+  -H 'accept: text/plain'
+Response:-
+[
+  {
+    "id": 2,
+    "name": "Pak Food By Hilal",
+    "contactPerson": "Ali nawaz",
+    "phone": "0330256565",
+    "email": "asammad48@gmail.com",
+    "address": "Dhok Ilahi buksh",
+    "branchId": 1
+  }
+]
+8. then you need to update suppliers as well by fetching data from table rows and display it in update modal.
+Request:-
+curl -X 'PUT' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/suppliers/2' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Pak Food By Hilal",
+  "contactPerson": "Ali New",
+  "phone": "033305454545",
+  "email": "alibhai@gmail.com",
+  "address": "My name is ab"
+}'
+Resposne:- 204
+9. Then you will be able to delete supplier as well
+Request:-
+curl -X 'DELETE' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/suppliers/1' \
+  -H 'accept: */*'
+Response:-
+204
+
+10. Pleas emake sure every api operation , you need to refresh data in table 
+11. Please sure as well you need to call each api using Generic API repository please.

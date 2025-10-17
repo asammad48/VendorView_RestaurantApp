@@ -1,0 +1,158 @@
+1. Now whe will have to manage InventoryStock, first of all we need to display stock in Stock section
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/branch/6/stock' \
+  -H 'accept: text/plain'
+
+Response:-
+[
+  {
+    "inventoryItemId": 2,
+    "itemName": "Checken",
+    "currentStock": 12,
+    "unit": "Kg"
+  }
+]
+
+2. To update stock due to anomaly use the below API
+Request:-
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/branch/6/stock/update' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "inventoryItemId": 2,
+  "newStock": 2,
+  "reason": "First time entry"
+}'
+Response:- 204
+
+3. To get low stock we wneed to use below API
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/branch/6/low-stock' \
+  -H 'accept: text/plain'
+Response
+[
+  {
+    "inventoryItemId": 2,
+    "itemName": "Checken",
+    "currentStock": 2,
+    "reorderLevel": 3,
+    "unit": "Kg"
+  }
+]
+
+4. Now to create Purchase Order we will need to integrate the below API
+Request:-
+curl -X 'POST' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/purchase-orders' \
+  -H 'accept: text/plain' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "supplierId": 1,
+  "branchId": 6,
+  "orderDate": "2025-10-11T22:09:41.483Z",
+  "status": 0,
+  "items": [
+    {
+      "inventoryItemId": 2,
+      "quantity": 200,
+      "unitPrice": 12
+    }
+  ]
+}'
+Response:-
+{
+  "id": 1
+}
+
+For status we are using enum 
+public enum PurchaseOrderStatus
+{
+    Draft,
+    Ordered,
+    Received,
+    Cancelled
+}
+
+also for Inventory item Id we will load Invetory Item when popup will open
+
+5. TO display purchase order in Table you need to integrate below API
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/purchase-orders/branch/6' \
+  -H 'accept: text/plain'
+Response:-
+[
+  {
+    "id": 1,
+    "supplierName": "Pakistan Foods",
+    "branchName": "Cheezious 3",
+    "orderDate": "2025-10-11T22:09:41.483",
+    "status": 0,
+    "totalAmount": 2400
+  }
+]
+
+6. Now for getting PurchaseItemById to show it in View Modal our Update modal you need to integrate the below API 
+Request:-
+curl -X 'GET' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/purchase-orders/1' \
+  -H 'accept: text/plain'
+Response:-
+{
+  "id": 1,
+  "supplierId": 1,
+  "supplierName": "Pakistan Foods",
+  "branchId": 6,
+  "branchName": "Cheezious 3",
+  "orderDate": "2025-10-11T22:09:41.483",
+  "status": 0,
+  "totalAmount": 2400,
+  "createdBy": 0,
+  "createdAt": "2025-10-11T22:11:00.364432",
+  "items": [
+    {
+      "id": 1,
+      "inventoryItemId": 2,
+      "itemName": "Checken",
+      "quantity": 200,
+      "unitPrice": 12,
+      "receivedQuantity": 0,
+      "total": 2400
+    }
+  ]
+}
+
+7. Now to recive the PurchaseOrder we need to integrate the below API please
+Request:-
+curl -X 'PUT' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/purchase-orders/1/receive' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "items": [
+    {
+      "purchaseOrderItemId": 1,
+      "receivedQuantity": 2
+    }
+  ]
+}'
+
+Response:-
+204
+
+8. Nwo to cancel the purchaseOrder please integrate the below API
+Request:-
+curl -X 'PUT' \
+  'https://5dtrtpzg-7261.inc1.devtunnels.ms/api/inventory/purchase-orders/1/cancel' \
+  -H 'accept: */*'
+  
+Response:-
+204
+
+9. Whenever the Update ,Add , Delete operation is being used, you need to update the table please.
+10. Also in inventory management, please Load data tab by tab ,a s i can see that you loading whole page at once , which is wrong , whenever tab is being changed you need to displayed the refreshed data of that tab.
+11. Please use Generic API to integrate the API please.
+

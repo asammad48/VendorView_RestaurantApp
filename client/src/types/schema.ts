@@ -131,6 +131,109 @@ export const insertBranchSchema = z.object({
 
 export type InsertBranch = z.infer<typeof insertBranchSchema>;
 
+// Subscription Enums
+export enum SubscriptionType {
+  Basic = 1,
+  Standard = 2,
+  Premium = 3
+}
+
+export enum BillingCycle {
+  Monthly = 0,
+  Yearly = 1
+}
+
+// Subscription types
+export interface SubscriptionPrice {
+  currencyCode: string;
+  price: number;
+  billingCycle: BillingCycle;
+}
+
+export interface SubscriptionDiscount {
+  billingCycle: BillingCycle;
+  discountPercentage: number | null;
+  discountAmount: number | null;
+  validUntil: string | null;
+}
+
+export interface SubscriptionDetail {
+  feature: string;
+}
+
+export interface Subscription {
+  id: number;
+  subscriptionType: SubscriptionType | string;
+  trialPeriodInDays: number;
+  gracePeriodInDays: number;
+  name: string;
+  description: string;
+  details: SubscriptionDetail[];
+  prices: SubscriptionPrice[];
+  discounts: SubscriptionDiscount[];
+  startDate?: string;
+  endDate?: string;
+  paymentStatus?: string;
+  branchSubscriptionId?: number;
+}
+
+export interface ApplySubscriptionRequest {
+  branchId: number;
+  subscriptionId: number;
+  billingCycle: BillingCycle;
+  currencyCode: string;
+  paymentMethodId: string;
+}
+
+export interface ApplySubscriptionResponse {
+  branchSubscriptionId: number;
+  status: string;
+}
+
+export interface CalculateProratedAmountRequest {
+  branchId: number;
+  newSubscriptionId: number;
+  billingCycle: BillingCycle;
+}
+
+export interface CalculateProratedAmountResponse {
+  remainingAmount: number;
+  newPlanAmount: number;
+  amountDue: number;
+}
+
+export interface ChangeSubscriptionRequest {
+  branchId: number;
+  newSubscriptionId: number;
+  billingCycle: BillingCycle;
+  currencyCode: string;
+}
+
+export interface ChangeSubscriptionResponse {
+  newBranchSubscriptionId: number;
+  status: string;
+  amountDue: number;
+}
+
+export interface CancelSubscriptionRequest {
+  branchId: number;
+  cancelImmediately: boolean;
+}
+
+export interface CancelSubscriptionResponse {
+  status: string;
+}
+
+export interface UploadPaymentProofRequest {
+  branchSubscriptionId: number;
+  proofOfPayment: File;
+}
+
+export interface UploadPaymentProofResponse {
+  status: string;
+  filePath: string;
+}
+
 // Menu item types for API
 export interface MenuItemVariant {
   name: string;
@@ -675,3 +778,84 @@ export const insertIssueReportingSchema = z.object({
 });
 
 export type InsertIssueReporting = z.infer<typeof insertIssueReportingSchema>;
+
+// Recipe types based on API response
+export interface RecipeItem {
+  id?: number;
+  inventoryItemId: number;
+  inventoryItemName?: string;
+  quantity: number;
+  unit: string;
+}
+
+export interface Recipe {
+  id: number;
+  name: string;
+  type: string;
+  branchId: number;
+}
+
+export interface RecipeDetail {
+  id: number;
+  menuItemId?: number;
+  menuItemName?: string;
+  variantId?: number;
+  variantName?: string;
+  subMenuItemId?: number;
+  subMenuItemName?: string;
+  branchId: number;
+  items: RecipeItem[];
+}
+
+// Insert schema for creating new recipes
+export const insertRecipeItemSchema = z.object({
+  id: z.number().optional(),
+  inventoryItemId: z.number().min(1, "Inventory item is required"),
+  quantity: z.number().min(0.01, "Quantity must be greater than 0"),
+  unit: z.string().min(1, "Unit is required"),
+});
+
+export const insertRecipeSchema = z.object({
+  menuItemId: z.number().optional(),
+  variantId: z.number().optional(),
+  subMenuItemId: z.number().optional(),
+  branchId: z.number().min(1, "Branch is required"),
+  items: z.array(insertRecipeItemSchema).min(1, "At least one item is required"),
+});
+
+export type InsertRecipeItem = z.infer<typeof insertRecipeItemSchema>;
+export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
+
+// Inventory Item types for recipe management
+export interface InventoryItemSimple {
+  id: number;
+  branchId: number;
+  name: string;
+  categoryName: string;
+  unit: string;
+  reorderLevel: number;
+  defaultSupplierName: string | null;
+}
+
+// Menu Item Search types for recipe selection
+export interface MenuItemSearchVariant {
+  id: number;
+  menuItemId: number;
+  name: string;
+}
+
+export interface MenuItemSearchMenuItem {
+  id: number;
+  name: string;
+}
+
+export interface MenuItemSearchSubMenuItem {
+  id: number;
+  name: string;
+}
+
+export interface MenuItemSearchData {
+  menuItems: MenuItemSearchMenuItem[];
+  variants: MenuItemSearchVariant[];
+  subMenuItems: MenuItemSearchSubMenuItem[];
+}

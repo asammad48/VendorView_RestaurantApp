@@ -1,0 +1,152 @@
+export const reservationApi = {
+  // Get reservations by branch with pagination
+  getReservationsByBranch: async (
+    branchId: number,
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    sortBy: string = "name",
+    isAscending: boolean = true,
+  ): Promise<any> => {
+    const params = new URLSearchParams({
+      PageNumber: pageNumber.toString(),
+      PageSize: pageSize.toString(),
+      SortBy: sortBy,
+      IsAscending: isAscending.toString(),
+    });
+
+    // Update endpoint with query parameters
+    const originalEndpoint =
+      apiRepository.getConfig().endpoints["getReservationsByBranch"];
+    const endpointWithPath = originalEndpoint.replace(
+      "{branchId}",
+      branchId.toString(),
+    );
+    apiRepository.updateEndpoint(
+      "getReservationsByBranch",
+      `${endpointWithPath}?${params.toString()}`,
+    );
+
+    const response = await apiRepository.call(
+      "getReservationsByBranch",
+      "GET",
+      undefined,
+      {},
+      true,
+    );
+
+    // Restore original endpoint
+    apiRepository.updateEndpoint("getReservationsByBranch", originalEndpoint);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  },
+
+  // Get reservation detail by ID
+  getReservationDetail: async (
+    reservationId: number,
+  ): Promise<import("../types/schema").ReservationDetail> => {
+    const response = await apiRepository.call<
+      import("../types/schema").ReservationDetail
+    >("getReservationById", "GET", undefined, {}, true, { id: reservationId });
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    if (!response.data) {
+      throw new Error("Failed to fetch reservation");
+    }
+
+    return response.data;
+  },
+
+  // Update reservation action (status and remarks)
+  updateReservationAction: async (
+    reservationId: number,
+    actionData: {
+      actionTaken: import("../types/schema").ReservationStatus;
+      remarks?: string | null;
+    },
+  ): Promise<void> => {
+    const response = await apiRepository.call<void>(
+      "updateReservationAction",
+      "PUT",
+      actionData,
+      {},
+      true,
+      { id: reservationId },
+    );
+
+    if (response.error && response.status >= 400) {
+      throw new Error(response.error);
+    }
+  },
+
+  // Get reservation status types
+  getReservationStatusTypes: async () => {
+    const response = await apiRepository.call(
+      "getReservationStatusTypes",
+      "GET",
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data || [];
+  },
+
+  // Create reservation
+  createReservation: async (reservationData: any) => {
+    const response = await apiRepository.call(
+      "createReservation",
+      "POST",
+      reservationData,
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  },
+
+  // Update reservation
+  updateReservation: async (reservationId: number, reservationData: any) => {
+    const response = await apiRepository.call(
+      "updateReservation",
+      "PUT",
+      reservationData,
+      {},
+      true,
+      { id: reservationId },
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  },
+
+  // Delete reservation
+  deleteReservation: async (reservationId: number) => {
+    const response = await apiRepository.call(
+      "deleteReservation",
+      "DELETE",
+      undefined,
+      {},
+      true,
+      { id: reservationId },
+    );
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  },
+};
