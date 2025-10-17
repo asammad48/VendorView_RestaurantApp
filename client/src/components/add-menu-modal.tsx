@@ -517,6 +517,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
 
     // Prepare API payload according to the real API structure
     const menuItemData = {
+      branchId: branchId, // Include branchId for update
       menuCategoryId: data.categoryId,
       name: data.name,
       description: data.description || "",
