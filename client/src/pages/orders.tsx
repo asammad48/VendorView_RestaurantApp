@@ -234,9 +234,9 @@ export default function Orders() {
   const [subMenuCurrentPage, setSubMenuCurrentPage] = useState(1);
   const [dealsCurrentPage, setDealsCurrentPage] = useState(1);
   const [discountsCurrentPage, setDiscountsCurrentPage] = useState(1);
-  const [menuItemsPerPage] = useState(6);
-  const [categoryItemsPerPage] = useState(6);
-  const [subMenuItemsPerPage] = useState(6);
+  const [menuItemsPerPage, setMenuItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  const [categoryItemsPerPage, setCategoryItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  const [subMenuItemsPerPage, setSubMenuItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
   const [dealsItemsPerPage, setDealsItemsPerPage] = useState(
     DEFAULT_PAGINATION_CONFIG.defaultPageSize,
   );
@@ -1512,9 +1512,11 @@ export default function Orders() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="6">6</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
+                  {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                    <SelectItem key={pageSize} value={pageSize.toString()}>
+                      {pageSize}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -2019,14 +2021,37 @@ export default function Orders() {
           <div className="flex items-center justify-between p-4 border-t bg-gray-50">
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600">Show result:</span>
-              <Select defaultValue="6">
+              <Select
+                value={
+                  activeMenuTab === "Menu"
+                    ? menuItemsPerPage.toString()
+                    : activeMenuTab === "Category"
+                      ? categoryItemsPerPage.toString()
+                      : subMenuItemsPerPage.toString()
+                }
+                onValueChange={(value) => {
+                  const newSize = Number(value);
+                  if (activeMenuTab === "Menu") {
+                    setMenuItemsPerPage(newSize);
+                    setMenuCurrentPage(1);
+                  } else if (activeMenuTab === "Category") {
+                    setCategoryItemsPerPage(newSize);
+                    setCategoryCurrentPage(1);
+                  } else if (activeMenuTab === "SubMenu") {
+                    setSubMenuItemsPerPage(newSize);
+                    setSubMenuCurrentPage(1);
+                  }
+                }}
+              >
                 <SelectTrigger className="w-20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="6">6</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
+                  {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                    <SelectItem key={pageSize} value={pageSize.toString()}>
+                      {pageSize}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -2435,17 +2460,20 @@ export default function Orders() {
                 <span className="text-sm text-gray-600">Show result:</span>
                 <Select
                   value={reservationsItemsPerPage.toString()}
-                  onValueChange={(value) =>
-                    setReservationsItemsPerPage(parseInt(value))
-                  }
+                  onValueChange={(value) => {
+                    setReservationsItemsPerPage(Number(value));
+                    setReservationsCurrentPage(1);
+                  }}
                 >
                   <SelectTrigger className="w-20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="6">6</SelectItem>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
+                    {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                      <SelectItem key={pageSize} value={pageSize.toString()}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -2681,16 +2709,18 @@ export default function Orders() {
                     value={dealsItemsPerPage.toString()}
                     onValueChange={(value) => {
                       setDealsItemsPerPage(Number(value));
-                      setDealsCurrentPage(1); // Reset to first page
+                      setDealsCurrentPage(1);
                     }}
                   >
                     <SelectTrigger className="w-20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="6">6</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
+                      {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                        <SelectItem key={pageSize} value={pageSize.toString()}>
+                          {pageSize}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -2961,10 +2991,10 @@ export default function Orders() {
                     value={discountsItemsPerPage.toString()}
                     onValueChange={(value) => {
                       setDiscountsItemsPerPage(Number(value));
-                      setDiscountsCurrentPage(1); // Reset to first page
+                      setDiscountsCurrentPage(1);
                     }}
                   >
-                    <SelectTrigger className="w-16">
+                    <SelectTrigger className="w-20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -2980,44 +3010,49 @@ export default function Orders() {
                       )}
                     </SelectContent>
                   </Select>
-                  <span className="text-sm text-gray-600">
-                    Showing{" "}
-                    {discountsCurrentPage === 1
-                      ? 1
-                      : (discountsCurrentPage - 1) * discountsItemsPerPage +
-                        1}{" "}
-                    to{" "}
-                    {Math.min(
-                      discountsCurrentPage * discountsItemsPerPage,
-                      discountsTotalCount,
-                    )}{" "}
-                    of {discountsTotalCount} results
-                  </span>
                 </div>
+
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      setDiscountsCurrentPage((prev) => Math.max(prev - 1, 1))
+                      setDiscountsCurrentPage(Math.max(1, discountsCurrentPage - 1))
                     }
-                    disabled={!discountsHasPrevious}
+                    disabled={discountsCurrentPage === 1}
                     data-testid="button-discounts-prev-page"
                   >
                     Previous
                   </Button>
-                  <span className="text-sm text-gray-600">
-                    Page {discountsCurrentPage} of {discountsTotalPages}
-                  </span>
+
+                  {Array.from({ length: discountsTotalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <Button
+                        key={page}
+                        variant={discountsCurrentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDiscountsCurrentPage(page)}
+                        className={
+                          discountsCurrentPage === page
+                            ? "bg-green-500 hover:bg-green-600"
+                            : ""
+                        }
+                        data-testid={`button-discounts-page-${page}`}
+                      >
+                        {page}
+                      </Button>
+                    ),
+                  )}
+
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      setDiscountsCurrentPage((prev) =>
-                        Math.min(prev + 1, discountsTotalPages),
+                      setDiscountsCurrentPage(
+                        Math.min(discountsTotalPages, discountsCurrentPage + 1)
                       )
                     }
-                    disabled={!discountsHasNext}
+                    disabled={discountsCurrentPage === discountsTotalPages}
                     data-testid="button-discounts-next-page"
                   >
                     Next
