@@ -74,7 +74,8 @@ export class BluetoothPrinterService {
   }
 
   getConnectionStatus(): boolean {
-    return this.isConnected && this.device?.gatt?.connected === true;
+    // Check if we have a device and characteristic ready
+    return !!(this.device && this.characteristic);
   }
 
   getDeviceName(): string {
@@ -90,6 +91,40 @@ export class BluetoothPrinterService {
     total: number;
     branchName?: string;
   }): Promise<{ success: boolean; error?: string }> {
+    // Check if device is connected, try to reconnect if needed
+    if (!this.device || !this.device.gatt?.connected) {
+      if (this.device?.gatt) {
+        try {
+          await this.device.gatt.connect();
+          // Re-establish characteristic connection
+          const server = this.device.gatt;
+          let service;
+          try {
+            service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+            this.characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+          } catch {
+            try {
+              service = await server.getPrimaryService('e7810a71-73ae-499d-8c15-faa9aef0c3f2');
+              this.characteristic = await service.getCharacteristic('bef8d6c9-9c21-4c9e-b632-bd58c1009f9f');
+            } catch {
+              const services = await server.getPrimaryServices();
+              if (services.length > 0) {
+                service = services[0];
+                const characteristics = await service.getCharacteristics();
+                if (characteristics.length > 0) {
+                  this.characteristic = characteristics[0];
+                }
+              }
+            }
+          }
+        } catch (error) {
+          return { success: false, error: 'Printer connection lost. Please reconnect from the Printer page.' };
+        }
+      } else {
+        return { success: false, error: 'Printer not connected' };
+      }
+    }
+
     if (!this.characteristic) {
       return { success: false, error: 'Printer not connected' };
     }
