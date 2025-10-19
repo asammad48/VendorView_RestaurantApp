@@ -1,6 +1,7 @@
 import { HubConnection, HubConnectionBuilder, HubConnectionState, HttpTransportType } from '@microsoft/signalr';
 import { toast } from '@/hooks/use-toast';
 import { signalRBaseUrl } from '@/config/environment';
+import { bluetoothPrinterService } from './bluetoothPrinterService';
 
 interface OrderCreatedPayload {
   orderId: number;
@@ -105,8 +106,13 @@ export class SignalRService {
     if (!this.connection) return;
 
     // Listen for OrderCreated event (default toast notification)
-    this.connection.on('OrderCreated', (payload: OrderCreatedPayload) => {
-      console.log('OrderCreated event received:', payload);
+    this.connection.on('OrderCreated', async (payload: OrderCreatedPayload) => {
+      console.log('[SignalR] OrderCreated event received:', payload);
+      console.log('[SignalR] Event details:', {
+        orderId: payload.orderId,
+        orderNumber: payload.orderNumber,
+        timestamp: new Date().toISOString()
+      });
       
       // Show toast notification
       toast({
@@ -114,6 +120,60 @@ export class SignalRService {
         description: `Order #${payload.orderNumber} (ID: ${payload.orderId}) has been created`,
         variant: "default",
       });
+
+      // Attempt to print receipt via Bluetooth printer
+      console.log('[SignalR] Checking if Bluetooth printer is connected...');
+      const isPrinterConnected = bluetoothPrinterService.getConnectionStatus();
+      
+      if (isPrinterConnected) {
+        console.log('[SignalR] ✅ Bluetooth printer is connected, attempting to print receipt...');
+        
+        try {
+          // Print receipt with basic order data
+          const printResult = await bluetoothPrinterService.printReceipt({
+            orderNumber: payload.orderNumber,
+            date: new Date().toLocaleString(),
+            items: [
+              // Note: The payload only has orderId and orderNumber
+              // You may want to fetch full order details from the API if needed
+              { name: 'Order Items', quantity: 1, price: 0 }
+            ],
+            subtotal: 0,
+            tax: 0,
+            total: 0,
+            branchName: 'Your Restaurant'
+          });
+
+          if (printResult.success) {
+            console.log('[SignalR] ✅ Receipt printed successfully via Bluetooth!');
+            
+            toast({
+              title: "Receipt Printed! 🖨️",
+              description: `Receipt for Order #${payload.orderNumber} sent to printer`,
+              variant: "default",
+            });
+          } else {
+            console.error('[SignalR] ❌ Failed to print receipt:', printResult.error);
+            
+            toast({
+              title: "Print Failed",
+              description: printResult.error || 'Could not print receipt',
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('[SignalR] ❌ Error printing receipt:', error);
+          
+          toast({
+            title: "Print Error",
+            description: 'An error occurred while printing',
+            variant: "destructive",
+          });
+        }
+      } else {
+        console.log('[SignalR] ⚠️ Bluetooth printer not connected, skipping print');
+        console.log('[SignalR] To enable automatic printing, connect a Bluetooth printer from the Printer page');
+      }
     });
 
     // Handle connection state changes
