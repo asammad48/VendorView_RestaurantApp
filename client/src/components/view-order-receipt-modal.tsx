@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Printer } from "lucide-react";
 import { useBranchCurrency } from "@/hooks/useBranchCurrency";
+import { formatCurrency } from "@/lib/currencyUtils";
 import { DetailedOrder } from "@/types/schema";
 
 interface ViewOrderReceiptModalProps {
@@ -28,9 +29,13 @@ export function ViewOrderReceiptModal({
   formatOrderDate,
   formatOrderTime,
 }: ViewOrderReceiptModalProps) {
-  const { formatPrice } = useBranchCurrency();
+  const { formatPrice: formatBranchPrice } = useBranchCurrency();
 
   if (!order) return null;
+
+  // Use order currency if available, otherwise fall back to branch currency
+  const currency = order.currency || 'USD';
+  const formatPrice = (amount: number) => formatCurrency(amount, currency);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

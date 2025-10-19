@@ -629,7 +629,16 @@ export default function Orders() {
         subtotal: order.subTotal || 0,
         tax: order.taxAmount || 0,
         total: order.totalAmount || 0,
-        branchName: order.branchName || 'Restaurant'
+        branchName: order.branchName || 'Restaurant',
+        currency: order.currency || 'USD',
+        orderType: order.orderType,
+        locationName: order.locationName,
+        specialInstruction: order.specialInstruction,
+        allergens: order.allergens,
+        deliveryCharges: order.deliveryCharges,
+        serviceCharges: order.serviceCharges,
+        discountAmount: order.discountAmount,
+        tipAmount: order.tipAmount
       };
 
       const result = await bluetoothPrinterService.printReceipt(orderData);
