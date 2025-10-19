@@ -131,9 +131,10 @@ export class SignalRService {
         console.log('[SignalR] ✅ Bluetooth printer is connected, fetching full order details...');
         
         try {
-          // Fetch full order details from API
+          // Fetch full order details from API (using capital "O" for Order endpoint)
           console.log('[SignalR] Fetching order details from API for order ID:', payload.orderId);
-          const response = await fetch(`/api/orders/${payload.orderId}`);
+          const { apiBaseUrl } = await import('../config/environment');
+          const response = await fetch(`${apiBaseUrl}/api/Order/${payload.orderId}`);
           
           if (!response.ok) {
             throw new Error(`Failed to fetch order: ${response.status} ${response.statusText}`);
@@ -142,27 +143,20 @@ export class SignalRService {
           const orderData: DetailedOrder = await response.json();
           console.log('[SignalR] ✅ Order details fetched successfully:', {
             orderNumber: orderData.orderNumber,
+            branchName: orderData.branchName,
+            locationName: orderData.locationName,
+            orderType: orderData.orderType,
             itemCount: orderData.orderItems?.length || 0,
             packageCount: orderData.orderPackages?.length || 0,
             total: orderData.totalAmount,
-            currency: orderData.branchName,
-            allergens: orderData.allergens?.length || 0
+            currency: orderData.currency,
+            allergens: orderData.allergens?.length || 0,
+            specialInstruction: orderData.specialInstruction || 'None'
           });
 
-          // Get branch currency (from order or default to USD)
-          // Note: You may need to fetch branch details separately to get currency
-          // For now, we'll try to determine it from the branchId
-          let currency = 'USD';
-          try {
-            const branchResponse = await fetch(`/api/branches/${orderData.branchId}`);
-            if (branchResponse.ok) {
-              const branchData = await branchResponse.json();
-              currency = branchData.currency || 'USD';
-              console.log('[SignalR] Branch currency:', currency);
-            }
-          } catch (error) {
-            console.log('[SignalR] Could not fetch branch currency, using USD as default');
-          }
+          // Use currency from order data (API now provides it)
+          const currency = orderData.currency || 'USD';
+          console.log('[SignalR] Order currency:', currency);
 
           // Prepare items for printing
           const items = [
@@ -193,20 +187,26 @@ export class SignalRService {
             total: orderData.totalAmount
           });
 
+          // Import time utility for proper UTC to local conversion
+          const { formatReceiptDateTime } = await import('../utils/dateTimeUtils');
+          
           // Print receipt with actual order data
           const printResult = await bluetoothPrinterService.printReceipt({
             orderNumber: orderData.orderNumber,
-            date: new Date(orderData.createdAt).toLocaleString(),
+            date: formatReceiptDateTime(orderData.createdAt),
             items: items,
             subtotal: subtotal,
             tax: orderData.taxAmount || 0,
             total: orderData.totalAmount || 0,
             branchName: orderData.branchName || 'Restaurant',
+            locationName: orderData.locationName,
+            orderType: orderData.orderType,
             deliveryCharges: orderData.deliveryCharges,
             serviceCharges: orderData.serviceCharges,
             discountAmount: orderData.discountAmount,
             tipAmount: orderData.tipAmount,
             allergens: orderData.allergens,
+            specialInstruction: orderData.specialInstruction,
             currency: currency
           });
 

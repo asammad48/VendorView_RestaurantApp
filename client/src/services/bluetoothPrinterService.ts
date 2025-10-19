@@ -233,11 +233,14 @@ export class BluetoothPrinterService {
     tax: number;
     total: number;
     branchName?: string;
+    locationName?: string;
+    orderType?: string;
     deliveryCharges?: number;
     serviceCharges?: number;
     discountAmount?: number;
     tipAmount?: number;
     allergens?: string[];
+    specialInstruction?: string;
     currency?: string;
   }): Promise<{ success: boolean; error?: string }> {
     console.log('[Bluetooth Printer] 🖨️ Print receipt requested');
@@ -324,6 +327,12 @@ export class BluetoothPrinterService {
       receipt += `Order: ${orderData.orderNumber}\n`;
       receipt += ESC + '!' + '\x00';
       receipt += `Date: ${orderData.date}\n`;
+      if (orderData.orderType) {
+        receipt += `Type: ${orderData.orderType}\n`;
+      }
+      if (orderData.locationName) {
+        receipt += `Location: ${orderData.locationName}\n`;
+      }
       receipt += '================================\n\n';
       
       // Items section
@@ -403,6 +412,17 @@ export class BluetoothPrinterService {
         receipt += orderData.allergens.join(', ') + '\n';
         receipt += '================================\n';
         console.log('[Bluetooth Printer] Added allergens:', orderData.allergens);
+      }
+      
+      // Special instructions section (if present)
+      if (orderData.specialInstruction && orderData.specialInstruction.trim() !== '') {
+        receipt += '\n';
+        receipt += ESC + '!' + '\x08'; // Bold
+        receipt += 'SPECIAL INSTRUCTIONS:\n';
+        receipt += ESC + '!' + '\x00'; // Normal
+        receipt += orderData.specialInstruction + '\n';
+        receipt += '================================\n';
+        console.log('[Bluetooth Printer] Added special instructions:', orderData.specialInstruction);
       }
       
       // Footer - centered
