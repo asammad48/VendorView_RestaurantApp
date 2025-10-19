@@ -36,23 +36,6 @@ export default function Printer() {
   }, [logs]);
 
   useEffect(() => {
-    const connectSignalR = async () => {
-      try {
-        await signalRService.connect(() => apiRepository.getAccessToken());
-        addLog('success', 'Connected to real-time order notifications');
-      } catch (error) {
-        addLog('error', 'Failed to connect to order notifications');
-      }
-    };
-
-    connectSignalR();
-
-    return () => {
-      signalRService.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
     const handleOrderCreated = async (payload: { orderId: number; orderNumber: string }) => {
       addLog('info', `New order received: ${payload.orderNumber} (ID: ${payload.orderId})`);
 
@@ -124,15 +107,24 @@ export default function Printer() {
       }
     };
 
-    const connection = (signalRService as any).connection;
-    if (connection) {
-      connection.on('OrderCreated', handleOrderCreated);
-    }
+    const connectAndSetup = async () => {
+      try {
+        if (!signalRService.isConnected()) {
+          await signalRService.connect(() => apiRepository.getAccessToken());
+          addLog('success', 'Connected to real-time order notifications');
+        }
+        
+        signalRService.onOrderCreated(handleOrderCreated);
+        addLog('info', 'Listening for new order events');
+      } catch (error) {
+        addLog('error', 'Failed to connect to order notifications');
+      }
+    };
+
+    connectAndSetup();
 
     return () => {
-      if (connection) {
-        connection.off('OrderCreated', handleOrderCreated);
-      }
+      signalRService.offOrderCreated(handleOrderCreated);
     };
   }, [isConnected]);
 

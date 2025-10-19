@@ -86,11 +86,25 @@ export class SignalRService {
     }
   }
 
+  // Register a custom OrderCreated event handler
+  public onOrderCreated(handler: (payload: OrderCreatedPayload) => void): void {
+    if (this.connection) {
+      this.connection.on('OrderCreated', handler);
+    }
+  }
+
+  // Remove OrderCreated event handler
+  public offOrderCreated(handler: (payload: OrderCreatedPayload) => void): void {
+    if (this.connection) {
+      this.connection.off('OrderCreated', handler);
+    }
+  }
+
   // Set up event handlers
   private setupEventHandlers(): void {
     if (!this.connection) return;
 
-    // Listen for OrderCreated event
+    // Listen for OrderCreated event (default toast notification)
     this.connection.on('OrderCreated', (payload: OrderCreatedPayload) => {
       console.log('OrderCreated event received:', payload);
       
