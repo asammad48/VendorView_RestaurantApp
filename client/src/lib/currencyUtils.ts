@@ -147,3 +147,46 @@ export const convertUTCToLocalDate = (utcDate: string): string => {
     return `${year}-${month}-${day}`;
   }
 };
+
+/**
+ * Format currency for thermal printer (ASCII-safe)
+ * Replaces Unicode symbols with ASCII equivalents for ESC/POS printer compatibility
+ * @param amount - The price amount (can be number or string)
+ * @param currencyCode - The currency code from branch (e.g., 'USD', 'PKR')
+ * @returns ASCII-safe formatted price string
+ */
+export const formatCurrencyForPrinter = (amount: number | string, currencyCode: string = 'USD'): string => {
+  // Parse the amount to ensure it's a clean number
+  let numericAmount: number;
+  
+  if (typeof amount === 'string') {
+    // Remove any existing currency symbols and formatting
+    const cleanedAmount = amount.replace(/[^\d.-]/g, '');
+    numericAmount = parseFloat(cleanedAmount);
+  } else {
+    numericAmount = amount;
+  }
+  
+  // Handle invalid numbers
+  if (isNaN(numericAmount)) {
+    numericAmount = 0;
+  }
+  
+  const config = CURRENCY_CONFIGS[currencyCode.toUpperCase()] || CURRENCY_CONFIGS.USD;
+  const formattedAmount = numericAmount.toFixed(config.decimal);
+  
+  // Map Unicode currency symbols to ASCII-safe alternatives for printers
+  const printerSafeSymbol = {
+    '₨': 'Rs.',
+    '₹': 'Rs.',
+    '$': '$',
+    '€': 'EUR',
+    '£': 'GBP'
+  }[config.symbol] || config.symbol;
+  
+  if (config.position === 'before') {
+    return `${printerSafeSymbol}${formattedAmount}`;
+  } else {
+    return `${formattedAmount} ${printerSafeSymbol}`;
+  }
+};
