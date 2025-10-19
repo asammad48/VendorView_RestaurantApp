@@ -148,6 +148,12 @@ export class BluetoothPrinterService {
     tax: number;
     total: number;
     branchName?: string;
+    deliveryCharges?: number;
+    serviceCharges?: number;
+    discountAmount?: number;
+    tipAmount?: number;
+    allergens?: string[];
+    currency?: string;
   }): Promise<{ success: boolean; error?: string }> {
     console.log('[Bluetooth Printer] 🖨️ Print receipt requested');
     console.log('[Bluetooth Printer] Order data:', {
@@ -211,14 +217,23 @@ export class BluetoothPrinterService {
       const ESC = '\x1B';
       const GS = '\x1D';
 
+      // Import currency utilities
+      const { formatCurrency, getCurrencySymbol } = await import('../lib/currencyUtils');
+      const currency = orderData.currency || 'USD';
+      const formatPrice = (amount: number) => formatCurrency(amount, currency);
+
+      console.log('[Bluetooth Printer] Using currency:', currency);
+
       let receipt = ESC + '@';
       
+      // Header - centered, large text
       receipt += ESC + 'a' + '\x01';
       receipt += ESC + '!' + '\x38';
       receipt += (orderData.branchName || 'RESTAURANT') + '\n';
       receipt += ESC + '!' + '\x00';
       receipt += '================================\n';
       
+      // Order details - left aligned
       receipt += ESC + 'a' + '\x00';
       receipt += ESC + '!' + '\x08';
       receipt += `Order: ${orderData.orderNumber}\n`;
@@ -226,39 +241,92 @@ export class BluetoothPrinterService {
       receipt += `Date: ${orderData.date}\n`;
       receipt += '================================\n\n';
       
+      // Items section
       receipt += 'ITEMS:\n';
       receipt += '--------------------------------\n';
       orderData.items.forEach(item => {
         const itemLine = `${item.quantity}x ${item.name}`;
-        const price = `$${item.price.toFixed(2)}`;
+        const price = formatPrice(item.price);
         const spaces = 32 - itemLine.length - price.length;
         receipt += itemLine + ' '.repeat(Math.max(spaces, 1)) + price + '\n';
       });
       
+      // Calculations section
       receipt += '================================\n';
       const subtotalLine = 'Subtotal:';
-      const subtotalPrice = `$${orderData.subtotal.toFixed(2)}`;
+      const subtotalPrice = formatPrice(orderData.subtotal);
       let spaces = 32 - subtotalLine.length - subtotalPrice.length;
       receipt += subtotalLine + ' '.repeat(Math.max(spaces, 1)) + subtotalPrice + '\n';
       
-      const taxLine = 'Tax:';
-      const taxPrice = `$${orderData.tax.toFixed(2)}`;
-      spaces = 32 - taxLine.length - taxPrice.length;
-      receipt += taxLine + ' '.repeat(Math.max(spaces, 1)) + taxPrice + '\n';
+      // Delivery charges
+      if (orderData.deliveryCharges && orderData.deliveryCharges > 0) {
+        const deliveryLine = 'Delivery:';
+        const deliveryPrice = formatPrice(orderData.deliveryCharges);
+        spaces = 32 - deliveryLine.length - deliveryPrice.length;
+        receipt += deliveryLine + ' '.repeat(Math.max(spaces, 1)) + deliveryPrice + '\n';
+      }
       
+      // Service charges
+      if (orderData.serviceCharges && orderData.serviceCharges > 0) {
+        const serviceLine = 'Service:';
+        const servicePrice = formatPrice(orderData.serviceCharges);
+        spaces = 32 - serviceLine.length - servicePrice.length;
+        receipt += serviceLine + ' '.repeat(Math.max(spaces, 1)) + servicePrice + '\n';
+      }
+      
+      // Tax
+      if (orderData.tax && orderData.tax > 0) {
+        const taxLine = 'Tax:';
+        const taxPrice = formatPrice(orderData.tax);
+        spaces = 32 - taxLine.length - taxPrice.length;
+        receipt += taxLine + ' '.repeat(Math.max(spaces, 1)) + taxPrice + '\n';
+      }
+      
+      // Tip
+      if (orderData.tipAmount && orderData.tipAmount > 0) {
+        const tipLine = 'Tip:';
+        const tipPrice = formatPrice(orderData.tipAmount);
+        spaces = 32 - tipLine.length - tipPrice.length;
+        receipt += tipLine + ' '.repeat(Math.max(spaces, 1)) + tipPrice + '\n';
+      }
+      
+      // Discount
+      if (orderData.discountAmount && orderData.discountAmount > 0) {
+        const discountLine = 'Discount:';
+        const discountPrice = '-' + formatPrice(orderData.discountAmount);
+        spaces = 32 - discountLine.length - discountPrice.length;
+        receipt += discountLine + ' '.repeat(Math.max(spaces, 1)) + discountPrice + '\n';
+      }
+      
+      // Total - bold and larger
       receipt += '--------------------------------\n';
       const totalLine = 'TOTAL:';
-      const totalPrice = `$${orderData.total.toFixed(2)}`;
+      const totalPrice = formatPrice(orderData.total);
       spaces = 32 - totalLine.length - totalPrice.length;
       receipt += ESC + '!' + '\x18';
       receipt += totalLine + ' '.repeat(Math.max(spaces, 1)) + totalPrice + '\n';
       receipt += ESC + '!' + '\x00';
       
-      receipt += '================================\n\n';
+      receipt += '================================\n';
+      
+      // Allergens section (if present)
+      if (orderData.allergens && orderData.allergens.length > 0) {
+        receipt += '\n';
+        receipt += ESC + '!' + '\x08'; // Bold
+        receipt += 'ALLERGENS:\n';
+        receipt += ESC + '!' + '\x00'; // Normal
+        receipt += orderData.allergens.join(', ') + '\n';
+        receipt += '================================\n';
+        console.log('[Bluetooth Printer] Added allergens:', orderData.allergens);
+      }
+      
+      // Footer - centered
+      receipt += '\n';
       receipt += ESC + 'a' + '\x01';
       receipt += 'Thank you for your order!\n';
       receipt += 'Please come again\n\n';
       
+      // Reset alignment and cut
       receipt += ESC + 'a' + '\x00';
       receipt += GS + 'V' + '\x00';
 

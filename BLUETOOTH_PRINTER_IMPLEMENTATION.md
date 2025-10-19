@@ -161,38 +161,48 @@ All printer-related activity is logged to the browser console with clear, prefix
 ## Receipt Format
 
 The printed receipt includes:
-- Restaurant/Branch name header (centered, large font)
-- Order number and ID
-- Date and time
-- Items list (if available)
-- Subtotal, tax, and total
-- "Thank you" footer
-- Automatic paper cut
+- **Restaurant/Branch name** header (centered, large font)
+- **Order number** and date/time
+- **Items list** with actual menu items:
+  - Item name (with variant if applicable)
+  - Quantity
+  - Unit price (formatted with branch currency)
+  - Deal packages marked with [DEAL] prefix
+- **Complete price breakdown:**
+  - Subtotal (formatted with branch currency)
+  - Delivery charges (if applicable)
+  - Service charges (if applicable)
+  - Tax (if applicable)
+  - Tip (if applicable)
+  - Discount (shown as negative, if applicable)
+  - **TOTAL** (bold, larger font, formatted with branch currency)
+- **Allergens section** (if order contains allergens):
+  - Bold "ALLERGENS:" header
+  - Comma-separated list of allergen names
+- **"Thank you" footer** (centered)
+- **Automatic paper cut**
 
-## Future Enhancements
+### Currency Support
 
-**Current Limitation:** The `OrderCreatedPayload` only contains `orderId` and `orderNumber`. 
+The receipt automatically formats all prices using the branch's currency:
+- **USD**: $10.00
+- **PKR**: ₨10.00
+- **EUR**: €10.00
+- **GBP**: £10.00
+- **INR**: ₹10.00
 
-**To Print Full Order Details:**
-1. Fetch complete order data from the API using the `orderId`
-2. Pass actual items, prices, and totals to the print function
+## ✅ UPDATED: Full Order Details Integration
 
-**Example Enhancement:**
-```typescript
-// Fetch full order details
-const orderDetails = await fetch(`/api/orders/${payload.orderId}`).then(r => r.json());
+**Status:** IMPLEMENTED
 
-// Print with real data
-await bluetoothPrinterService.printReceipt({
-  orderNumber: payload.orderNumber,
-  date: new Date(orderDetails.createdAt).toLocaleString(),
-  items: orderDetails.items,
-  subtotal: orderDetails.subtotal,
-  tax: orderDetails.tax,
-  total: orderDetails.total,
-  branchName: orderDetails.branchName
-});
-```
+The system now automatically:
+1. ✅ Fetches complete order data from `/api/orders/{orderId}` when OrderCreated event is received
+2. ✅ Fetches branch details from `/api/branches/{branchId}` to get currency
+3. ✅ Prints actual menu items with names, quantities, and prices
+4. ✅ Includes deal packages marked with [DEAL] prefix
+5. ✅ Uses branch currency for all price formatting (USD, PKR, EUR, GBP, INR, etc.)
+6. ✅ Shows all charges: delivery, service, tax, tip, discount
+7. ✅ Displays allergens in a dedicated section on the receipt
 
 ## Files Modified
 

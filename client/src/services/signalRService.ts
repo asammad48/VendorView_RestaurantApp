@@ -2,6 +2,8 @@ import { HubConnection, HubConnectionBuilder, HubConnectionState, HttpTransportT
 import { toast } from '@/hooks/use-toast';
 import { signalRBaseUrl } from '@/config/environment';
 import { bluetoothPrinterService } from './bluetoothPrinterService';
+import { DetailedOrder } from '@/types/schema';
+import { formatCurrency } from '@/lib/currencyUtils';
 
 interface OrderCreatedPayload {
   orderId: number;
@@ -126,22 +128,86 @@ export class SignalRService {
       const isPrinterConnected = bluetoothPrinterService.getConnectionStatus();
       
       if (isPrinterConnected) {
-        console.log('[SignalR] ✅ Bluetooth printer is connected, attempting to print receipt...');
+        console.log('[SignalR] ✅ Bluetooth printer is connected, fetching full order details...');
         
         try {
-          // Print receipt with basic order data
+          // Fetch full order details from API
+          console.log('[SignalR] Fetching order details from API for order ID:', payload.orderId);
+          const response = await fetch(`/api/orders/${payload.orderId}`);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch order: ${response.status} ${response.statusText}`);
+          }
+
+          const orderData: DetailedOrder = await response.json();
+          console.log('[SignalR] ✅ Order details fetched successfully:', {
+            orderNumber: orderData.orderNumber,
+            itemCount: orderData.orderItems?.length || 0,
+            packageCount: orderData.orderPackages?.length || 0,
+            total: orderData.totalAmount,
+            currency: orderData.branchName,
+            allergens: orderData.allergens?.length || 0
+          });
+
+          // Get branch currency (from order or default to USD)
+          // Note: You may need to fetch branch details separately to get currency
+          // For now, we'll try to determine it from the branchId
+          let currency = 'USD';
+          try {
+            const branchResponse = await fetch(`/api/branches/${orderData.branchId}`);
+            if (branchResponse.ok) {
+              const branchData = await branchResponse.json();
+              currency = branchData.currency || 'USD';
+              console.log('[SignalR] Branch currency:', currency);
+            }
+          } catch (error) {
+            console.log('[SignalR] Could not fetch branch currency, using USD as default');
+          }
+
+          // Prepare items for printing
+          const items = [
+            ...(orderData.orderItems || []).map(item => ({
+              name: item.itemName + (item.variantName ? ` (${item.variantName})` : ''),
+              quantity: item.quantity,
+              price: (item.totalPrice || 0) / (item.quantity || 1)
+            })),
+            ...(orderData.orderPackages || []).map(pkg => ({
+              name: `[DEAL] ${pkg.packageName}`,
+              quantity: pkg.quantity,
+              price: (pkg.totalPrice || 0) / (pkg.quantity || 1)
+            }))
+          ];
+
+          // Calculate subtotal from items
+          const subtotal = (orderData.orderItems || []).reduce((sum, item) => sum + (item.totalPrice || 0), 0) +
+                          (orderData.orderPackages || []).reduce((sum, pkg) => sum + (pkg.totalPrice || 0), 0);
+
+          console.log('[SignalR] Prepared receipt data:', {
+            itemCount: items.length,
+            subtotal,
+            deliveryCharges: orderData.deliveryCharges,
+            serviceCharges: orderData.serviceCharges,
+            tax: orderData.taxAmount,
+            discount: orderData.discountAmount,
+            tip: orderData.tipAmount,
+            total: orderData.totalAmount
+          });
+
+          // Print receipt with actual order data
           const printResult = await bluetoothPrinterService.printReceipt({
-            orderNumber: payload.orderNumber,
-            date: new Date().toLocaleString(),
-            items: [
-              // Note: The payload only has orderId and orderNumber
-              // You may want to fetch full order details from the API if needed
-              { name: 'Order Items', quantity: 1, price: 0 }
-            ],
-            subtotal: 0,
-            tax: 0,
-            total: 0,
-            branchName: 'Your Restaurant'
+            orderNumber: orderData.orderNumber,
+            date: new Date(orderData.createdAt).toLocaleString(),
+            items: items,
+            subtotal: subtotal,
+            tax: orderData.taxAmount || 0,
+            total: orderData.totalAmount || 0,
+            branchName: orderData.branchName || 'Restaurant',
+            deliveryCharges: orderData.deliveryCharges,
+            serviceCharges: orderData.serviceCharges,
+            discountAmount: orderData.discountAmount,
+            tipAmount: orderData.tipAmount,
+            allergens: orderData.allergens,
+            currency: currency
           });
 
           if (printResult.success) {
@@ -162,11 +228,11 @@ export class SignalRService {
             });
           }
         } catch (error) {
-          console.error('[SignalR] ❌ Error printing receipt:', error);
+          console.error('[SignalR] ❌ Error fetching order or printing receipt:', error);
           
           toast({
             title: "Print Error",
-            description: 'An error occurred while printing',
+            description: error instanceof Error ? error.message : 'An error occurred while printing',
             variant: "destructive",
           });
         }
