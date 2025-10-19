@@ -1494,39 +1494,77 @@ export default function Orders() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedOrder(order);
-                                  setShowViewOrderModal(true);
-                                }}
-                                data-testid={`button-view-order-${order.id}`}
-                              >
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedOrder(order);
-                                  // Find the current status ID from orderStatusTypes
-                                  const currentStatus = orderStatusTypes.find(
-                                    (status) =>
-                                      status.name.toLowerCase() ===
-                                      order.orderStatus.toLowerCase(),
-                                  );
-                                  setSelectedStatusId(
-                                    currentStatus?.id || null,
-                                  );
-                                  setShowUpdateStatusModal(true);
-                                }}
-                                data-testid={`button-update-order-${order.id}`}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedOrder(order);
+                                        setShowViewOrderModal(true);
+                                      }}
+                                      data-testid={`button-view-order-${order.id}`}
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>View Order</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePrintReceipt(order);
+                                      }}
+                                      data-testid={`button-print-order-${order.id}`}
+                                    >
+                                      <Printer className="w-4 h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Print Order</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedOrder(order);
+                                        // Find the current status ID from orderStatusTypes
+                                        const currentStatus = orderStatusTypes.find(
+                                          (status) =>
+                                            status.name.toLowerCase() ===
+                                            order.orderStatus.toLowerCase(),
+                                        );
+                                        setSelectedStatusId(
+                                          currentStatus?.id || null,
+                                        );
+                                        setShowUpdateStatusModal(true);
+                                      }}
+                                      data-testid={`button-update-order-${order.id}`}
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Update Status</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                           </TableCell>
                         </TableRow>
