@@ -314,6 +314,11 @@ export class BluetoothPrinterService {
 
       let receipt = ESC + '@';
       
+      // Set UTF-8 code page for proper Unicode character support (like ₨)
+      // ESC t n - Select character code table
+      // Code page 65 = UTF-8
+      receipt += ESC + 't' + '\x41'; // 0x41 = 65 in decimal = UTF-8
+      
       // Header - centered, large text
       receipt += ESC + 'a' + '\x01';
       receipt += ESC + '!' + '\x38';

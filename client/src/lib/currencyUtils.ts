@@ -23,12 +23,18 @@ const CURRENCY_CONFIGS: Record<string, CurrencyConfig> = {
  * @returns Formatted price string
  */
 export const formatCurrency = (amount: number, currencyCode: string = 'USD'): string => {
-  // Handle null/undefined amounts
-  if (amount == null || isNaN(amount)) {
+  // Handle null/undefined amounts and ensure it's a number
+  // Convert to number first to handle string values like "100.00"
+  const numericAmount = Number(amount);
+  
+  if (isNaN(numericAmount)) {
     amount = 0;
+  } else {
+    amount = numericAmount;
   }
   
   const config = CURRENCY_CONFIGS[currencyCode.toUpperCase()] || CURRENCY_CONFIGS.USD;
+  // Use config.decimal to respect currency-specific decimal places
   const formattedAmount = amount.toFixed(config.decimal);
   
   if (config.position === 'before') {
