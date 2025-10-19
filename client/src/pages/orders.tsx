@@ -91,6 +91,7 @@ import {
   menuCategoryApi,
 } from "@/lib/apiRepository";
 import { useBranchCurrency } from "@/hooks/useBranchCurrency";
+import { bluetoothPrinterService } from "@/services/bluetoothPrinterService";
 import type {
   Branch,
   Subscription,
@@ -571,6 +572,66 @@ export default function Orders() {
         Unpaid
       </Badge>
     );
+  };
+
+  const handlePrintReceipt = async (order: DetailedOrder) => {
+    if (!bluetoothPrinterService.getConnectionStatus()) {
+      toast({
+        title: "Printer Not Connected",
+        description: "Please connect your Bluetooth printer first. Go to /printer page to connect.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const items = order.orderItems?.map(item => ({
+        name: `${item.itemName || 'Item'}${item.variantName ? ` (${item.variantName})` : ''}`,
+        quantity: item.quantity || 1,
+        price: item.totalPrice || 0
+      })) || [];
+
+      const packageItems = order.orderPackages?.flatMap(pkg => 
+        pkg.orderPackageItems?.map(pkgItem => ({
+          name: `${pkgItem.itemName || 'Package Item'}${pkgItem.variantName ? ` (${pkgItem.variantName})` : ''}`,
+          quantity: pkgItem.quantity || 1,
+          price: 0
+        })) || []
+      ) || [];
+
+      const allItems = [...items, ...packageItems];
+
+      const orderData = {
+        orderNumber: order.orderNumber || 'N/A',
+        date: new Date(order.createdAt).toLocaleString(),
+        items: allItems,
+        subtotal: order.subTotal || 0,
+        tax: order.taxAmount || 0,
+        total: order.totalAmount || 0,
+        branchName: order.branchName || 'Restaurant'
+      };
+
+      const result = await bluetoothPrinterService.printReceipt(orderData);
+
+      if (result.success) {
+        toast({
+          title: "Receipt Printed",
+          description: `Receipt for order ${order.orderNumber} has been printed successfully.`,
+        });
+      } else {
+        toast({
+          title: "Print Failed",
+          description: result.error || "Failed to print receipt",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Print Error",
+        description: error.message || "An error occurred while printing",
+        variant: "destructive",
+      });
+    }
   };
 
   // Query for menu items
@@ -1483,6 +1544,15 @@ export default function Orders() {
                         </ContextMenuItem>
                         <ContextMenuItem
                           onClick={() => {
+                            handlePrintReceipt(order);
+                          }}
+                          data-testid={`context-print-receipt-${order.id}`}
+                        >
+                          <Printer className="w-4 h-4 mr-2" />
+                          Print Receipt
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          onClick={() => {
                             setSelectedOrder(order);
                             // Find the current status ID from orderStatusTypes
                             const currentStatus = orderStatusTypes.find(
@@ -1686,7 +1756,7 @@ export default function Orders() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedMenuItems.map((item) => {
+                    paginatedMenuItems.map((item: MenuItem) => {
                       // Get category name from categories list
 
                       return (
