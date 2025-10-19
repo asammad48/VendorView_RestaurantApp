@@ -204,10 +204,55 @@ The system now automatically:
 6. ✅ Shows all charges: delivery, service, tax, tip, discount
 7. ✅ Displays allergens in a dedicated section on the receipt
 
+## GATT Error Fixes (Latest Update)
+
+**Problem:** Some laptops experienced GATT errors causing printer disconnection during print jobs.
+
+**Solution Implemented:**
+
+1. **Reduced Chunk Size**: Changed from 512 bytes to 128 bytes per write operation
+   - More conservative chunk size prevents buffer overflow
+   - Better compatibility with various printer models
+
+2. **Increased Delays**: Extended delay from 50ms to 100ms between chunks
+   - Gives printer buffer more time to process data
+   - Prevents overwhelming slower devices
+
+3. **Retry Logic with Exponential Backoff**:
+   - Each chunk write has 3 retry attempts
+   - Exponential backoff: 200ms, 400ms, 800ms between retries
+   - Automatic reconnection if connection is lost mid-print
+
+4. **Connection Monitoring**:
+   - Added `gattserverdisconnected` event listener
+   - Automatic connection status updates
+   - Graceful handling of unexpected disconnections
+
+5. **Per-Chunk Error Handling**:
+   - Each chunk write is wrapped in try-catch
+   - Connection verification before each write
+   - Detailed error logging with error codes
+
+### Console Logs for GATT Errors:
+
+```
+[Bluetooth Printer] Sending chunk 5/10 (128 bytes)
+[Bluetooth Printer] ⚠️ Attempt 1/3 failed for chunk 5/10: GATT operation failed
+[Bluetooth Printer] Retrying in 200ms...
+[Bluetooth Printer] ✅ Chunk 5/10 sent successfully on attempt 2
+```
+
 ## Files Modified
 
-1. `client/src/services/bluetoothPrinterService.ts` - Added comprehensive logging
-2. `client/src/services/signalRService.ts` - Integrated automatic printing on order creation
+1. `client/src/services/bluetoothPrinterService.ts` 
+   - Added comprehensive logging
+   - Implemented GATT error handling and retry logic
+   - Added disconnect event monitoring
+   - Reduced chunk size and increased delays
+
+2. `client/src/services/signalRService.ts` 
+   - Integrated automatic printing on order creation
+   - Added API calls to fetch full order details and branch currency
 
 ## Configuration
 
