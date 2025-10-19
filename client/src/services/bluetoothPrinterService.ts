@@ -3,6 +3,7 @@ export class BluetoothPrinterService {
   private characteristic: BluetoothRemoteGATTCharacteristic | null = null;
   private isConnected: boolean = false;
   private connectionListeners: Array<(connected: boolean) => void> = [];
+  private disconnectHandler: (() => void) | null = null;
 
   async connect(): Promise<{ success: boolean; deviceName?: string; error?: string }> {
     console.log('[Bluetooth Printer] 🔌 Starting connection process...');
@@ -81,6 +82,17 @@ export class BluetoothPrinterService {
 
       this.isConnected = true;
       this.notifyConnectionChange(true);
+      
+      // Add disconnect event listener to handle unexpected disconnections
+      this.disconnectHandler = () => {
+        console.log('[Bluetooth Printer] ⚠️ Device disconnected unexpectedly');
+        this.isConnected = false;
+        this.characteristic = null;
+        this.notifyConnectionChange(false);
+      };
+      
+      this.device.addEventListener('gattserverdisconnected', this.disconnectHandler);
+      
       console.log('[Bluetooth Printer] ✅ Successfully connected to:', this.device.name || 'Bluetooth Printer');
       
       return {
@@ -102,6 +114,12 @@ export class BluetoothPrinterService {
 
   async disconnect(): Promise<void> {
     console.log('[Bluetooth Printer] 🔌 Disconnecting...');
+    
+    // Remove disconnect event listener
+    if (this.device && this.disconnectHandler) {
+      this.device.removeEventListener('gattserverdisconnected', this.disconnectHandler);
+      this.disconnectHandler = null;
+    }
     
     if (this.device?.gatt?.connected) {
       await this.device.gatt.disconnect();
@@ -140,6 +158,73 @@ export class BluetoothPrinterService {
     return name;
   }
 
+  // Write a chunk with retry logic to handle GATT errors
+  private async writeChunkWithRetry(
+    chunk: Uint8Array, 
+    chunkNumber: number, 
+    totalChunks: number, 
+    maxRetries: number = 3
+  ): Promise<boolean> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Check if we're still connected before writing
+        if (!this.device?.gatt?.connected || !this.characteristic) {
+          console.error('[Bluetooth Printer] ⚠️ Connection lost before chunk write, attempting reconnect...');
+          
+          // Attempt to reconnect
+          if (this.device?.gatt) {
+            await this.device.gatt.connect();
+            
+            // Re-establish characteristic
+            const server = this.device.gatt;
+            const services = await server.getPrimaryServices();
+            if (services.length > 0) {
+              const characteristics = await services[0].getCharacteristics();
+              if (characteristics.length > 0) {
+                this.characteristic = characteristics[0];
+                console.log('[Bluetooth Printer] ✅ Reconnected during print job');
+              }
+            }
+          }
+          
+          if (!this.characteristic) {
+            throw new Error('Failed to reconnect to printer');
+          }
+        }
+        
+        // Attempt to write the chunk
+        await this.characteristic.writeValue(chunk as BufferSource);
+        
+        // Success!
+        if (attempt > 1) {
+          console.log(`[Bluetooth Printer] ✅ Chunk ${chunkNumber}/${totalChunks} sent successfully on attempt ${attempt}`);
+        }
+        
+        return true;
+        
+      } catch (error: any) {
+        console.error(`[Bluetooth Printer] ⚠️ Attempt ${attempt}/${maxRetries} failed for chunk ${chunkNumber}/${totalChunks}:`, error.message);
+        
+        if (attempt < maxRetries) {
+          // Exponential backoff: 200ms, 400ms, 800ms
+          const backoffDelay = 200 * Math.pow(2, attempt - 1);
+          console.log(`[Bluetooth Printer] Retrying in ${backoffDelay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, backoffDelay));
+        } else {
+          console.error(`[Bluetooth Printer] ❌ Failed to write chunk ${chunkNumber}/${totalChunks} after ${maxRetries} attempts`);
+          console.error('[Bluetooth Printer] Error details:', {
+            message: error.message,
+            name: error.name,
+            code: error.code
+          });
+          return false;
+        }
+      }
+    }
+    
+    return false;
+  }
+
   async printReceipt(orderData: {
     orderNumber: string;
     date: string;
@@ -148,11 +233,14 @@ export class BluetoothPrinterService {
     tax: number;
     total: number;
     branchName?: string;
+    locationName?: string;
+    orderType?: string;
     deliveryCharges?: number;
     serviceCharges?: number;
     discountAmount?: number;
     tipAmount?: number;
     allergens?: string[];
+    specialInstruction?: string;
     currency?: string;
   }): Promise<{ success: boolean; error?: string }> {
     console.log('[Bluetooth Printer] 🖨️ Print receipt requested');
@@ -239,6 +327,12 @@ export class BluetoothPrinterService {
       receipt += `Order: ${orderData.orderNumber}\n`;
       receipt += ESC + '!' + '\x00';
       receipt += `Date: ${orderData.date}\n`;
+      if (orderData.orderType) {
+        receipt += `Type: ${orderData.orderType}\n`;
+      }
+      if (orderData.locationName) {
+        receipt += `Location: ${orderData.locationName}\n`;
+      }
       receipt += '================================\n\n';
       
       // Items section
@@ -320,6 +414,17 @@ export class BluetoothPrinterService {
         console.log('[Bluetooth Printer] Added allergens:', orderData.allergens);
       }
       
+      // Special instructions section (if present)
+      if (orderData.specialInstruction && orderData.specialInstruction.trim() !== '') {
+        receipt += '\n';
+        receipt += ESC + '!' + '\x08'; // Bold
+        receipt += 'SPECIAL INSTRUCTIONS:\n';
+        receipt += ESC + '!' + '\x00'; // Normal
+        receipt += orderData.specialInstruction + '\n';
+        receipt += '================================\n';
+        console.log('[Bluetooth Printer] Added special instructions:', orderData.specialInstruction);
+      }
+      
       // Footer - centered
       receipt += '\n';
       receipt += ESC + 'a' + '\x01';
@@ -336,16 +441,29 @@ export class BluetoothPrinterService {
       console.log('[Bluetooth Printer] Receipt data encoded:', data.length, 'bytes');
       console.log('[Bluetooth Printer] Sending data to printer...');
       
-      const chunkSize = 512;
+      // Use smaller chunks and longer delays to prevent GATT errors
+      // Reduced from 512 to 128 bytes for better stability
+      const chunkSize = 128;
+      const delayBetweenChunks = 100; // Increased from 50ms to 100ms
       const totalChunks = Math.ceil(data.length / chunkSize);
       
       for (let i = 0; i < data.length; i += chunkSize) {
-        const chunk = data.slice(i, i + chunkSize);
+        const chunk = data.slice(i, Math.min(i + chunkSize, data.length));
         const chunkNumber = Math.floor(i / chunkSize) + 1;
         
         console.log(`[Bluetooth Printer] Sending chunk ${chunkNumber}/${totalChunks} (${chunk.length} bytes)`);
-        await this.characteristic.writeValue(chunk);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        // Write with retry logic to handle GATT errors
+        const writeSuccess = await this.writeChunkWithRetry(chunk, chunkNumber, totalChunks);
+        
+        if (!writeSuccess) {
+          throw new Error(`Failed to write chunk ${chunkNumber}/${totalChunks} after retries`);
+        }
+        
+        // Longer delay between chunks to prevent buffer overflow
+        if (i + chunkSize < data.length) {
+          await new Promise(resolve => setTimeout(resolve, delayBetweenChunks));
+        }
       }
 
       console.log('[Bluetooth Printer] ✅ Receipt printed successfully!');

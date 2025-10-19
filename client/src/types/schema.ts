@@ -626,33 +626,43 @@ export interface SplitBill {
   itemName: string;
 }
 
+export interface OrderStatusHistoryItem {
+  orderStatus: string;
+  statusChangesDate: string;
+  statusComment: string;
+}
+
 export interface DetailedOrder {
   id: number;
   orderNumber: string;
   branchId: number;
+  branchName: string;
   locationId: number;
+  locationName: string;
   userId: number;
   username: string;
   deviceInfo: string;
   serviceCharges: number;
   deliveryCharges: number;
   orderAmount: number;
+  subTotal: number;
   taxAmount: number;
   tipAmount: number;
   totalAmount: number;
+  discountAmount: number;
   orderStatus: string;
   orderType: string;
   createdAt: string;
-  subTotal: number;
-  discountAmount: number;
   completionTimeMinutes: number;
-  branchName: string;
+  currency: string;
+  specialInstruction: string;
   orderDeliveryDetails?: OrderDeliveryDetails;
   orderPickupDetails?: OrderPickupDetails;
   allergens: string[];
   orderItems: OrderItem[];
   orderPackages: OrderPackage[];
   splitBills: SplitBill[];
+  orderStatusHistory: OrderStatusHistoryItem[];
 }
 
 // Simple Order interface for display in tables (existing)
