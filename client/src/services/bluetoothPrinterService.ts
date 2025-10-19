@@ -2,6 +2,7 @@ export class BluetoothPrinterService {
   private device: BluetoothDevice | null = null;
   private characteristic: BluetoothRemoteGATTCharacteristic | null = null;
   private isConnected: boolean = false;
+  private connectionListeners: Array<(connected: boolean) => void> = [];
 
   async connect(): Promise<{ success: boolean; deviceName?: string; error?: string }> {
     if (!navigator.bluetooth) {
@@ -51,6 +52,7 @@ export class BluetoothPrinterService {
       }
 
       this.isConnected = true;
+      this.notifyConnectionChange(true);
       return {
         success: true,
         deviceName: this.device.name || 'Bluetooth Printer'
@@ -71,6 +73,19 @@ export class BluetoothPrinterService {
     this.device = null;
     this.characteristic = null;
     this.isConnected = false;
+    this.notifyConnectionChange(false);
+  }
+
+  onConnectionChange(callback: (connected: boolean) => void): void {
+    this.connectionListeners.push(callback);
+  }
+
+  offConnectionChange(callback: (connected: boolean) => void): void {
+    this.connectionListeners = this.connectionListeners.filter(cb => cb !== callback);
+  }
+
+  private notifyConnectionChange(connected: boolean): void {
+    this.connectionListeners.forEach(callback => callback(connected));
   }
 
   getConnectionStatus(): boolean {

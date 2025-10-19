@@ -13,6 +13,7 @@ import {
   Package,
   Printer,
   Check,
+  Bluetooth,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +76,7 @@ import SimpleDeleteModal from "@/components/simple-delete-modal";
 import ViewMenuModal from "@/components/view-menu-modal";
 import ViewDealsModal from "@/components/view-deals-modal";
 import { SearchTooltip } from "@/components/SearchTooltip";
+import PrinterModal from "@/components/printer-modal";
 import { useLocation } from "wouter";
 import {
   locationApi,
@@ -266,6 +268,25 @@ export default function Orders() {
   const [showEditDiscountModal, setShowEditDiscountModal] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState<any>(null);
   const [showAddServicesModal, setShowAddServicesModal] = useState(false);
+  const [showPrinterModal, setShowPrinterModal] = useState(false);
+  const [isPrinterConnected, setIsPrinterConnected] = useState(false);
+
+  // Listen to printer connection status changes
+  useEffect(() => {
+    const handleConnectionChange = (connected: boolean) => {
+      setIsPrinterConnected(connected);
+    };
+    
+    // Set initial status
+    setIsPrinterConnected(bluetoothPrinterService.getConnectionStatus());
+    
+    // Listen for changes
+    bluetoothPrinterService.onConnectionChange(handleConnectionChange);
+    
+    return () => {
+      bluetoothPrinterService.offConnectionChange(handleConnectionChange);
+    };
+  }, []);
 
   // Reservation states
   const [reservationsCurrentPage, setReservationsCurrentPage] = useState(1);
@@ -1203,6 +1224,15 @@ export default function Orders() {
             Restaurants
           </h1>
         </div>
+        <Button
+          onClick={() => setShowPrinterModal(true)}
+          variant={isPrinterConnected ? "default" : "outline"}
+          className={isPrinterConnected ? "bg-green-500 hover:bg-green-600 text-white" : "border-gray-300"}
+          data-testid="button-printer-connection"
+        >
+          <Bluetooth className="w-4 h-4 mr-2" />
+          {isPrinterConnected ? "Printer Connected" : "Connect Printer"}
+        </Button>
       </div>
 
       {/* Subscription Management Section */}
@@ -1836,7 +1866,7 @@ export default function Orders() {
                             data-testid={`menu-item-category-${item.id}`}
                           >
                             <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                              {item.menuCategoryName || "Unknown Category"}
+                              {item.categoryName || "Unknown Category"}
                             </Badge>
                           </TableCell>
                           <TableCell
@@ -4169,6 +4199,13 @@ export default function Orders() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Printer Modal */}
+      <PrinterModal
+        open={showPrinterModal}
+        onOpenChange={setShowPrinterModal}
+        onConnectionChange={(connected) => setIsPrinterConnected(connected)}
+      />
     </div>
   );
 }
