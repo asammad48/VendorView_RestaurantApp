@@ -18,6 +18,7 @@ import Reporting from "@/pages/reporting";
 import Appearance from "@/pages/appearance";
 import Chef from "@/pages/chef";
 import InventoryManagement from "@/pages/inventory-management";
+import Printer from "@/pages/printer";
 import Layout from "@/components/layout";
 import { useAuth, AuthProvider } from "@/lib/auth";
 import React from "react";
@@ -153,6 +154,10 @@ function Router() {
       <Route
         path="/inventory-management"
         component={() => <ProtectedRoute component={InventoryManagement} />}
+      />
+      <Route
+        path="/printer"
+        component={() => <ProtectedRoute component={Printer} />}
       />
       <Route
         path="/chef"

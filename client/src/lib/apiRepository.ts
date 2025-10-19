@@ -654,6 +654,7 @@ export const defaultApiConfig: ApiConfig = {
     // Order endpoints
     getOrders: API_ENDPOINTS.ORDERS,
     createOrder: API_ENDPOINTS.ORDERS,
+    getOrderById: API_ENDPOINTS.ORDER_BY_ID,
     updateOrder: API_ENDPOINTS.ORDER_BY_ID,
     updateOrderStatus: API_ENDPOINTS.UPDATE_ORDER_STATUS,
     deleteOrder: API_ENDPOINTS.ORDER_BY_ID,
