@@ -52,7 +52,7 @@ export default function QRCodeModal({ open, onOpenChange, tableNumber, branchNam
   // Compute full logo URL with baseUrl prepended if needed
   const fullBranchLogoUrl = useMemo(() => {
     if (!branchLogoUrl) return '';
-    return branchLogoUrl.startsWith('http') ? branchLogoUrl : `${apiBaseUrl}${branchLogoUrl}`;
+    return branchLogoUrl.startsWith('http') ? branchLogoUrl : `${apiBaseUrl}/${branchLogoUrl}`;
   }, [branchLogoUrl]);
 
   const handleDownload = async () => {
