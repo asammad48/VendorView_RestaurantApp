@@ -260,7 +260,7 @@ export class SignalRService {
             ...(orderData.orderItems || []).map(item => ({
               name: item.itemName + (item.variantName ? ` (${item.variantName})` : ''),
               quantity: item.quantity,
-              price: (item.totalPrice || 0) / (item.quantity || 1),
+              price: (item.unitPrice),
               modifiers: item.orderItemModifiers || [],
               customizations: item.orderItemCustomizations || []
             })),
