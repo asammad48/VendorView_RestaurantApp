@@ -10,6 +10,100 @@ interface OrderCreatedPayload {
   orderNumber: string;
 }
 
+// Shared audio context for notification sounds
+let sharedAudioContext: AudioContext | null = null;
+let audioContextUnlocked = false;
+
+// Initialize and unlock audio context with user interaction
+function initializeAudioContext(): void {
+  if (!sharedAudioContext) {
+    try {
+      sharedAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      console.log('[SignalR] 🔊 Audio context initialized');
+      
+      // Resume audio context if suspended (required by modern browsers)
+      if (sharedAudioContext.state === 'suspended') {
+        const unlockAudio = async () => {
+          if (sharedAudioContext && sharedAudioContext.state === 'suspended') {
+            await sharedAudioContext.resume();
+            audioContextUnlocked = true;
+            console.log('[SignalR] ✅ Audio context unlocked');
+            
+            // Remove listeners after first unlock
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+          }
+        };
+        
+        // Unlock audio on first user interaction
+        document.addEventListener('click', unlockAudio, { once: true });
+        document.addEventListener('touchstart', unlockAudio, { once: true });
+      } else {
+        audioContextUnlocked = true;
+      }
+    } catch (error) {
+      console.warn('[SignalR] Could not initialize audio context:', error);
+    }
+  }
+}
+
+// Play notification sound for new orders
+async function playOrderNotificationSound(): Promise<void> {
+  try {
+    // Initialize audio context if not already done
+    if (!sharedAudioContext) {
+      initializeAudioContext();
+    }
+    
+    if (!sharedAudioContext) {
+      console.warn('[SignalR] Audio context not available');
+      return;
+    }
+    
+    // Resume audio context if suspended
+    if (sharedAudioContext.state === 'suspended') {
+      await sharedAudioContext.resume();
+    }
+    
+    // Create a pleasant notification sound using oscillators
+    const playTone = (frequency: number, startTime: number, duration: number) => {
+      if (!sharedAudioContext) return;
+      
+      const oscillator = sharedAudioContext.createOscillator();
+      const gainNode = sharedAudioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(sharedAudioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      
+      // Envelope: quick attack, sustain, quick release
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
+      gainNode.gain.linearRampToValueAtTime(0.2, startTime + duration - 0.05);
+      gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+    
+    const currentTime = sharedAudioContext.currentTime;
+    
+    // Three-tone chime (C5 -> E5 -> G5) - pleasant major chord
+    playTone(523.25, currentTime, 0.15);
+    playTone(659.25, currentTime + 0.12, 0.2);
+    playTone(783.99, currentTime + 0.24, 0.25);
+    
+    console.log('[SignalR] 🔔 Playing order notification sound');
+  } catch (error) {
+    console.warn('[SignalR] Could not play notification sound:', error);
+  }
+}
+
+// Initialize audio context on module load
+initializeAudioContext();
+
 export class SignalRService {
   private connection: HubConnection | null = null;
   private baseUrl: string = signalRBaseUrl;
@@ -116,6 +210,9 @@ export class SignalRService {
         timestamp: new Date().toISOString()
       });
       
+      // Play notification sound
+      playOrderNotificationSound();
+      
       // Show toast notification
       toast({
         title: "New Order Created! 🎉",
@@ -163,7 +260,9 @@ export class SignalRService {
             ...(orderData.orderItems || []).map(item => ({
               name: item.itemName + (item.variantName ? ` (${item.variantName})` : ''),
               quantity: item.quantity,
-              price: (item.totalPrice || 0) / (item.quantity || 1)
+              price: (item.totalPrice || 0) / (item.quantity || 1),
+              modifiers: item.orderItemModifiers || [],
+              customizations: item.orderItemCustomizations || []
             })),
             ...(orderData.orderPackages || []).map(pkg => ({
               name: `[DEAL] ${pkg.packageName}`,

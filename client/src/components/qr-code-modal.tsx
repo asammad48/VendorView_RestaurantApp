@@ -9,6 +9,7 @@ interface QRCodeModalProps {
   tableNumber: string;
   branchName: string;
   qrCodeBase64?: string;
+  branchLogoUrl?: string;
 }
 
 // QR Code display component that handles base64 images
@@ -44,7 +45,7 @@ const QRCodeDisplay = ({ base64Image, tableNumber, size = 200 }: { base64Image?:
   );
 };
 
-export default function QRCodeModal({ open, onOpenChange, tableNumber, branchName, qrCodeBase64 }: QRCodeModalProps) {
+export default function QRCodeModal({ open, onOpenChange, tableNumber, branchName, qrCodeBase64, branchLogoUrl }: QRCodeModalProps) {
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = () => {
@@ -100,43 +101,98 @@ export default function QRCodeModal({ open, onOpenChange, tableNumber, branchNam
                 flex-direction: column;
                 align-items: center;
                 font-family: Arial, sans-serif;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+              }
+              .print-container {
+                background: white;
+                padding: 40px;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                max-width: 400px;
+              }
+              .branch-logo-container {
+                text-align: center;
+                margin-bottom: 30px;
+              }
+              .branch-logo {
+                max-width: 120px;
+                max-height: 120px;
+                object-fit: contain;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
               }
               .qr-container {
                 text-align: center;
                 margin-bottom: 20px;
               }
               .qr-title {
-                font-size: 24px;
+                font-size: 28px;
                 font-weight: bold;
-                margin-bottom: 20px;
-                color: #333;
+                margin-bottom: 10px;
+                color: #2c3e50;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
               }
               .qr-subtitle {
-                font-size: 16px;
-                color: #666;
+                font-size: 18px;
+                color: #7f8c8d;
                 margin-bottom: 30px;
+                font-weight: 500;
+              }
+              .qr-code-wrapper {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 4px;
+                border-radius: 16px;
+                display: inline-block;
+                margin-bottom: 20px;
               }
               .qr-code {
-                border: 2px solid #ccc;
+                border: 4px solid white;
                 display: inline-block;
                 padding: 20px;
                 background: white;
+                border-radius: 12px;
               }
               .qr-image {
                 max-width: 200px;
                 max-height: 200px;
+                display: block;
+              }
+              .scan-instruction {
+                font-size: 14px;
+                color: #95a5a6;
+                margin-top: 20px;
+                font-style: italic;
               }
               @media print {
-                body { margin: 0; padding: 20px; }
+                body { 
+                  margin: 0; 
+                  padding: 20px; 
+                  background: white;
+                }
+                .print-container {
+                  box-shadow: none;
+                }
               }
             </style>
           </head>
           <body>
-            <div class="qr-container">
-              <div class="qr-title">${tableNumber}</div>
-              <div class="qr-subtitle">${branchName}</div>
-              <div class="qr-code">
-                ${qrImageSrc ? `<img src="${qrImageSrc}" alt="QR Code" class="qr-image" />` : 'QR Code Not Available'}
+            <div class="print-container">
+              ${branchLogoUrl ? `
+                <div class="branch-logo-container">
+                  <img src="${branchLogoUrl}" alt="${branchName} Logo" class="branch-logo" />
+                </div>
+              ` : ''}
+              <div class="qr-container">
+                <div class="qr-title">${tableNumber}</div>
+                <div class="qr-subtitle">${branchName}</div>
+                <div class="qr-code-wrapper">
+                  <div class="qr-code">
+                    ${qrImageSrc ? `<img src="${qrImageSrc}" alt="QR Code" class="qr-image" />` : '<div style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; color: #bdc3c7;">QR Code Not Available</div>'}
+                  </div>
+                </div>
+                <div class="scan-instruction">Scan to view menu and place orders</div>
               </div>
             </div>
           </body>
@@ -159,6 +215,18 @@ export default function QRCodeModal({ open, onOpenChange, tableNumber, branchNam
         </DialogHeader>
 
         <div className="flex flex-col items-center space-y-6">
+          {/* Branch Logo */}
+          {branchLogoUrl && (
+            <div className="relative" data-testid="qr-branch-logo">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 rounded-full blur opacity-30"></div>
+              <img 
+                src={branchLogoUrl} 
+                alt={`${branchName} Logo`}
+                className="relative w-24 h-24 object-contain rounded-full border-4 border-white shadow-lg"
+              />
+            </div>
+          )}
+          
           {/* Table Information */}
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-1" data-testid="qr-table-number">
@@ -172,7 +240,7 @@ export default function QRCodeModal({ open, onOpenChange, tableNumber, branchNam
           {/* QR Code */}
           <div 
             ref={qrCodeRef}
-            className="flex justify-center p-4 bg-gray-50 rounded-lg"
+            className="flex justify-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-200"
             data-testid="qr-code-display"
           >
             <QRCodeDisplay base64Image={qrCodeBase64} tableNumber={tableNumber} size={200} />
