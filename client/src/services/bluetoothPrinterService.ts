@@ -1,9 +1,54 @@
+const PRINTER_DEVICE_ID_KEY = 'bluetooth_printer_device_id';
+const PRINTER_DEVICE_NAME_KEY = 'bluetooth_printer_device_name';
+
 export class BluetoothPrinterService {
   private device: BluetoothDevice | null = null;
   private characteristic: BluetoothRemoteGATTCharacteristic | null = null;
   private isConnected: boolean = false;
+  private hasSavedConnection: boolean = false;
   private connectionListeners: Array<(connected: boolean) => void> = [];
   private disconnectHandler: (() => void) | null = null;
+
+  constructor() {
+    // Check for previously connected device on initialization
+    this.initializeFromStorage();
+  }
+
+  private initializeFromStorage(): void {
+    const savedDeviceId = localStorage.getItem(PRINTER_DEVICE_ID_KEY);
+    const savedDeviceName = localStorage.getItem(PRINTER_DEVICE_NAME_KEY);
+    
+    if (savedDeviceId && savedDeviceName) {
+      this.hasSavedConnection = true;
+      console.log('[Bluetooth Printer] 💾 Found saved printer preference:', savedDeviceName);
+      console.log('[Bluetooth Printer] Note: User will need to reconnect the printer');
+      console.log('[Bluetooth Printer] Printer info saved for convenience but not auto-connected');
+      // Do NOT notify listeners as connected - that would be misleading
+      // The reconnection must happen through user action due to Web Bluetooth API limitations
+    }
+  }
+
+  private async establishCharacteristic(server: BluetoothRemoteGATTServer): Promise<void> {
+    let service;
+    try {
+      service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+      this.characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+    } catch {
+      try {
+        service = await server.getPrimaryService('e7810a71-73ae-499d-8c15-faa9aef0c3f2');
+        this.characteristic = await service.getCharacteristic('bef8d6c9-9c21-4c9e-b632-bd58c1009f9f');
+      } catch {
+        const services = await server.getPrimaryServices();
+        if (services.length > 0) {
+          service = services[0];
+          const characteristics = await service.getCharacteristics();
+          if (characteristics.length > 0) {
+            this.characteristic = characteristics[0];
+          }
+        }
+      }
+    }
+  }
 
   async connect(): Promise<{ success: boolean; deviceName?: string; error?: string }> {
     console.log('[Bluetooth Printer] 🔌 Starting connection process...');
@@ -83,12 +128,19 @@ export class BluetoothPrinterService {
       this.isConnected = true;
       this.notifyConnectionChange(true);
       
+      // Save device information to localStorage for persistence across page refreshes
+      localStorage.setItem(PRINTER_DEVICE_ID_KEY, this.device.id);
+      localStorage.setItem(PRINTER_DEVICE_NAME_KEY, this.device.name || 'Bluetooth Printer');
+      this.hasSavedConnection = true;
+      console.log('[Bluetooth Printer] 💾 Saved device info to localStorage for persistence');
+      
       // Add disconnect event listener to handle unexpected disconnections
       this.disconnectHandler = () => {
         console.log('[Bluetooth Printer] ⚠️ Device disconnected unexpectedly');
         this.isConnected = false;
         this.characteristic = null;
         this.notifyConnectionChange(false);
+        // Don't clear localStorage on unexpected disconnection - keep the preference
       };
       
       this.device.addEventListener('gattserverdisconnected', this.disconnectHandler);
@@ -128,6 +180,12 @@ export class BluetoothPrinterService {
       console.log('[Bluetooth Printer] ⚠️ Device was not connected');
     }
     
+    // Clear localStorage on explicit disconnect
+    localStorage.removeItem(PRINTER_DEVICE_ID_KEY);
+    localStorage.removeItem(PRINTER_DEVICE_NAME_KEY);
+    this.hasSavedConnection = false;
+    console.log('[Bluetooth Printer] 🗑️ Cleared saved device info from localStorage');
+    
     this.device = null;
     this.characteristic = null;
     this.isConnected = false;
@@ -147,9 +205,21 @@ export class BluetoothPrinterService {
   }
 
   getConnectionStatus(): boolean {
+    // Only report connected if we have an actual active connection
     const isConnected = !!(this.device && this.characteristic);
-    console.log('[Bluetooth Printer] Connection status check:', isConnected);
+    console.log('[Bluetooth Printer] Connection status check:', {
+      activeConnection: isConnected,
+      savedPreference: this.hasSavedConnection
+    });
     return isConnected;
+  }
+  
+  getSavedDeviceName(): string | null {
+    return localStorage.getItem(PRINTER_DEVICE_NAME_KEY);
+  }
+  
+  hasSavedDevice(): boolean {
+    return this.hasSavedConnection;
   }
 
   getDeviceName(): string {
@@ -228,7 +298,13 @@ export class BluetoothPrinterService {
   async printReceipt(orderData: {
     orderNumber: string;
     date: string;
-    items: Array<{ name: string; quantity: number; price: number }>;
+    items: Array<{ 
+      name: string; 
+      quantity: number; 
+      price: number; 
+      modifiers?: Array<{ modifierName: string; price: number; quantity: number }>;
+      customizations?: Array<{ customizationName: string; optionName: string }>;
+    }>;
     subtotal: number;
     tax: number;
     total: number;
@@ -343,6 +419,24 @@ export class BluetoothPrinterService {
         const price = formatPrice(item.price);
         const spaces = 32 - itemLine.length - price.length;
         receipt += itemLine + ' '.repeat(Math.max(spaces, 1)) + price + '\n';
+        
+        // Add modifiers if present
+        if (item.modifiers && item.modifiers.length > 0) {
+          item.modifiers.forEach(modifier => {
+            const modLine = `  + ${modifier.modifierName}`;
+            const modPrice = formatPrice(modifier.price * modifier.quantity);
+            const modQty = modifier.quantity > 1 ? ` (x${modifier.quantity})` : '';
+            const modSpaces = 32 - modLine.length - modQty.length - modPrice.length;
+            receipt += modLine + modQty + ' '.repeat(Math.max(modSpaces, 1)) + modPrice + '\n';
+          });
+        }
+        
+        // Add customizations if present
+        if (item.customizations && item.customizations.length > 0) {
+          item.customizations.forEach(custom => {
+            receipt += `  * ${custom.customizationName}: ${custom.optionName}\n`;
+          });
+        }
       });
       
       // Calculations section

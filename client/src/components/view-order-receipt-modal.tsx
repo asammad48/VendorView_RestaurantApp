@@ -94,24 +94,67 @@ export function ViewOrderReceiptModal({
           {order.orderItems && order.orderItems.length > 0 && (
             <div className="space-y-2 mb-4">
               {order.orderItems.map((item, index) => (
-                <div 
-                  key={index} 
-                  className="grid grid-cols-12 gap-1 text-sm py-1"
-                  data-testid={`view-order-item-${index}`}
-                >
-                  <div className="col-span-6">
-                    <p className="font-medium text-gray-900 leading-tight">{item.itemName || 'Menu Item'}</p>
-                    {item.variantName && (
-                      <p className="text-xs text-gray-500">{item.variantName}</p>
-                    )}
+                <div key={index}>
+                  <div 
+                    className="grid grid-cols-12 gap-1 text-sm py-1"
+                    data-testid={`view-order-item-${index}`}
+                  >
+                    <div className="col-span-6">
+                      <p className="font-medium text-gray-900 leading-tight">{item.itemName || 'Menu Item'}</p>
+                      {item.variantName && (
+                        <p className="text-xs text-gray-500">{item.variantName}</p>
+                      )}
+                    </div>
+                    <div className="col-span-2 text-center text-gray-700">{item.quantity}</div>
+                    <div className="col-span-2 text-right text-gray-700">
+                      {formatPrice((item.totalPrice || 0) / (item.quantity || 1))}
+                    </div>
+                    <div className="col-span-2 text-right font-semibold text-gray-900">
+                      {formatPrice(item.totalPrice)}
+                    </div>
                   </div>
-                  <div className="col-span-2 text-center text-gray-700">{item.quantity}</div>
-                  <div className="col-span-2 text-right text-gray-700">
-                    {formatPrice((item.totalPrice || 0) / (item.quantity || 1))}
-                  </div>
-                  <div className="col-span-2 text-right font-semibold text-gray-900">
-                    {formatPrice(item.totalPrice)}
-                  </div>
+                  
+                  {/* Display modifiers if present */}
+                  {item.orderItemModifiers && item.orderItemModifiers.length > 0 && (
+                    <div className="ml-4 mt-1 space-y-1">
+                      {item.orderItemModifiers.map((modifier, modIndex) => (
+                        <div 
+                          key={modIndex} 
+                          className="grid grid-cols-12 gap-1 text-xs text-gray-600"
+                          data-testid={`view-order-item-${index}-modifier-${modIndex}`}
+                        >
+                          <div className="col-span-6 flex items-center">
+                            <span className="mr-1">+</span>
+                            <span>{modifier.modifierName}</span>
+                            {modifier.quantity > 1 && (
+                              <span className="ml-1 text-gray-500">(x{modifier.quantity})</span>
+                            )}
+                          </div>
+                          <div className="col-span-2"></div>
+                          <div className="col-span-2"></div>
+                          <div className="col-span-2 text-right">
+                            {formatPrice(modifier.price * modifier.quantity)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Display customizations if present */}
+                  {item.orderItemCustomizations && item.orderItemCustomizations.length > 0 && (
+                    <div className="ml-4 mt-1 space-y-1">
+                      {item.orderItemCustomizations.map((custom, customIndex) => (
+                        <div 
+                          key={customIndex} 
+                          className="text-xs text-gray-600 italic"
+                          data-testid={`view-order-item-${index}-customization-${customIndex}`}
+                        >
+                          <span className="mr-1">*</span>
+                          <span>{custom.customizationName}: {custom.optionName}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

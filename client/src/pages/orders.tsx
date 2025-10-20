@@ -3234,6 +3234,7 @@ export default function Orders() {
           tableNumber={selectedTable.tableNumber}
           branchName={selectedTable.branchName}
           qrCodeBase64={selectedTable.qrCode}
+          branchLogoUrl={branchData?.restaurantLogo}
         />
       )}
 
