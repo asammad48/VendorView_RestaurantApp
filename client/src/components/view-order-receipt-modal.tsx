@@ -107,7 +107,7 @@ export function ViewOrderReceiptModal({
                     </div>
                     <div className="col-span-2 text-center text-gray-700">{item.quantity}</div>
                     <div className="col-span-2 text-right text-gray-700">
-                      {formatPrice((item.totalPrice || 0) / (item.quantity || 1))}
+                      {formatPrice(item.unitPrice || 0)}
                     </div>
                     <div className="col-span-2 text-right font-semibold text-gray-900">
                       {formatPrice(item.totalPrice)}
