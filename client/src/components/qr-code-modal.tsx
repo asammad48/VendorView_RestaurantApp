@@ -1,7 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download, Printer } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
+import { apiBaseUrl } from "@/config/environment";
 
 interface QRCodeModalProps {
   open: boolean;
@@ -47,36 +48,144 @@ const QRCodeDisplay = ({ base64Image, tableNumber, size = 200 }: { base64Image?:
 
 export default function QRCodeModal({ open, onOpenChange, tableNumber, branchName, qrCodeBase64, branchLogoUrl }: QRCodeModalProps) {
   const qrCodeRef = useRef<HTMLDivElement>(null);
+  
+  // Compute full logo URL with baseUrl prepended if needed
+  const fullBranchLogoUrl = useMemo(() => {
+    if (!branchLogoUrl) return '';
+    return branchLogoUrl.startsWith('http') ? branchLogoUrl : `${apiBaseUrl}${branchLogoUrl}`;
+  }, [branchLogoUrl]);
 
-  const handleDownload = () => {
-    if (qrCodeBase64 && qrCodeBase64.trim() !== '') {
-      // Download the actual base64 QR code image
+  const handleDownload = async () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) return;
+    
+    // Canvas dimensions
+    const canvasWidth = 400;
+    const padding = 40;
+    let currentY = padding;
+    
+    // Calculate heights
+    const logoSize = fullBranchLogoUrl ? 120 : 0;
+    const logoMargin = fullBranchLogoUrl ? 30 : 0;
+    const titleHeight = 30;
+    const subtitleHeight = 25;
+    const titleMargin = 20;
+    const qrSize = 220;
+    const qrMargin = 20;
+    const instructionHeight = 20;
+    const instructionMargin = 20;
+    
+    const totalHeight = padding + logoSize + logoMargin + titleHeight + subtitleHeight + titleMargin + qrSize + qrMargin + instructionHeight + instructionMargin + padding;
+    
+    canvas.width = canvasWidth;
+    canvas.height = totalHeight;
+    
+    // Background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    try {
+      // Load and draw branch logo if available
+      if (fullBranchLogoUrl) {
+        const logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        
+        await new Promise<void>((resolve, reject) => {
+          logoImg.onload = () => {
+            const logoX = (canvasWidth - logoSize) / 2;
+            ctx.drawImage(logoImg, logoX, currentY, logoSize, logoSize);
+            currentY += logoSize + logoMargin;
+            resolve();
+          };
+          logoImg.onerror = () => {
+            console.warn('Failed to load branch logo, skipping');
+            resolve();
+          };
+          logoImg.src = fullBranchLogoUrl;
+        });
+      }
+      
+      // Draw table number title
+      ctx.fillStyle = '#2c3e50';
+      ctx.font = 'bold 28px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(tableNumber, canvasWidth / 2, currentY + 24);
+      currentY += titleHeight;
+      
+      // Draw branch name
+      ctx.fillStyle = '#7f8c8d';
+      ctx.font = '18px Arial';
+      ctx.fillText(branchName, canvasWidth / 2, currentY + 18);
+      currentY += subtitleHeight + titleMargin;
+      
+      // Draw QR code
+      if (qrCodeBase64 && qrCodeBase64.trim() !== '') {
+        const qrImg = new Image();
+        await new Promise<void>((resolve) => {
+          qrImg.onload = () => {
+            const qrX = (canvasWidth - qrSize) / 2;
+            
+            // Draw gradient border
+            const gradient = ctx.createLinearGradient(qrX - 4, currentY - 4, qrX + qrSize + 4, currentY + qrSize + 4);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(qrX - 4, currentY - 4, qrSize + 8, qrSize + 8);
+            
+            // Draw white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(qrX, currentY, qrSize, qrSize);
+            
+            // Draw QR code
+            ctx.drawImage(qrImg, qrX + 10, currentY + 10, qrSize - 20, qrSize - 20);
+            currentY += qrSize + qrMargin;
+            resolve();
+          };
+          qrImg.onerror = () => {
+            // Draw placeholder
+            ctx.fillStyle = '#e0e0e0';
+            const qrX = (canvasWidth - qrSize) / 2;
+            ctx.fillRect(qrX, currentY, qrSize, qrSize);
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Arial';
+            ctx.fillText('QR Code Not Available', canvasWidth / 2, currentY + qrSize / 2);
+            currentY += qrSize + qrMargin;
+            resolve();
+          };
+          qrImg.src = `data:image/png;base64,${qrCodeBase64}`;
+        });
+      } else {
+        // Draw QR placeholder
+        ctx.fillStyle = '#e0e0e0';
+        const qrX = (canvasWidth - qrSize) / 2;
+        ctx.fillRect(qrX, currentY, qrSize, qrSize);
+        ctx.fillStyle = '#666';
+        ctx.font = '14px Arial';
+        ctx.fillText('QR Code Not Available', canvasWidth / 2, currentY + qrSize / 2);
+        currentY += qrSize + qrMargin;
+      }
+      
+      // Draw instruction
+      ctx.fillStyle = '#95a5a6';
+      ctx.font = 'italic 14px Arial';
+      ctx.fillText('Scan to view menu and place orders', canvasWidth / 2, currentY + instructionHeight);
+      
+      // Download the image
       const link = document.createElement('a');
       link.download = `${tableNumber.replace(/\s+/g, '_')}_QR_Code.png`;
-      link.href = `data:image/png;base64,${qrCodeBase64}`;
+      link.href = canvas.toDataURL('image/png');
       link.click();
-    } else {
-      // Fallback: create a simple QR placeholder image
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const size = 300;
       
-      canvas.width = size;
-      canvas.height = size + 60;
+    } catch (error) {
+      console.error('Error creating download image:', error);
       
-      if (ctx) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = 'black';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('QR Code Not Available', size / 2, size / 2);
-        ctx.fillText(`${tableNumber} - ${branchName}`, size / 2, size + 30);
-        
+      // Fallback to simple QR download
+      if (qrCodeBase64 && qrCodeBase64.trim() !== '') {
         const link = document.createElement('a');
         link.download = `${tableNumber.replace(/\s+/g, '_')}_QR_Code.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.href = `data:image/png;base64,${qrCodeBase64}`;
         link.click();
       }
     }
@@ -179,9 +288,9 @@ export default function QRCodeModal({ open, onOpenChange, tableNumber, branchNam
           </head>
           <body>
             <div class="print-container">
-              ${branchLogoUrl ? `
+              ${fullBranchLogoUrl ? `
                 <div class="branch-logo-container">
-                  <img src="${branchLogoUrl}" alt="${branchName} Logo" class="branch-logo" />
+                  <img src="${fullBranchLogoUrl}" alt="${branchName} Logo" class="branch-logo" />
                 </div>
               ` : ''}
               <div class="qr-container">
@@ -216,11 +325,11 @@ export default function QRCodeModal({ open, onOpenChange, tableNumber, branchNam
 
         <div className="flex flex-col items-center space-y-6">
           {/* Branch Logo */}
-          {branchLogoUrl && (
+          {fullBranchLogoUrl && (
             <div className="relative" data-testid="qr-branch-logo">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 rounded-full blur opacity-30"></div>
               <img 
-                src={branchLogoUrl} 
+                src={fullBranchLogoUrl} 
                 alt={`${branchName} Logo`}
                 className="relative w-24 h-24 object-contain rounded-full border-4 border-white shadow-lg"
               />
