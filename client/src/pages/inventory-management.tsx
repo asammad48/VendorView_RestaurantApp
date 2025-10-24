@@ -31,7 +31,9 @@ import { Input } from "@/components/ui/input";
 import { format, subMonths, addDays } from "date-fns";
 import {
   DEFAULT_PAGINATION_CONFIG,
+  PaginationResponse,
 } from "@/types/pagination";
+import { SearchTooltip } from "@/components/SearchTooltip";
 
 interface InventoryCategory {
   id: number;
@@ -211,11 +213,11 @@ export default function InventoryManagement() {
         IsAscending: true,
         SearchTerm: categoriesSearch
       });
-      return result as InventoryCategory[];
+      return result;
     },
     enabled: !!branchId && activeTab === "categories",
   });
-  const categories = Array.isArray(categoriesData) ? categoriesData : [];
+  const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData as any)?.items || [];
 
   // Fetch inventory suppliers (lazy load)
   const { data: suppliersData, isLoading: isLoadingSuppliers, refetch: refetchSuppliers } = useQuery({
@@ -245,11 +247,11 @@ export default function InventoryManagement() {
         IsAscending: true,
         SearchTerm: itemsSearch
       });
-      return result as InventoryItem[];
+      return result;
     },
     enabled: !!branchId && activeTab === "items",
   });
-  const items = Array.isArray(itemsData) ? itemsData : [];
+  const items = Array.isArray(itemsData) ? itemsData : (itemsData as any)?.items || [];
 
   // Fetch stock (lazy load)
   const { data: stockData, isLoading: isLoadingStock, refetch: refetchStock } = useQuery({
@@ -511,15 +513,17 @@ export default function InventoryManagement() {
         {/* Categories Tab */}
         <TabsContent value="categories" className="space-y-6">
           <div className="flex justify-between items-center gap-4">
-            <Input
+            <SearchTooltip
               placeholder="Search categories by name..."
-              value={categoriesSearch}
-              onChange={(e) => {
-                setCategoriesSearch(e.target.value);
+              currentValue={categoriesSearch}
+              onSearch={(value) => {
+                setCategoriesSearch(value);
                 setCategoriesPage(1);
               }}
-              className="max-w-sm"
-              data-testid="input-search-categories"
+              onClear={() => {
+                setCategoriesSearch("");
+                setCategoriesPage(1);
+              }}
             />
             <Button 
               className="bg-green-500 hover:bg-green-600 text-white"
@@ -814,15 +818,17 @@ export default function InventoryManagement() {
         {/* Items Tab */}
         <TabsContent value="items" className="space-y-6">
           <div className="flex justify-between items-center gap-4">
-            <Input
+            <SearchTooltip
               placeholder="Search items by name..."
-              value={itemsSearch}
-              onChange={(e) => {
-                setItemsSearch(e.target.value);
+              currentValue={itemsSearch}
+              onSearch={(value) => {
+                setItemsSearch(value);
                 setItemsPage(1);
               }}
-              className="max-w-sm"
-              data-testid="input-search-items"
+              onClear={() => {
+                setItemsSearch("");
+                setItemsPage(1);
+              }}
             />
             <Button 
               className="bg-green-500 hover:bg-green-600 text-white"
