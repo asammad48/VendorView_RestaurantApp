@@ -257,89 +257,84 @@ export default function InventoryManagement() {
   const { data: stockData, isLoading: isLoadingStock, refetch: refetchStock } = useQuery({
     queryKey: ["inventory-stock", branchId, stockPage, stockPerPage, stockSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getInventoryStockByBranch(branchId, {
+      return await inventoryApi.getInventoryStockByBranch(branchId, {
         PageNumber: stockPage,
         PageSize: stockPerPage,
         SortBy: "itemName",
         IsAscending: true,
         SearchTerm: stockSearch
       });
-      return result as StockItem[];
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "manage-stock",
   });
-  const stock = Array.isArray(stockData) ? stockData : [];
+  const stock = Array.isArray(stockData) ? stockData : (stockData as any)?.items || [];
 
   // Fetch low stock (lazy load)
   const { data: lowStockData, isLoading: isLoadingLowStock, refetch: refetchLowStock } = useQuery({
     queryKey: ["inventory-low-stock", branchId, lowStockPage, lowStockPerPage, lowStockSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getInventoryLowStockByBranch(branchId, {
+      return await inventoryApi.getInventoryLowStockByBranch(branchId, {
         PageNumber: lowStockPage,
         PageSize: lowStockPerPage,
         SortBy: "itemName",
         IsAscending: true,
         SearchTerm: lowStockSearch
       });
-      return result as LowStockItem[];
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "low-stock",
   });
-  const lowStock = Array.isArray(lowStockData) ? lowStockData : [];
+  const lowStock = Array.isArray(lowStockData) ? lowStockData : (lowStockData as any)?.items || [];
 
   // Fetch purchase orders (lazy load)
   const { data: purchaseOrdersData, isLoading: isLoadingPurchaseOrders, refetch: refetchPurchaseOrders } = useQuery({
     queryKey: ["purchase-orders", branchId, purchaseOrdersPage, purchaseOrdersPerPage, purchaseOrdersSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getPurchaseOrdersByBranch(branchId, {
+      return await inventoryApi.getPurchaseOrdersByBranch(branchId, {
         PageNumber: purchaseOrdersPage,
         PageSize: purchaseOrdersPerPage,
         SortBy: "supplierName",
         IsAscending: true,
         SearchTerm: purchaseOrdersSearch
       });
-      return result as PurchaseOrder[];
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "purchase-orders",
   });
-  const purchaseOrders = Array.isArray(purchaseOrdersData) ? purchaseOrdersData : [];
+  const purchaseOrders = Array.isArray(purchaseOrdersData) ? purchaseOrdersData : (purchaseOrdersData as any)?.items || [];
 
   // Fetch wastage (lazy load)
   const { data: wastageItemsData, isLoading: isLoadingWastage, refetch: refetchWastage } = useQuery({
     queryKey: ["inventory-wastage", branchId, wastageFromDate, wastageToDate, wastageItemsPage, wastageItemsPerPage, wastageSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getInventoryWastageByBranch(branchId, wastageFromDate, wastageToDate, {
+      return await inventoryApi.getInventoryWastageByBranch(branchId, wastageFromDate, wastageToDate, {
         PageNumber: wastageItemsPage,
         PageSize: wastageItemsPerPage,
         SortBy: "itemName",
         IsAscending: true,
         SearchTerm: wastageSearch
       });
-      return result as WastageItem[];
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "stock-wastage",
   });
-  const wastageItems = Array.isArray(wastageItemsData) ? wastageItemsData : [];
+  const wastageItems = Array.isArray(wastageItemsData) ? wastageItemsData : (wastageItemsData as any)?.items || [];
 
   // Fetch utility expenses (lazy load)
   const { data: utilityExpensesData, isLoading: isLoadingUtilityExpenses, refetch: refetchUtilityExpenses } = useQuery({
     queryKey: ["utility-expenses", branchId, expensesPage, expensesPerPage, expensesSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getUtilityExpensesByBranch(branchId, {
+      return await inventoryApi.getUtilityExpensesByBranch(branchId, {
         PageNumber: expensesPage,
         PageSize: expensesPerPage,
         SortBy: "utilityType",
         IsAscending: true,
         SearchTerm: expensesSearch
       });
-      return result as UtilityExpense[];
     },
     enabled: !!branchId && activeTab === "expense",
   });
-  const utilityExpenses = Array.isArray(utilityExpensesData) ? utilityExpensesData : [];
+  const utilityExpenses = Array.isArray(utilityExpensesData) ? utilityExpensesData : (utilityExpensesData as any)?.items || [];
 
   // Fetch recipes (lazy load)
-  const { data: recipesData, isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery<Recipe[]>({
+  const { data: recipesData, isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery({
     queryKey: ["recipes", branchId, recipesPage, recipesPerPage, recipesSearch],
     queryFn: async () => {
       return await inventoryApi.getRecipesByBranch(branchId, {
@@ -352,7 +347,7 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "recipes",
   });
-  const recipes = Array.isArray(recipesData) ? recipesData : [];
+  const recipes = Array.isArray(recipesData) ? recipesData : (recipesData as any)?.items || [];
 
   // For now, set total pages to 1 since we're using server-side pagination
   // TODO: Update this when the API returns total count information
