@@ -177,6 +177,17 @@ export default function InventoryManagement() {
   const [recipesPage, setRecipesPage] = useState(1);
   const [recipesPerPage, setRecipesPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
 
+  // Search states for all tables
+  const [categoriesSearch, setCategoriesSearch] = useState("");
+  const [suppliersSearch, setSuppliersSearch] = useState("");
+  const [itemsSearch, setItemsSearch] = useState("");
+  const [stockSearch, setStockSearch] = useState("");
+  const [lowStockSearch, setLowStockSearch] = useState("");
+  const [purchaseOrdersSearch, setPurchaseOrdersSearch] = useState("");
+  const [wastageSearch, setWastageSearch] = useState("");
+  const [expensesSearch, setExpensesSearch] = useState("");
+  const [recipesSearch, setRecipesSearch] = useState("");
+
   const branchId = parseInt(new URLSearchParams(window.location.search).get('branchId') || '0');
 
   // Fetch branch information
@@ -191,9 +202,15 @@ export default function InventoryManagement() {
 
   // Fetch inventory categories (lazy load)
   const { data: categoriesData, isLoading: isLoadingCategories, refetch: refetchCategories } = useQuery({
-    queryKey: ["inventory-categories", branchId],
+    queryKey: ["inventory-categories", branchId, categoriesPage, categoriesPerPage, categoriesSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getInventoryCategories(branchId);
+      const result = await inventoryApi.getInventoryCategories(branchId, {
+        PageNumber: categoriesPage,
+        PageSize: categoriesPerPage,
+        SortBy: "name",
+        IsAscending: true,
+        SearchTerm: categoriesSearch
+      });
       return result as InventoryCategory[];
     },
     enabled: !!branchId && activeTab === "categories",
@@ -202,9 +219,15 @@ export default function InventoryManagement() {
 
   // Fetch inventory suppliers (lazy load)
   const { data: suppliersData, isLoading: isLoadingSuppliers, refetch: refetchSuppliers } = useQuery({
-    queryKey: ["inventory-suppliers", branchId],
+    queryKey: ["inventory-suppliers", branchId, suppliersPage, suppliersPerPage, suppliersSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getInventorySuppliers(branchId);
+      const result = await inventoryApi.getInventorySuppliers(branchId, {
+        PageNumber: suppliersPage,
+        PageSize: suppliersPerPage,
+        SortBy: "name",
+        IsAscending: true,
+        SearchTerm: suppliersSearch
+      });
       return result as InventorySupplier[];
     },
     enabled: !!branchId && activeTab === "suppliers",
@@ -213,9 +236,15 @@ export default function InventoryManagement() {
 
   // Fetch inventory items (lazy load)
   const { data: itemsData, isLoading: isLoadingItems, refetch: refetchItems } = useQuery({
-    queryKey: ["inventory-items", branchId],
+    queryKey: ["inventory-items", branchId, itemsPage, itemsPerPage, itemsSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getInventoryItemsByBranch(branchId);
+      const result = await inventoryApi.getInventoryItemsByBranch(branchId, {
+        PageNumber: itemsPage,
+        PageSize: itemsPerPage,
+        SortBy: "name",
+        IsAscending: true,
+        SearchTerm: itemsSearch
+      });
       return result as InventoryItem[];
     },
     enabled: !!branchId && activeTab === "items",
@@ -224,9 +253,15 @@ export default function InventoryManagement() {
 
   // Fetch stock (lazy load)
   const { data: stockData, isLoading: isLoadingStock, refetch: refetchStock } = useQuery({
-    queryKey: ["inventory-stock", branchId],
+    queryKey: ["inventory-stock", branchId, stockPage, stockPerPage, stockSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getInventoryStockByBranch(branchId);
+      const result = await inventoryApi.getInventoryStockByBranch(branchId, {
+        PageNumber: stockPage,
+        PageSize: stockPerPage,
+        SortBy: "itemName",
+        IsAscending: true,
+        SearchTerm: stockSearch
+      });
       return result as StockItem[];
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "manage-stock",
@@ -235,9 +270,15 @@ export default function InventoryManagement() {
 
   // Fetch low stock (lazy load)
   const { data: lowStockData, isLoading: isLoadingLowStock, refetch: refetchLowStock } = useQuery({
-    queryKey: ["inventory-low-stock", branchId],
+    queryKey: ["inventory-low-stock", branchId, lowStockPage, lowStockPerPage, lowStockSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getInventoryLowStockByBranch(branchId);
+      const result = await inventoryApi.getInventoryLowStockByBranch(branchId, {
+        PageNumber: lowStockPage,
+        PageSize: lowStockPerPage,
+        SortBy: "itemName",
+        IsAscending: true,
+        SearchTerm: lowStockSearch
+      });
       return result as LowStockItem[];
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "low-stock",
@@ -246,9 +287,15 @@ export default function InventoryManagement() {
 
   // Fetch purchase orders (lazy load)
   const { data: purchaseOrdersData, isLoading: isLoadingPurchaseOrders, refetch: refetchPurchaseOrders } = useQuery({
-    queryKey: ["purchase-orders", branchId],
+    queryKey: ["purchase-orders", branchId, purchaseOrdersPage, purchaseOrdersPerPage, purchaseOrdersSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getPurchaseOrdersByBranch(branchId);
+      const result = await inventoryApi.getPurchaseOrdersByBranch(branchId, {
+        PageNumber: purchaseOrdersPage,
+        PageSize: purchaseOrdersPerPage,
+        SortBy: "supplierName",
+        IsAscending: true,
+        SearchTerm: purchaseOrdersSearch
+      });
       return result as PurchaseOrder[];
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "purchase-orders",
@@ -257,9 +304,15 @@ export default function InventoryManagement() {
 
   // Fetch wastage (lazy load)
   const { data: wastageItemsData, isLoading: isLoadingWastage, refetch: refetchWastage } = useQuery({
-    queryKey: ["inventory-wastage", branchId, wastageFromDate, wastageToDate],
+    queryKey: ["inventory-wastage", branchId, wastageFromDate, wastageToDate, wastageItemsPage, wastageItemsPerPage, wastageSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getInventoryWastageByBranch(branchId, wastageFromDate, wastageToDate);
+      const result = await inventoryApi.getInventoryWastageByBranch(branchId, wastageFromDate, wastageToDate, {
+        PageNumber: wastageItemsPage,
+        PageSize: wastageItemsPerPage,
+        SortBy: "itemName",
+        IsAscending: true,
+        SearchTerm: wastageSearch
+      });
       return result as WastageItem[];
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "stock-wastage",
@@ -268,9 +321,15 @@ export default function InventoryManagement() {
 
   // Fetch utility expenses (lazy load)
   const { data: utilityExpensesData, isLoading: isLoadingUtilityExpenses, refetch: refetchUtilityExpenses } = useQuery({
-    queryKey: ["utility-expenses", branchId],
+    queryKey: ["utility-expenses", branchId, expensesPage, expensesPerPage, expensesSearch],
     queryFn: async () => {
-      const result = await inventoryApi.getUtilityExpensesByBranch(branchId);
+      const result = await inventoryApi.getUtilityExpensesByBranch(branchId, {
+        PageNumber: expensesPage,
+        PageSize: expensesPerPage,
+        SortBy: "utilityType",
+        IsAscending: true,
+        SearchTerm: expensesSearch
+      });
       return result as UtilityExpense[];
     },
     enabled: !!branchId && activeTab === "expense",
@@ -279,59 +338,31 @@ export default function InventoryManagement() {
 
   // Fetch recipes (lazy load)
   const { data: recipesData, isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery<Recipe[]>({
-    queryKey: ["recipes", branchId],
+    queryKey: ["recipes", branchId, recipesPage, recipesPerPage, recipesSearch],
     queryFn: async () => {
-      return await inventoryApi.getRecipesByBranch(branchId);
+      return await inventoryApi.getRecipesByBranch(branchId, {
+        PageNumber: recipesPage,
+        PageSize: recipesPerPage,
+        SortBy: "menuItemName",
+        IsAscending: true,
+        SearchTerm: recipesSearch
+      });
     },
     enabled: !!branchId && activeTab === "recipes",
   });
   const recipes = Array.isArray(recipesData) ? recipesData : [];
 
-  // Client-side pagination logic
-  const categoriesStart = (categoriesPage - 1) * categoriesPerPage;
-  const categoriesEnd = categoriesStart + categoriesPerPage;
-  const paginatedCategories = categories.slice(categoriesStart, categoriesEnd);
-  const categoriesTotalPages = Math.max(1, Math.ceil(categories.length / categoriesPerPage));
-
-  const suppliersStart = (suppliersPage - 1) * suppliersPerPage;
-  const suppliersEnd = suppliersStart + suppliersPerPage;
-  const paginatedSuppliers = suppliers.slice(suppliersStart, suppliersEnd);
-  const suppliersTotalPages = Math.max(1, Math.ceil(suppliers.length / suppliersPerPage));
-
-  const itemsStart = (itemsPage - 1) * itemsPerPage;
-  const itemsEnd = itemsStart + itemsPerPage;
-  const paginatedItems = items.slice(itemsStart, itemsEnd);
-  const itemsTotalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
-
-  const stockStart = (stockPage - 1) * stockPerPage;
-  const stockEnd = stockStart + stockPerPage;
-  const paginatedStock = stock.slice(stockStart, stockEnd);
-  const stockTotalPages = Math.max(1, Math.ceil(stock.length / stockPerPage));
-
-  const lowStockStart = (lowStockPage - 1) * lowStockPerPage;
-  const lowStockEnd = lowStockStart + lowStockPerPage;
-  const paginatedLowStock = lowStock.slice(lowStockStart, lowStockEnd);
-  const lowStockTotalPages = Math.max(1, Math.ceil(lowStock.length / lowStockPerPage));
-
-  const purchaseOrdersStart = (purchaseOrdersPage - 1) * purchaseOrdersPerPage;
-  const purchaseOrdersEnd = purchaseOrdersStart + purchaseOrdersPerPage;
-  const paginatedPurchaseOrders = purchaseOrders.slice(purchaseOrdersStart, purchaseOrdersEnd);
-  const purchaseOrdersTotalPages = Math.max(1, Math.ceil(purchaseOrders.length / purchaseOrdersPerPage));
-
-  const wastageItemsStart = (wastageItemsPage - 1) * wastageItemsPerPage;
-  const wastageItemsEnd = wastageItemsStart + wastageItemsPerPage;
-  const paginatedWastageItems = wastageItems.slice(wastageItemsStart, wastageItemsEnd);
-  const wastageItemsTotalPages = Math.max(1, Math.ceil(wastageItems.length / wastageItemsPerPage));
-
-  const expensesStart = (expensesPage - 1) * expensesPerPage;
-  const expensesEnd = expensesStart + expensesPerPage;
-  const paginatedExpenses = utilityExpenses.slice(expensesStart, expensesEnd);
-  const expensesTotalPages = Math.max(1, Math.ceil(utilityExpenses.length / expensesPerPage));
-
-  const recipesStart = (recipesPage - 1) * recipesPerPage;
-  const recipesEnd = recipesStart + recipesPerPage;
-  const paginatedRecipes = recipes.slice(recipesStart, recipesEnd);
-  const recipesTotalPages = Math.max(1, Math.ceil(recipes.length / recipesPerPage));
+  // For now, set total pages to 1 since we're using server-side pagination
+  // TODO: Update this when the API returns total count information
+  const categoriesTotalPages = Math.max(1, Math.ceil((categories.length > 0 ? (categoriesPage * categoriesPerPage + 1) : categories.length) / categoriesPerPage));
+  const suppliersTotalPages = Math.max(1, Math.ceil((suppliers.length > 0 ? (suppliersPage * suppliersPerPage + 1) : suppliers.length) / suppliersPerPage));
+  const itemsTotalPages = Math.max(1, Math.ceil((items.length > 0 ? (itemsPage * itemsPerPage + 1) : items.length) / itemsPerPage));
+  const stockTotalPages = Math.max(1, Math.ceil((stock.length > 0 ? (stockPage * stockPerPage + 1) : stock.length) / stockPerPage));
+  const lowStockTotalPages = Math.max(1, Math.ceil((lowStock.length > 0 ? (lowStockPage * lowStockPerPage + 1) : lowStock.length) / lowStockPerPage));
+  const purchaseOrdersTotalPages = Math.max(1, Math.ceil((purchaseOrders.length > 0 ? (purchaseOrdersPage * purchaseOrdersPerPage + 1) : purchaseOrders.length) / purchaseOrdersPerPage));
+  const wastageItemsTotalPages = Math.max(1, Math.ceil((wastageItems.length > 0 ? (wastageItemsPage * wastageItemsPerPage + 1) : wastageItems.length) / wastageItemsPerPage));
+  const expensesTotalPages = Math.max(1, Math.ceil((utilityExpenses.length > 0 ? (expensesPage * expensesPerPage + 1) : utilityExpenses.length) / expensesPerPage));
+  const recipesTotalPages = Math.max(1, Math.ceil((recipes.length > 0 ? (recipesPage * recipesPerPage + 1) : recipes.length) / recipesPerPage));
 
   // Refetch data when tab changes
   useEffect(() => {
@@ -479,7 +510,17 @@ export default function InventoryManagement() {
 
         {/* Categories Tab */}
         <TabsContent value="categories" className="space-y-6">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center gap-4">
+            <Input
+              placeholder="Search categories by name..."
+              value={categoriesSearch}
+              onChange={(e) => {
+                setCategoriesSearch(e.target.value);
+                setCategoriesPage(1);
+              }}
+              className="max-w-sm"
+              data-testid="input-search-categories"
+            />
             <Button 
               className="bg-green-500 hover:bg-green-600 text-white"
               onClick={() => setShowAddCategoryModal(true)}
@@ -517,7 +558,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedCategories.map((category) => (
+                  categories.map((category) => (
                     <TableRow key={category.id} data-testid={`category-row-${category.id}`}>
                       <TableCell className="font-medium" data-testid={`category-name-${category.id}`}>
                         {category.name}
@@ -606,7 +647,17 @@ export default function InventoryManagement() {
 
         {/* Suppliers Tab */}
         <TabsContent value="suppliers" className="space-y-6">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center gap-4">
+            <Input
+              placeholder="Search suppliers by name..."
+              value={suppliersSearch}
+              onChange={(e) => {
+                setSuppliersSearch(e.target.value);
+                setSuppliersPage(1);
+              }}
+              className="max-w-sm"
+              data-testid="input-search-suppliers"
+            />
             <Button 
               className="bg-green-500 hover:bg-green-600 text-white"
               onClick={() => setShowAddSupplierModal(true)}
@@ -648,7 +699,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedSuppliers.map((supplier) => (
+                  suppliers.map((supplier) => (
                     <TableRow key={supplier.id} data-testid={`supplier-row-${supplier.id}`}>
                       <TableCell className="font-medium" data-testid={`supplier-name-${supplier.id}`}>
                         {supplier.name}
@@ -762,7 +813,17 @@ export default function InventoryManagement() {
 
         {/* Items Tab */}
         <TabsContent value="items" className="space-y-6">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center gap-4">
+            <Input
+              placeholder="Search items by name..."
+              value={itemsSearch}
+              onChange={(e) => {
+                setItemsSearch(e.target.value);
+                setItemsPage(1);
+              }}
+              className="max-w-sm"
+              data-testid="input-search-items"
+            />
             <Button 
               className="bg-green-500 hover:bg-green-600 text-white"
               onClick={() => setShowAddItemModal(true)}
@@ -804,7 +865,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedItems.map((item) => (
+                  items.map((item) => (
                     <TableRow key={item.id} data-testid={`item-row-${item.id}`}>
                       <TableCell className="font-medium" data-testid={`item-name-${item.id}`}>
                         {item.name}
@@ -928,6 +989,16 @@ export default function InventoryManagement() {
 
             {/* Manage Stock Sub-tab */}
             <TabsContent value="manage-stock" className="space-y-6">
+              <Input
+                placeholder="Search stock by item name..."
+                value={stockSearch}
+                onChange={(e) => {
+                  setStockSearch(e.target.value);
+                  setStockPage(1);
+                }}
+                className="max-w-sm"
+                data-testid="input-search-stock"
+              />
               <div className="bg-white rounded-lg border">
                 <Table>
                   <TableHeader>
@@ -955,7 +1026,7 @@ export default function InventoryManagement() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      paginatedStock.map((item) => (
+                      stock.map((item) => (
                         <TableRow key={item.inventoryItemId} data-testid={`stock-row-${item.inventoryItemId}`}>
                           <TableCell className="font-medium" data-testid={`stock-name-${item.inventoryItemId}`}>
                             {item.itemName}
@@ -1011,6 +1082,16 @@ export default function InventoryManagement() {
 
             {/* Low Stock Sub-tab */}
             <TabsContent value="low-stock" className="space-y-6">
+              <Input
+                placeholder="Search low stock by item name..."
+                value={lowStockSearch}
+                onChange={(e) => {
+                  setLowStockSearch(e.target.value);
+                  setLowStockPage(1);
+                }}
+                className="max-w-sm"
+                data-testid="input-search-low-stock"
+              />
               <div className="bg-white rounded-lg border">
                 <Table>
                   <TableHeader>
@@ -1038,7 +1119,7 @@ export default function InventoryManagement() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      paginatedLowStock.map((item) => (
+                      lowStock.map((item) => (
                         <TableRow key={item.inventoryItemId} data-testid={`low-stock-row-${item.inventoryItemId}`}>
                           <TableCell className="font-medium" data-testid={`low-stock-name-${item.inventoryItemId}`}>
                             {item.itemName}
@@ -1084,7 +1165,17 @@ export default function InventoryManagement() {
 
             {/* Purchase Orders Sub-tab */}
             <TabsContent value="purchase-orders" className="space-y-6">
-              <div className="flex justify-end">
+              <div className="flex justify-between items-center gap-4">
+                <Input
+                  placeholder="Search purchase orders by supplier name..."
+                  value={purchaseOrdersSearch}
+                  onChange={(e) => {
+                    setPurchaseOrdersSearch(e.target.value);
+                    setPurchaseOrdersPage(1);
+                  }}
+                  className="max-w-sm"
+                  data-testid="input-search-purchase-orders"
+                />
                 <Button 
                   className="bg-green-500 hover:bg-green-600 text-white"
                   onClick={() => setShowPurchaseOrderModal(true)}
@@ -1126,7 +1217,7 @@ export default function InventoryManagement() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      paginatedPurchaseOrders.map((order) => (
+                      purchaseOrders.map((order) => (
                         <TableRow key={order.id} data-testid={`purchase-order-row-${order.id}`}>
                           <TableCell className="font-medium" data-testid={`purchase-order-id-${order.id}`}>
                             #{order.id}
@@ -1222,6 +1313,16 @@ export default function InventoryManagement() {
                   Add Wastage
                 </Button>
               </div>
+              <Input
+                placeholder="Search wastage by item name..."
+                value={wastageSearch}
+                onChange={(e) => {
+                  setWastageSearch(e.target.value);
+                  setWastageItemsPage(1);
+                }}
+                className="max-w-sm"
+                data-testid="input-search-wastage"
+              />
 
               <div className="bg-white rounded-lg border">
                 <Table>
@@ -1247,7 +1348,7 @@ export default function InventoryManagement() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      paginatedWastageItems.map((wastage) => (
+                      wastageItems.map((wastage) => (
                         <TableRow key={wastage.id} data-testid={`wastage-row-${wastage.id}`}>
                           <TableCell data-testid={`wastage-date-${wastage.id}`}>
                             {new Date(wastage.createdAt).toLocaleDateString()}
@@ -1295,7 +1396,17 @@ export default function InventoryManagement() {
 
         {/* Expense Management Tab */}
         <TabsContent value="expense" className="space-y-6">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center gap-4">
+            <Input
+              placeholder="Search expenses by utility type..."
+              value={expensesSearch}
+              onChange={(e) => {
+                setExpensesSearch(e.target.value);
+                setExpensesPage(1);
+              }}
+              className="max-w-sm"
+              data-testid="input-search-expenses"
+            />
             <Button 
               className="bg-orange-500 hover:bg-orange-600 text-white"
               onClick={() => setShowUtilityExpenseModal(true)}
@@ -1334,7 +1445,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedExpenses.map((expense) => (
+                  utilityExpenses.map((expense) => (
                     <TableRow key={expense.id} data-testid={`expense-row-${expense.id}`}>
                       <TableCell className="font-medium" data-testid={`expense-type-${expense.id}`}>
                         {expense.utilityType}
@@ -1417,7 +1528,17 @@ export default function InventoryManagement() {
 
         {/* Recipes Tab */}
         <TabsContent value="recipes" className="space-y-6">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center gap-4">
+            <Input
+              placeholder="Search recipes by menu item name..."
+              value={recipesSearch}
+              onChange={(e) => {
+                setRecipesSearch(e.target.value);
+                setRecipesPage(1);
+              }}
+              className="max-w-sm"
+              data-testid="input-search-recipes"
+            />
             <Button 
               className="bg-purple-500 hover:bg-purple-600 text-white"
               onClick={() => setShowRecipeModal(true)}
@@ -1451,7 +1572,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedRecipes.map((recipe) => (
+                  recipes.map((recipe) => (
                     <TableRow key={recipe.id}>
                       <TableCell className="font-medium" data-testid={`recipe-name-${recipe.id}`}>
                         {recipe.name}
