@@ -190,7 +190,7 @@ export default function InventoryManagement() {
   });
 
   // Fetch inventory categories (lazy load)
-  const { data: categories = [], isLoading: isLoadingCategories, refetch: refetchCategories } = useQuery({
+  const { data: categoriesData, isLoading: isLoadingCategories, refetch: refetchCategories } = useQuery({
     queryKey: ["inventory-categories", branchId],
     queryFn: async () => {
       const result = await inventoryApi.getInventoryCategories(branchId);
@@ -198,9 +198,10 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "categories",
   });
+  const categories = Array.isArray(categoriesData) ? categoriesData : [];
 
   // Fetch inventory suppliers (lazy load)
-  const { data: suppliers = [], isLoading: isLoadingSuppliers, refetch: refetchSuppliers } = useQuery({
+  const { data: suppliersData, isLoading: isLoadingSuppliers, refetch: refetchSuppliers } = useQuery({
     queryKey: ["inventory-suppliers", branchId],
     queryFn: async () => {
       const result = await inventoryApi.getInventorySuppliers(branchId);
@@ -208,9 +209,10 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "suppliers",
   });
+  const suppliers = Array.isArray(suppliersData) ? suppliersData : [];
 
   // Fetch inventory items (lazy load)
-  const { data: items = [], isLoading: isLoadingItems, refetch: refetchItems } = useQuery({
+  const { data: itemsData, isLoading: isLoadingItems, refetch: refetchItems } = useQuery({
     queryKey: ["inventory-items", branchId],
     queryFn: async () => {
       const result = await inventoryApi.getInventoryItemsByBranch(branchId);
@@ -218,9 +220,10 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "items",
   });
+  const items = Array.isArray(itemsData) ? itemsData : [];
 
   // Fetch stock (lazy load)
-  const { data: stock = [], isLoading: isLoadingStock, refetch: refetchStock } = useQuery({
+  const { data: stockData, isLoading: isLoadingStock, refetch: refetchStock } = useQuery({
     queryKey: ["inventory-stock", branchId],
     queryFn: async () => {
       const result = await inventoryApi.getInventoryStockByBranch(branchId);
@@ -228,9 +231,10 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "manage-stock",
   });
+  const stock = Array.isArray(stockData) ? stockData : [];
 
   // Fetch low stock (lazy load)
-  const { data: lowStock = [], isLoading: isLoadingLowStock, refetch: refetchLowStock } = useQuery({
+  const { data: lowStockData, isLoading: isLoadingLowStock, refetch: refetchLowStock } = useQuery({
     queryKey: ["inventory-low-stock", branchId],
     queryFn: async () => {
       const result = await inventoryApi.getInventoryLowStockByBranch(branchId);
@@ -238,9 +242,10 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "low-stock",
   });
+  const lowStock = Array.isArray(lowStockData) ? lowStockData : [];
 
   // Fetch purchase orders (lazy load)
-  const { data: purchaseOrders = [], isLoading: isLoadingPurchaseOrders, refetch: refetchPurchaseOrders } = useQuery({
+  const { data: purchaseOrdersData, isLoading: isLoadingPurchaseOrders, refetch: refetchPurchaseOrders } = useQuery({
     queryKey: ["purchase-orders", branchId],
     queryFn: async () => {
       const result = await inventoryApi.getPurchaseOrdersByBranch(branchId);
@@ -248,9 +253,10 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "purchase-orders",
   });
+  const purchaseOrders = Array.isArray(purchaseOrdersData) ? purchaseOrdersData : [];
 
   // Fetch wastage (lazy load)
-  const { data: wastageItems = [], isLoading: isLoadingWastage, refetch: refetchWastage } = useQuery({
+  const { data: wastageItemsData, isLoading: isLoadingWastage, refetch: refetchWastage } = useQuery({
     queryKey: ["inventory-wastage", branchId, wastageFromDate, wastageToDate],
     queryFn: async () => {
       const result = await inventoryApi.getInventoryWastageByBranch(branchId, wastageFromDate, wastageToDate);
@@ -258,9 +264,10 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "stock" && stockSubTab === "stock-wastage",
   });
+  const wastageItems = Array.isArray(wastageItemsData) ? wastageItemsData : [];
 
   // Fetch utility expenses (lazy load)
-  const { data: utilityExpenses = [], isLoading: isLoadingUtilityExpenses, refetch: refetchUtilityExpenses } = useQuery({
+  const { data: utilityExpensesData, isLoading: isLoadingUtilityExpenses, refetch: refetchUtilityExpenses } = useQuery({
     queryKey: ["utility-expenses", branchId],
     queryFn: async () => {
       const result = await inventoryApi.getUtilityExpensesByBranch(branchId);
@@ -268,15 +275,17 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "expense",
   });
+  const utilityExpenses = Array.isArray(utilityExpensesData) ? utilityExpensesData : [];
 
   // Fetch recipes (lazy load)
-  const { data: recipes = [], isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery<Recipe[]>({
+  const { data: recipesData, isLoading: isLoadingRecipes, refetch: refetchRecipes } = useQuery<Recipe[]>({
     queryKey: ["recipes", branchId],
     queryFn: async () => {
       return await inventoryApi.getRecipesByBranch(branchId);
     },
     enabled: !!branchId && activeTab === "recipes",
   });
+  const recipes = Array.isArray(recipesData) ? recipesData : [];
 
   // Client-side pagination logic
   const categoriesStart = (categoriesPage - 1) * categoriesPerPage;

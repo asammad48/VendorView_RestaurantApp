@@ -1,5 +1,5 @@
 // Environment Configuration
-export type Environment = 'development' | 'qa' | 'production';
+export type Environment = "development" | "qa" | "production";
 
 export interface EnvironmentConfig {
   apiBaseUrl: string;
@@ -8,8 +8,9 @@ export interface EnvironmentConfig {
 }
 
 // Development URLs
-const DEVELOPMENT_API_URL = 'https://5dtrtpzg-7261.inc1.devtunnels.ms';
-const QA_API_URL = 'https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net';
+const DEVELOPMENT_API_URL = "https://5dtrtpzg-44336.inc1.devtunnels.ms";
+const QA_API_URL =
+  "https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net";
 
 // Get API base URL from environment variables or fallback logic
 const getApiBaseUrl = (): string => {
@@ -20,21 +21,25 @@ const getApiBaseUrl = (): string => {
   }
 
   // Second priority: detect from hostname patterns
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    
+
     // QA environment detection
-    if (hostname.includes('qa') || hostname.includes('azurewebsites.net')) {
+    if (hostname.includes("qa") || hostname.includes("azurewebsites.net")) {
       return QA_API_URL;
     }
-    
+
     // Replit development environment
-    if (hostname.includes('replit') || hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+    if (
+      hostname.includes("replit") ||
+      hostname.includes("localhost") ||
+      hostname.includes("127.0.0.1")
+    ) {
       return DEVELOPMENT_API_URL;
     }
-    
+
     // For other production-like domains, use current origin as fallback
-    if (hostname !== 'localhost' && !hostname.includes('dev')) {
+    if (hostname !== "localhost" && !hostname.includes("dev")) {
       return window.location.origin;
     }
   }
@@ -46,25 +51,29 @@ const getApiBaseUrl = (): string => {
 // Get environment name for debugging/analytics
 const getEnvironmentName = (): Environment => {
   const envVar = import.meta.env.VITE_ENVIRONMENT as Environment;
-  if (envVar && ['development', 'qa', 'production'].includes(envVar)) {
+  if (envVar && ["development", "qa", "production"].includes(envVar)) {
     return envVar;
   }
 
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    
-    if (hostname.includes('qa') || hostname.includes('azurewebsites.net')) {
-      return 'qa';
+
+    if (hostname.includes("qa") || hostname.includes("azurewebsites.net")) {
+      return "qa";
     }
-    
-    if (hostname.includes('replit') || hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
-      return 'development';
+
+    if (
+      hostname.includes("replit") ||
+      hostname.includes("localhost") ||
+      hostname.includes("127.0.0.1")
+    ) {
+      return "development";
     }
-    
-    return 'production';
+
+    return "production";
   }
 
-  return 'development';
+  return "development";
 };
 
 // Create SignalR hub URL from API base URL
@@ -79,7 +88,8 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
   const signalRBaseUrl = createSignalRUrl(apiBaseUrl);
 
   // Only log in development or when DEBUG flag is set
-  const shouldLog = environment === 'development' || import.meta.env.VITE_DEBUG === 'true';
+  const shouldLog =
+    environment === "development" || import.meta.env.VITE_DEBUG === "true";
   if (shouldLog) {
     console.log(`Environment: ${environment}, API: ${apiBaseUrl}`);
   }
@@ -92,12 +102,18 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
 };
 
 // Export individual config values for easy access
-export const { apiBaseUrl, signalRBaseUrl, environment } = getEnvironmentConfig();
+export const { apiBaseUrl, signalRBaseUrl, environment } =
+  getEnvironmentConfig();
 
 // Validation: warn if configuration seems incorrect
-if (typeof window !== 'undefined' && environment === 'production') {
+if (typeof window !== "undefined" && environment === "production") {
   const hostname = window.location.hostname;
-  if (apiBaseUrl.includes('devtunnels.ms') || apiBaseUrl.includes('localhost')) {
-    console.warn('WARNING: Production environment detected but API URL points to development. Please set VITE_API_BASE_URL environment variable.');
+  if (
+    apiBaseUrl.includes("devtunnels.ms") ||
+    apiBaseUrl.includes("localhost")
+  ) {
+    console.warn(
+      "WARNING: Production environment detected but API URL points to development. Please set VITE_API_BASE_URL environment variable.",
+    );
   }
 }
