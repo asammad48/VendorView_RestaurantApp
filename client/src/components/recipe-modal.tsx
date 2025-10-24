@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ChefHat, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -55,6 +55,7 @@ export default function RecipeModal({
   onSuccess 
 }: RecipeModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEdit = !!recipe;
 
@@ -159,6 +160,7 @@ export default function RecipeModal({
         });
       }
 
+      queryClient.invalidateQueries({ queryKey: ["recipes", branchId] });
       onSuccess();
       onClose();
       form.reset();

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ interface AddInventoryCategoryModalProps {
 
 export default function AddInventoryCategoryModal({ open, onClose, branchId, onSuccess }: AddInventoryCategoryModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
@@ -39,6 +40,7 @@ export default function AddInventoryCategoryModal({ open, onClose, branchId, onS
         title: "Success",
         description: "Category created successfully",
       });
+      queryClient.invalidateQueries({ queryKey: ["inventory-categories", branchId] });
       onSuccess?.();
       onClose();
       form.reset();

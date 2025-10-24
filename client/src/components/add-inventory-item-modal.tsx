@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,7 @@ export default function AddInventoryItemModal({
   onSuccess 
 }: AddInventoryItemModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const isEdit = !!item;
   
   const form = useForm<ItemFormData>({
@@ -102,6 +103,9 @@ export default function AddInventoryItemModal({
         title: "Success",
         description: "Item created successfully",
       });
+      queryClient.invalidateQueries({ queryKey: ["inventory-items", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", branchId] });
       onSuccess?.();
       onClose();
       form.reset();
@@ -123,6 +127,9 @@ export default function AddInventoryItemModal({
         title: "Success",
         description: "Item updated successfully",
       });
+      queryClient.invalidateQueries({ queryKey: ["inventory-items", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", branchId] });
       onSuccess?.();
       onClose();
       form.reset();

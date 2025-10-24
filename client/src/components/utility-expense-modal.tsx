@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -36,6 +37,7 @@ export default function UtilityExpenseModal({
   onSuccess 
 }: UtilityExpenseModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [totalCost, setTotalCost] = useState(0);
 
@@ -94,6 +96,7 @@ export default function UtilityExpenseModal({
         description: "Utility expense added successfully",
       });
 
+      queryClient.invalidateQueries({ queryKey: ["utility-expenses", branchId] });
       onSuccess();
       onClose();
       form.reset();

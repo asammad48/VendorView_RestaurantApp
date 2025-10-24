@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -39,6 +39,7 @@ export default function PurchaseOrderModal({
   onSuccess 
 }: PurchaseOrderModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch suppliers
@@ -86,6 +87,7 @@ export default function PurchaseOrderModal({
         description: "Purchase order created successfully",
       });
 
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders", branchId] });
       onSuccess();
       onClose();
       form.reset();

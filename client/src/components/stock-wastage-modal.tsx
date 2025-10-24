@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -41,6 +42,7 @@ export default function StockWastageModal({
   onSuccess 
 }: StockWastageModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedItem, setSelectedItem] = useState<typeof inventoryItems[0] | null>(null);
 
@@ -80,6 +82,9 @@ export default function StockWastageModal({
         description: "Stock wastage recorded successfully",
       });
 
+      queryClient.invalidateQueries({ queryKey: ["inventory-wastage", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", branchId] });
       onSuccess();
       onClose();
       form.reset();
