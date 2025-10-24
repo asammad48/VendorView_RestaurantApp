@@ -282,47 +282,47 @@ export default function InventoryManagement() {
   const categoriesStart = (categoriesPage - 1) * categoriesPerPage;
   const categoriesEnd = categoriesStart + categoriesPerPage;
   const paginatedCategories = categories.slice(categoriesStart, categoriesEnd);
-  const categoriesTotalPages = Math.ceil(categories.length / categoriesPerPage);
+  const categoriesTotalPages = Math.max(1, Math.ceil(categories.length / categoriesPerPage));
 
   const suppliersStart = (suppliersPage - 1) * suppliersPerPage;
   const suppliersEnd = suppliersStart + suppliersPerPage;
   const paginatedSuppliers = suppliers.slice(suppliersStart, suppliersEnd);
-  const suppliersTotalPages = Math.ceil(suppliers.length / suppliersPerPage);
+  const suppliersTotalPages = Math.max(1, Math.ceil(suppliers.length / suppliersPerPage));
 
   const itemsStart = (itemsPage - 1) * itemsPerPage;
   const itemsEnd = itemsStart + itemsPerPage;
   const paginatedItems = items.slice(itemsStart, itemsEnd);
-  const itemsTotalPages = Math.ceil(items.length / itemsPerPage);
+  const itemsTotalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
 
   const stockStart = (stockPage - 1) * stockPerPage;
   const stockEnd = stockStart + stockPerPage;
   const paginatedStock = stock.slice(stockStart, stockEnd);
-  const stockTotalPages = Math.ceil(stock.length / stockPerPage);
+  const stockTotalPages = Math.max(1, Math.ceil(stock.length / stockPerPage));
 
   const lowStockStart = (lowStockPage - 1) * lowStockPerPage;
   const lowStockEnd = lowStockStart + lowStockPerPage;
   const paginatedLowStock = lowStock.slice(lowStockStart, lowStockEnd);
-  const lowStockTotalPages = Math.ceil(lowStock.length / lowStockPerPage);
+  const lowStockTotalPages = Math.max(1, Math.ceil(lowStock.length / lowStockPerPage));
 
   const purchaseOrdersStart = (purchaseOrdersPage - 1) * purchaseOrdersPerPage;
   const purchaseOrdersEnd = purchaseOrdersStart + purchaseOrdersPerPage;
   const paginatedPurchaseOrders = purchaseOrders.slice(purchaseOrdersStart, purchaseOrdersEnd);
-  const purchaseOrdersTotalPages = Math.ceil(purchaseOrders.length / purchaseOrdersPerPage);
+  const purchaseOrdersTotalPages = Math.max(1, Math.ceil(purchaseOrders.length / purchaseOrdersPerPage));
 
   const wastageItemsStart = (wastageItemsPage - 1) * wastageItemsPerPage;
   const wastageItemsEnd = wastageItemsStart + wastageItemsPerPage;
   const paginatedWastageItems = wastageItems.slice(wastageItemsStart, wastageItemsEnd);
-  const wastageItemsTotalPages = Math.ceil(wastageItems.length / wastageItemsPerPage);
+  const wastageItemsTotalPages = Math.max(1, Math.ceil(wastageItems.length / wastageItemsPerPage));
 
   const expensesStart = (expensesPage - 1) * expensesPerPage;
   const expensesEnd = expensesStart + expensesPerPage;
   const paginatedExpenses = utilityExpenses.slice(expensesStart, expensesEnd);
-  const expensesTotalPages = Math.ceil(utilityExpenses.length / expensesPerPage);
+  const expensesTotalPages = Math.max(1, Math.ceil(utilityExpenses.length / expensesPerPage));
 
   const recipesStart = (recipesPage - 1) * recipesPerPage;
   const recipesEnd = recipesStart + recipesPerPage;
   const paginatedRecipes = recipes.slice(recipesStart, recipesEnd);
-  const recipesTotalPages = Math.ceil(recipes.length / recipesPerPage);
+  const recipesTotalPages = Math.max(1, Math.ceil(recipes.length / recipesPerPage));
 
   // Refetch data when tab changes
   useEffect(() => {
@@ -491,11 +491,16 @@ export default function InventoryManagement() {
               </TableHeader>
               <TableBody>
                 {isLoadingCategories ? (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-center py-8">
-                      Loading categories...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: categoriesPerPage }, (_, i) => (
+                    <TableRow key={`loading-${i}`}>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : categories.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={2} className="text-center py-8 text-gray-500">
@@ -503,7 +508,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  categories.map((category) => (
+                  paginatedCategories.map((category) => (
                     <TableRow key={category.id} data-testid={`category-row-${category.id}`}>
                       <TableCell className="font-medium" data-testid={`category-name-${category.id}`}>
                         {category.name}
@@ -526,6 +531,67 @@ export default function InventoryManagement() {
                 )}
               </TableBody>
             </Table>
+
+            {/* Categories Pagination */}
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Show result:</span>
+                <Select
+                  value={categoriesPerPage.toString()}
+                  onValueChange={(value) => {
+                    setCategoriesPerPage(Number(value));
+                    setCategoriesPage(1);
+                  }}
+                  data-testid="select-categories-per-page"
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                      <SelectItem key={pageSize} value={pageSize.toString()}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCategoriesPage(Math.max(1, categoriesPage - 1))}
+                  disabled={categoriesPage === 1}
+                  data-testid="button-categories-prev-page"
+                >
+                  Previous
+                </Button>
+
+                {Array.from({ length: categoriesTotalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={categoriesPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCategoriesPage(page)}
+                    className={categoriesPage === page ? "bg-green-500 hover:bg-green-600" : ""}
+                    data-testid={`button-categories-page-${page}`}
+                  >
+                    {page}
+                  </Button>
+                ))}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCategoriesPage(Math.min(categoriesTotalPages, categoriesPage + 1))}
+                  disabled={categoriesPage === categoriesTotalPages}
+                  data-testid="button-categories-next-page"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -556,11 +622,16 @@ export default function InventoryManagement() {
               </TableHeader>
               <TableBody>
                 {isLoadingSuppliers ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      Loading suppliers...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: suppliersPerPage }, (_, i) => (
+                    <TableRow key={`loading-${i}`}>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                    </TableRow>
+                  ))
                 ) : suppliers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-gray-500">
@@ -568,7 +639,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  suppliers.map((supplier) => (
+                  paginatedSuppliers.map((supplier) => (
                     <TableRow key={supplier.id} data-testid={`supplier-row-${supplier.id}`}>
                       <TableCell className="font-medium" data-testid={`supplier-name-${supplier.id}`}>
                         {supplier.name}
@@ -616,6 +687,67 @@ export default function InventoryManagement() {
                 )}
               </TableBody>
             </Table>
+
+            {/* Suppliers Pagination */}
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Show result:</span>
+                <Select
+                  value={suppliersPerPage.toString()}
+                  onValueChange={(value) => {
+                    setSuppliersPerPage(Number(value));
+                    setSuppliersPage(1);
+                  }}
+                  data-testid="select-suppliers-per-page"
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                      <SelectItem key={pageSize} value={pageSize.toString()}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSuppliersPage(Math.max(1, suppliersPage - 1))}
+                  disabled={suppliersPage === 1}
+                  data-testid="button-suppliers-prev-page"
+                >
+                  Previous
+                </Button>
+
+                {Array.from({ length: suppliersTotalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={suppliersPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSuppliersPage(page)}
+                    className={suppliersPage === page ? "bg-green-500 hover:bg-green-600" : ""}
+                    data-testid={`button-suppliers-page-${page}`}
+                  >
+                    {page}
+                  </Button>
+                ))}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSuppliersPage(Math.min(suppliersTotalPages, suppliersPage + 1))}
+                  disabled={suppliersPage === suppliersTotalPages}
+                  data-testid="button-suppliers-next-page"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -646,11 +778,16 @@ export default function InventoryManagement() {
               </TableHeader>
               <TableBody>
                 {isLoadingItems ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      Loading items...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: itemsPerPage }, (_, i) => (
+                    <TableRow key={`loading-${i}`}>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                    </TableRow>
+                  ))
                 ) : items.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-gray-500">
@@ -658,7 +795,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  items.map((item) => (
+                  paginatedItems.map((item) => (
                     <TableRow key={item.id} data-testid={`item-row-${item.id}`}>
                       <TableCell className="font-medium" data-testid={`item-name-${item.id}`}>
                         {item.name}
@@ -712,6 +849,53 @@ export default function InventoryManagement() {
                 )}
               </TableBody>
             </Table>
+
+            {/* Items Pagination */}
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Show result:</span>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(value) => {
+                    setItemsPerPage(Number(value));
+                    setItemsPage(1);
+                  }}
+                  data-testid="select-items-per-page"
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                      <SelectItem key={pageSize} value={pageSize.toString()}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" onClick={() => setItemsPage(Math.max(1, itemsPage - 1))} disabled={itemsPage === 1} data-testid="button-items-prev-page">
+                  Previous
+                </Button>
+                {Array.from({ length: itemsTotalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={itemsPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setItemsPage(page)}
+                    className={itemsPage === page ? "bg-green-500 hover:bg-green-600" : ""}
+                    data-testid={`button-items-page-${page}`}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setItemsPage(Math.min(itemsTotalPages, itemsPage + 1))} disabled={itemsPage === itemsTotalPages} data-testid="button-items-next-page">
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -747,11 +931,14 @@ export default function InventoryManagement() {
                   </TableHeader>
                   <TableBody>
                     {isLoadingStock ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8">
-                          Loading stock...
-                        </TableCell>
-                      </TableRow>
+                      Array.from({ length: stockPerPage }, (_, i) => (
+                        <TableRow key={`loading-${i}`}>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        </TableRow>
+                      ))
                     ) : stock.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center py-8 text-gray-500">
@@ -759,7 +946,7 @@ export default function InventoryManagement() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      stock.map((item) => (
+                      paginatedStock.map((item) => (
                         <TableRow key={item.inventoryItemId} data-testid={`stock-row-${item.inventoryItemId}`}>
                           <TableCell className="font-medium" data-testid={`stock-name-${item.inventoryItemId}`}>
                             {item.itemName}
@@ -788,6 +975,28 @@ export default function InventoryManagement() {
                     )}
                   </TableBody>
                 </Table>
+
+                {/* Stock Pagination */}
+                <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Show result:</span>
+                    <Select value={stockPerPage.toString()} onValueChange={(value) => { setStockPerPage(Number(value)); setStockPage(1); }} data-testid="select-stock-per-page">
+                      <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                          <SelectItem key={pageSize} value={pageSize.toString()}>{pageSize}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => setStockPage(Math.max(1, stockPage - 1))} disabled={stockPage === 1} data-testid="button-stock-prev-page">Previous</Button>
+                    {Array.from({ length: stockTotalPages }, (_, i) => i + 1).map((page) => (
+                      <Button key={page} variant={stockPage === page ? "default" : "outline"} size="sm" onClick={() => setStockPage(page)} className={stockPage === page ? "bg-green-500 hover:bg-green-600" : ""} data-testid={`button-stock-page-${page}`}>{page}</Button>
+                    ))}
+                    <Button variant="outline" size="sm" onClick={() => setStockPage(Math.min(stockTotalPages, stockPage + 1))} disabled={stockPage === stockTotalPages} data-testid="button-stock-next-page">Next</Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
@@ -805,11 +1014,14 @@ export default function InventoryManagement() {
                   </TableHeader>
                   <TableBody>
                     {isLoadingLowStock ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8">
-                          Loading low stock...
-                        </TableCell>
-                      </TableRow>
+                      Array.from({ length: lowStockPerPage }, (_, i) => (
+                        <TableRow key={`loading-${i}`}>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        </TableRow>
+                      ))
                     ) : lowStock.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center py-8 text-gray-500">
@@ -817,7 +1029,7 @@ export default function InventoryManagement() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      lowStock.map((item) => (
+                      paginatedLowStock.map((item) => (
                         <TableRow key={item.inventoryItemId} data-testid={`low-stock-row-${item.inventoryItemId}`}>
                           <TableCell className="font-medium" data-testid={`low-stock-name-${item.inventoryItemId}`}>
                             {item.itemName}
@@ -836,6 +1048,28 @@ export default function InventoryManagement() {
                     )}
                   </TableBody>
                 </Table>
+
+                {/* Low Stock Pagination */}
+                <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Show result:</span>
+                    <Select value={lowStockPerPage.toString()} onValueChange={(value) => { setLowStockPerPage(Number(value)); setLowStockPage(1); }} data-testid="select-low-stock-per-page">
+                      <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                          <SelectItem key={pageSize} value={pageSize.toString()}>{pageSize}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => setLowStockPage(Math.max(1, lowStockPage - 1))} disabled={lowStockPage === 1} data-testid="button-low-stock-prev-page">Previous</Button>
+                    {Array.from({ length: lowStockTotalPages }, (_, i) => i + 1).map((page) => (
+                      <Button key={page} variant={lowStockPage === page ? "default" : "outline"} size="sm" onClick={() => setLowStockPage(page)} className={lowStockPage === page ? "bg-green-500 hover:bg-green-600" : ""} data-testid={`button-low-stock-page-${page}`}>{page}</Button>
+                    ))}
+                    <Button variant="outline" size="sm" onClick={() => setLowStockPage(Math.min(lowStockTotalPages, lowStockPage + 1))} disabled={lowStockPage === lowStockTotalPages} data-testid="button-low-stock-next-page">Next</Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
@@ -866,11 +1100,16 @@ export default function InventoryManagement() {
                   </TableHeader>
                   <TableBody>
                     {isLoadingPurchaseOrders ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          Loading purchase orders...
-                        </TableCell>
-                      </TableRow>
+                      Array.from({ length: purchaseOrdersPerPage }, (_, i) => (
+                        <TableRow key={`loading-${i}`}>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        </TableRow>
+                      ))
                     ) : purchaseOrders.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-8 text-gray-500">
@@ -878,7 +1117,7 @@ export default function InventoryManagement() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      purchaseOrders.map((order) => (
+                      paginatedPurchaseOrders.map((order) => (
                         <TableRow key={order.id} data-testid={`purchase-order-row-${order.id}`}>
                           <TableCell className="font-medium" data-testid={`purchase-order-id-${order.id}`}>
                             #{order.id}
@@ -915,6 +1154,28 @@ export default function InventoryManagement() {
                     )}
                   </TableBody>
                 </Table>
+
+                {/* Purchase Orders Pagination */}
+                <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Show result:</span>
+                    <Select value={purchaseOrdersPerPage.toString()} onValueChange={(value) => { setPurchaseOrdersPerPage(Number(value)); setPurchaseOrdersPage(1); }} data-testid="select-purchase-orders-per-page">
+                      <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                          <SelectItem key={pageSize} value={pageSize.toString()}>{pageSize}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => setPurchaseOrdersPage(Math.max(1, purchaseOrdersPage - 1))} disabled={purchaseOrdersPage === 1} data-testid="button-purchase-orders-prev-page">Previous</Button>
+                    {Array.from({ length: purchaseOrdersTotalPages }, (_, i) => i + 1).map((page) => (
+                      <Button key={page} variant={purchaseOrdersPage === page ? "default" : "outline"} size="sm" onClick={() => setPurchaseOrdersPage(page)} className={purchaseOrdersPage === page ? "bg-green-500 hover:bg-green-600" : ""} data-testid={`button-purchase-orders-page-${page}`}>{page}</Button>
+                    ))}
+                    <Button variant="outline" size="sm" onClick={() => setPurchaseOrdersPage(Math.min(purchaseOrdersTotalPages, purchaseOrdersPage + 1))} disabled={purchaseOrdersPage === purchaseOrdersTotalPages} data-testid="button-purchase-orders-next-page">Next</Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
@@ -977,7 +1238,7 @@ export default function InventoryManagement() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      wastageItems.map((wastage) => (
+                      paginatedWastageItems.map((wastage) => (
                         <TableRow key={wastage.id} data-testid={`wastage-row-${wastage.id}`}>
                           <TableCell data-testid={`wastage-date-${wastage.id}`}>
                             {new Date(wastage.createdAt).toLocaleDateString()}
@@ -996,6 +1257,28 @@ export default function InventoryManagement() {
                     )}
                   </TableBody>
                 </Table>
+
+                {/* Wastage Pagination */}
+                <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Show result:</span>
+                    <Select value={wastageItemsPerPage.toString()} onValueChange={(value) => { setWastageItemsPerPage(Number(value)); setWastageItemsPage(1); }} data-testid="select-wastage-per-page">
+                      <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                          <SelectItem key={pageSize} value={pageSize.toString()}>{pageSize}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => setWastageItemsPage(Math.max(1, wastageItemsPage - 1))} disabled={wastageItemsPage === 1} data-testid="button-wastage-prev-page">Previous</Button>
+                    {Array.from({ length: wastageItemsTotalPages }, (_, i) => i + 1).map((page) => (
+                      <Button key={page} variant={wastageItemsPage === page ? "default" : "outline"} size="sm" onClick={() => setWastageItemsPage(page)} className={wastageItemsPage === page ? "bg-green-500 hover:bg-green-600" : ""} data-testid={`button-wastage-page-${page}`}>{page}</Button>
+                    ))}
+                    <Button variant="outline" size="sm" onClick={() => setWastageItemsPage(Math.min(wastageItemsTotalPages, wastageItemsPage + 1))} disabled={wastageItemsPage === wastageItemsTotalPages} data-testid="button-wastage-next-page">Next</Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
@@ -1042,7 +1325,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  utilityExpenses.map((expense) => (
+                  paginatedExpenses.map((expense) => (
                     <TableRow key={expense.id} data-testid={`expense-row-${expense.id}`}>
                       <TableCell className="font-medium" data-testid={`expense-type-${expense.id}`}>
                         {expense.utilityType}
@@ -1098,6 +1381,28 @@ export default function InventoryManagement() {
                 )}
               </TableBody>
             </Table>
+
+            {/* Expenses Pagination */}
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Show result:</span>
+                <Select value={expensesPerPage.toString()} onValueChange={(value) => { setExpensesPerPage(Number(value)); setExpensesPage(1); }} data-testid="select-expenses-per-page">
+                  <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                      <SelectItem key={pageSize} value={pageSize.toString()}>{pageSize}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" onClick={() => setExpensesPage(Math.max(1, expensesPage - 1))} disabled={expensesPage === 1} data-testid="button-expenses-prev-page">Previous</Button>
+                {Array.from({ length: expensesTotalPages }, (_, i) => i + 1).map((page) => (
+                  <Button key={page} variant={expensesPage === page ? "default" : "outline"} size="sm" onClick={() => setExpensesPage(page)} className={expensesPage === page ? "bg-green-500 hover:bg-green-600" : ""} data-testid={`button-expenses-page-${page}`}>{page}</Button>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setExpensesPage(Math.min(expensesTotalPages, expensesPage + 1))} disabled={expensesPage === expensesTotalPages} data-testid="button-expenses-next-page">Next</Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -1137,7 +1442,7 @@ export default function InventoryManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  recipes.map((recipe) => (
+                  paginatedRecipes.map((recipe) => (
                     <TableRow key={recipe.id}>
                       <TableCell className="font-medium" data-testid={`recipe-name-${recipe.id}`}>
                         {recipe.name}
@@ -1177,6 +1482,28 @@ export default function InventoryManagement() {
                 )}
               </TableBody>
             </Table>
+
+            {/* Recipes Pagination */}
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Show result:</span>
+                <Select value={recipesPerPage.toString()} onValueChange={(value) => { setRecipesPerPage(Number(value)); setRecipesPage(1); }} data-testid="select-recipes-per-page">
+                  <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
+                      <SelectItem key={pageSize} value={pageSize.toString()}>{pageSize}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" onClick={() => setRecipesPage(Math.max(1, recipesPage - 1))} disabled={recipesPage === 1} data-testid="button-recipes-prev-page">Previous</Button>
+                {Array.from({ length: recipesTotalPages }, (_, i) => i + 1).map((page) => (
+                  <Button key={page} variant={recipesPage === page ? "default" : "outline"} size="sm" onClick={() => setRecipesPage(page)} className={recipesPage === page ? "bg-green-500 hover:bg-green-600" : ""} data-testid={`button-recipes-page-${page}`}>{page}</Button>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setRecipesPage(Math.min(recipesTotalPages, recipesPage + 1))} disabled={recipesPage === recipesTotalPages} data-testid="button-recipes-next-page">Next</Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
