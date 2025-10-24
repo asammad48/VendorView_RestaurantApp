@@ -34,6 +34,7 @@ Technical preferences:
 - **Real API Integration**: Users API, Roles API, Entities/Branches API with proper authentication.
 - **Pagination System**: Generic pagination utilities with configurable page sizes (5, 10, 20, 50, 100).
 - **Server-Side Pagination**: All inventory management tables support server-side pagination with query parameters (PageNumber, PageSize, SortBy, IsAscending, SearchTerm). Frontend is ready to consume PaginationResponse structure from backend.
+- **PaginationResponse Handling**: All inventory endpoints (Categories, Items, Suppliers, Stock, Low Stock, Purchase Orders, Wastage, Utility Expenses, Recipes) use defensive data extraction pattern: `Array.isArray(data) ? data : (data as any)?.items || []` to support both direct array responses and PaginationResponse<T> format with backward compatibility.
 
 ### Authentication & Authorization
 - **Strategy**: Username/password authentication with role-based access.
