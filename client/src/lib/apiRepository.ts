@@ -711,11 +711,13 @@ export const defaultApiConfig: ApiConfig = {
     createInventoryCategory: API_ENDPOINTS.INVENTORY_CATEGORIES,
     deleteInventoryCategory: API_ENDPOINTS.INVENTORY_CATEGORY_BY_ID,
     getInventorySuppliers: API_ENDPOINTS.INVENTORY_SUPPLIERS,
+    getInventorySupplierById: API_ENDPOINTS.INVENTORY_SUPPLIER_BY_ID,
     createInventorySupplier: API_ENDPOINTS.INVENTORY_SUPPLIERS,
     updateInventorySupplier: API_ENDPOINTS.INVENTORY_SUPPLIER_BY_ID,
     deleteInventorySupplier: API_ENDPOINTS.INVENTORY_SUPPLIER_BY_ID,
     getInventoryItems: API_ENDPOINTS.INVENTORY_ITEMS,
     getInventoryItemsByBranch: API_ENDPOINTS.INVENTORY_ITEMS_BY_BRANCH,
+    getInventoryItemById: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
     createInventoryItem: API_ENDPOINTS.INVENTORY_ITEMS,
     updateInventoryItem: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
     deleteInventoryItem: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
@@ -2386,6 +2388,22 @@ export const inventoryApi = {
     return response.data || [];
   },
 
+  // Get inventory supplier by ID
+  getInventorySupplierById: async (supplierId: number) => {
+    const response = await apiRepository.call(
+      "getInventorySupplierById",
+      "GET",
+      undefined,
+      {},
+      true,
+      { id: supplierId },
+    );
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data;
+  },
+
   // Create inventory supplier
   createInventorySupplier: async (supplierData: {
     name: string;
@@ -2485,6 +2503,22 @@ export const inventoryApi = {
       throw new Error(response.error);
     }
     return response.data || [];
+  },
+
+  // Get inventory item by ID
+  getInventoryItemById: async (itemId: number) => {
+    const response = await apiRepository.call(
+      "getInventoryItemById",
+      "GET",
+      undefined,
+      {},
+      true,
+      { id: itemId },
+    );
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data;
   },
 
   // Create inventory item

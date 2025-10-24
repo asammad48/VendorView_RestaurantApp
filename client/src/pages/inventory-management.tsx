@@ -347,7 +347,7 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "recipes",
   });
-  const recipes = Array.isArray(recipesData) ? recipesData : (recipesData as any)?.items || [];
+  const recipes = Array.isArray(recipesData) ? recipesData : [];
 
   // For now, set total pages to 1 since we're using server-side pagination
   // TODO: Update this when the API returns total count information
@@ -720,8 +720,9 @@ export default function InventoryManagement() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              setSelectedSupplier(supplier);
+                            onClick={async () => {
+                              const supplierDetails = await inventoryApi.getInventorySupplierById(supplier.id) as InventorySupplier;
+                              setSelectedSupplier(supplierDetails);
                               setShowEditSupplierModal(true);
                             }}
                             data-testid={`button-edit-supplier-${supplier.id}`}
@@ -888,14 +889,9 @@ export default function InventoryManagement() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              const category = categories.find(c => c.name === item.categoryName);
-                              const supplier = suppliers.find(s => s.name === item.defaultSupplierName);
-                              setSelectedItem({
-                                ...item,
-                                categoryId: category?.id,
-                                defaultSupplierId: supplier?.id,
-                              });
+                            onClick={async () => {
+                              const itemDetails = await inventoryApi.getInventoryItemById(item.id) as InventoryItem & { categoryId?: number; defaultSupplierId?: number };
+                              setSelectedItem(itemDetails);
                               setShowEditItemModal(true);
                             }}
                             data-testid={`button-edit-item-${item.id}`}
