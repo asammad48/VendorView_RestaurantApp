@@ -5,6 +5,13 @@ import { ArrowLeft, Plus, Trash2, Edit, Eye, Check, X, Package } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLocation } from "wouter";
 import { inventoryApi, branchApi } from "@/lib/apiRepository";
 import AddInventoryCategoryModal from "@/components/add-inventory-category-modal";
@@ -22,6 +29,9 @@ import { Badge } from "@/components/ui/badge";
 import { Recipe, RecipeDetail } from "@/types/schema";
 import { Input } from "@/components/ui/input";
 import { format, subMonths, addDays } from "date-fns";
+import {
+  DEFAULT_PAGINATION_CONFIG,
+} from "@/types/pagination";
 
 interface InventoryCategory {
   id: number;
@@ -139,6 +149,34 @@ export default function InventoryManagement() {
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetail | null>(null);
   const [selectedUtilityExpense, setSelectedUtilityExpense] = useState<UtilityExpense | null>(null);
 
+  // Pagination states for all tabs
+  const [categoriesPage, setCategoriesPage] = useState(1);
+  const [categoriesPerPage, setCategoriesPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  
+  const [suppliersPage, setSuppliersPage] = useState(1);
+  const [suppliersPerPage, setSuppliersPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  
+  const [itemsPage, setItemsPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  
+  const [stockPage, setStockPage] = useState(1);
+  const [stockPerPage, setStockPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  
+  const [lowStockPage, setLowStockPage] = useState(1);
+  const [lowStockPerPage, setLowStockPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  
+  const [purchaseOrdersPage, setPurchaseOrdersPage] = useState(1);
+  const [purchaseOrdersPerPage, setPurchaseOrdersPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  
+  const [wastageItemsPage, setWastageItemsPage] = useState(1);
+  const [wastageItemsPerPage, setWastageItemsPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  
+  const [expensesPage, setExpensesPage] = useState(1);
+  const [expensesPerPage, setExpensesPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  
+  const [recipesPage, setRecipesPage] = useState(1);
+  const [recipesPerPage, setRecipesPerPage] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+
   const branchId = parseInt(new URLSearchParams(window.location.search).get('branchId') || '0');
 
   // Fetch branch information
@@ -239,6 +277,52 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "recipes",
   });
+
+  // Client-side pagination logic
+  const categoriesStart = (categoriesPage - 1) * categoriesPerPage;
+  const categoriesEnd = categoriesStart + categoriesPerPage;
+  const paginatedCategories = categories.slice(categoriesStart, categoriesEnd);
+  const categoriesTotalPages = Math.ceil(categories.length / categoriesPerPage);
+
+  const suppliersStart = (suppliersPage - 1) * suppliersPerPage;
+  const suppliersEnd = suppliersStart + suppliersPerPage;
+  const paginatedSuppliers = suppliers.slice(suppliersStart, suppliersEnd);
+  const suppliersTotalPages = Math.ceil(suppliers.length / suppliersPerPage);
+
+  const itemsStart = (itemsPage - 1) * itemsPerPage;
+  const itemsEnd = itemsStart + itemsPerPage;
+  const paginatedItems = items.slice(itemsStart, itemsEnd);
+  const itemsTotalPages = Math.ceil(items.length / itemsPerPage);
+
+  const stockStart = (stockPage - 1) * stockPerPage;
+  const stockEnd = stockStart + stockPerPage;
+  const paginatedStock = stock.slice(stockStart, stockEnd);
+  const stockTotalPages = Math.ceil(stock.length / stockPerPage);
+
+  const lowStockStart = (lowStockPage - 1) * lowStockPerPage;
+  const lowStockEnd = lowStockStart + lowStockPerPage;
+  const paginatedLowStock = lowStock.slice(lowStockStart, lowStockEnd);
+  const lowStockTotalPages = Math.ceil(lowStock.length / lowStockPerPage);
+
+  const purchaseOrdersStart = (purchaseOrdersPage - 1) * purchaseOrdersPerPage;
+  const purchaseOrdersEnd = purchaseOrdersStart + purchaseOrdersPerPage;
+  const paginatedPurchaseOrders = purchaseOrders.slice(purchaseOrdersStart, purchaseOrdersEnd);
+  const purchaseOrdersTotalPages = Math.ceil(purchaseOrders.length / purchaseOrdersPerPage);
+
+  const wastageItemsStart = (wastageItemsPage - 1) * wastageItemsPerPage;
+  const wastageItemsEnd = wastageItemsStart + wastageItemsPerPage;
+  const paginatedWastageItems = wastageItems.slice(wastageItemsStart, wastageItemsEnd);
+  const wastageItemsTotalPages = Math.ceil(wastageItems.length / wastageItemsPerPage);
+
+  const expensesStart = (expensesPage - 1) * expensesPerPage;
+  const expensesEnd = expensesStart + expensesPerPage;
+  const paginatedExpenses = utilityExpenses.slice(expensesStart, expensesEnd);
+  const expensesTotalPages = Math.ceil(utilityExpenses.length / expensesPerPage);
+
+  const recipesStart = (recipesPage - 1) * recipesPerPage;
+  const recipesEnd = recipesStart + recipesPerPage;
+  const paginatedRecipes = recipes.slice(recipesStart, recipesEnd);
+  const recipesTotalPages = Math.ceil(recipes.length / recipesPerPage);
 
   // Refetch data when tab changes
   useEffect(() => {
