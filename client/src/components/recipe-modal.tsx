@@ -103,10 +103,10 @@ export default function RecipeModal({
   ) || [];
 
   useEffect(() => {
-    if (recipeType === "menuItem") {
+    if (recipeType === "menuItem" && !isEdit) {
       form.setValue("variantId", 0);
     }
-  }, [selectedMenuItemId, recipeType, form]);
+  }, [selectedMenuItemId, recipeType, form, isEdit]);
 
   useEffect(() => {
     if (fields.length === 1) {
@@ -430,11 +430,16 @@ export default function RecipeModal({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {inventoryItems.map((item) => (
-                                  <SelectItem key={item.id} value={item.id.toString()}>
-                                    {item.name} ({item.unit})
-                                  </SelectItem>
-                                ))}
+                                {inventoryItems
+                                  .filter((item) => {
+                                    const selectedIds = form.watch('items').map((i) => i.inventoryItemId);
+                                    return !selectedIds.includes(item.id) || item.id === field.value;
+                                  })
+                                  .map((item) => (
+                                    <SelectItem key={item.id} value={item.id.toString()}>
+                                      {item.name} ({item.unit})
+                                    </SelectItem>
+                                  ))}
                               </SelectContent>
                             </Select>
                             <FormMessage />
