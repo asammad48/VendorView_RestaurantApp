@@ -2478,7 +2478,15 @@ export default function InventoryManagement() {
                       colSpan={3}
                       className="text-center text-gray-500"
                     >
-                      No recipes found
+                      <div>
+                        <p>No recipes found</p>
+                        <p className="text-xs mt-2">
+                          No menu items or sub-menu items available.{" "}
+                          <Link href="/branch-management" className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-branch-management-recipes">
+                            Go to Branch Management <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
