@@ -2,6 +2,7 @@ import { useLocation } from "wouter";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { navigationItems } from "./nav-items";
+import scannifyLogo from "@assets/ChatGPT Image Oct 26, 2025, 04_21_59 AM_1761478009383.png";
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -12,13 +13,12 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="flex items-center flex-shrink-0 px-6">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg" data-testid="logo-text">R</span>
-            </div>
-            <div className="ml-3">
-              <h2 className="text-lg font-semibold text-gray-800" data-testid="brand-name">Restaurant</h2>
-              <p className="text-sm text-gray-500" data-testid="brand-subtitle">Dashboard</p>
-            </div>
+            <img 
+              src={scannifyLogo} 
+              alt="Scannify" 
+              className="h-8 w-auto" 
+              data-testid="logo-image"
+            />
           </div>
         </div>
         

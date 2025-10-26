@@ -1,4 +1,4 @@
-# Restaurant Management System
+# Scannify - Restaurant & Hotel Management System
 
 ## Overview
 This full-stack restaurant and hotel management application provides comprehensive entity management functionality for both hotels and restaurants. It includes user management, analytics, and reporting via an intuitive dashboard. The system supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics. Recent additions include a full inventory management system with stock tracking, low stock monitoring, purchase order capabilities, stock wastage tracking with date-filtered historical viewing, and expense management with utility expense tracking.

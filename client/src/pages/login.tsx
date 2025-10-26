@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "@/lib/auth";
+import scannifyLogo from "@assets/ChatGPT Image Oct 26, 2025, 04_21_59 AM_1761478009383.png";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -51,7 +52,12 @@ export default function Login() {
       <Card className="w-full max-w-md mx-4">
         <CardContent className="pt-6">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-gray-300 rounded-lg mx-auto mb-4" data-testid="login-logo"></div>
+            <img 
+              src={scannifyLogo} 
+              alt="Scannify" 
+              className="h-12 w-auto mx-auto mb-4" 
+              data-testid="login-logo"
+            />
             <h1 className="text-xl font-semibold text-gray-900" data-testid="login-title">Welcome Back!</h1>
           </div>
           
