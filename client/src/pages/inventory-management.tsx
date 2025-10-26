@@ -49,7 +49,7 @@ import {
   DEFAULT_PAGINATION_CONFIG,
   PaginationResponse,
 } from "@/types/pagination";
-import { SearchTooltip } from "@/components/SearchTooltip";
+import { ColumnSearchPopover } from "@/components/ColumnSearchPopover";
 
 interface InventoryCategory {
   id: number;
@@ -527,7 +527,9 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && activeTab === "recipes",
   });
-  const recipes = Array.isArray(recipesData) ? recipesData : [];
+  const recipes = Array.isArray(recipesData)
+    ? recipesData
+    : (recipesData as any)?.items || [];
 
   // For now, set total pages to 1 since we're using server-side pagination
   // TODO: Update this when the API returns total count information
@@ -811,19 +813,7 @@ export default function InventoryManagement() {
 
         {/* Categories Tab */}
         <TabsContent value="categories" className="space-y-6">
-          <div className="flex justify-between items-center gap-4">
-            <SearchTooltip
-              placeholder="Search categories by name..."
-              currentValue={categoriesSearch}
-              onSearch={(value) => {
-                setCategoriesSearch(value);
-                setCategoriesPage(1);
-              }}
-              onClear={() => {
-                setCategoriesSearch("");
-                setCategoriesPage(1);
-              }}
-            />
+          <div className="flex justify-end items-center gap-4">
             <Button
               className="bg-green-500 hover:bg-green-600 text-white"
               onClick={() => setShowAddCategoryModal(true)}
@@ -838,7 +828,24 @@ export default function InventoryManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Category Name</TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-2">
+                      Category Name
+                      <ColumnSearchPopover
+                        placeholder="Search categories by name..."
+                        currentValue={categoriesSearch}
+                        tableName="categories"
+                        onSearch={(value) => {
+                          setCategoriesSearch(value);
+                          setCategoriesPage(1);
+                        }}
+                        onClear={() => {
+                          setCategoriesSearch("");
+                          setCategoriesPage(1);
+                        }}
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -978,17 +985,7 @@ export default function InventoryManagement() {
 
         {/* Suppliers Tab */}
         <TabsContent value="suppliers" className="space-y-6">
-          <div className="flex justify-between items-center gap-4">
-            <Input
-              placeholder="Search suppliers by name..."
-              value={suppliersSearch}
-              onChange={(e) => {
-                setSuppliersSearch(e.target.value);
-                setSuppliersPage(1);
-              }}
-              className="max-w-sm"
-              data-testid="input-search-suppliers"
-            />
+          <div className="flex justify-end items-center gap-4">
             <Button
               className="bg-green-500 hover:bg-green-600 text-white"
               onClick={() => setShowAddSupplierModal(true)}
@@ -1003,7 +1000,24 @@ export default function InventoryManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-2">
+                      Name
+                      <ColumnSearchPopover
+                        placeholder="Search suppliers by name..."
+                        currentValue={suppliersSearch}
+                        tableName="suppliers"
+                        onSearch={(value) => {
+                          setSuppliersSearch(value);
+                          setSuppliersPage(1);
+                        }}
+                        onClear={() => {
+                          setSuppliersSearch("");
+                          setSuppliersPage(1);
+                        }}
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead>Contact Person</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Email</TableHead>
@@ -1192,19 +1206,7 @@ export default function InventoryManagement() {
 
         {/* Items Tab */}
         <TabsContent value="items" className="space-y-6">
-          <div className="flex justify-between items-center gap-4">
-            <SearchTooltip
-              placeholder="Search items by name..."
-              currentValue={itemsSearch}
-              onSearch={(value) => {
-                setItemsSearch(value);
-                setItemsPage(1);
-              }}
-              onClear={() => {
-                setItemsSearch("");
-                setItemsPage(1);
-              }}
-            />
+          <div className="flex justify-end items-center gap-4">
             <Button
               className="bg-green-500 hover:bg-green-600 text-white"
               onClick={() => setShowAddItemModal(true)}
@@ -1219,7 +1221,24 @@ export default function InventoryManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item Name</TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-2">
+                      Item Name
+                      <ColumnSearchPopover
+                        placeholder="Search items by name..."
+                        currentValue={itemsSearch}
+                        tableName="items"
+                        onSearch={(value) => {
+                          setItemsSearch(value);
+                          setItemsPage(1);
+                        }}
+                        onClear={() => {
+                          setItemsSearch("");
+                          setItemsPage(1);
+                        }}
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Unit</TableHead>
                   <TableHead>Reorder Level</TableHead>
@@ -1434,21 +1453,28 @@ export default function InventoryManagement() {
 
             {/* Manage Stock Sub-tab */}
             <TabsContent value="manage-stock" className="space-y-6">
-              <Input
-                placeholder="Search stock by item name..."
-                value={stockSearch}
-                onChange={(e) => {
-                  setStockSearch(e.target.value);
-                  setStockPage(1);
-                }}
-                className="max-w-sm"
-                data-testid="input-search-stock"
-              />
               <div className="bg-white rounded-lg border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Item Name</TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-2">
+                          Item Name
+                          <ColumnSearchPopover
+                            placeholder="Search stock by item name..."
+                            currentValue={stockSearch}
+                            tableName="stock"
+                            onSearch={(value) => {
+                              setStockSearch(value);
+                              setStockPage(1);
+                            }}
+                            onClear={() => {
+                              setStockSearch("");
+                              setStockPage(1);
+                            }}
+                          />
+                        </div>
+                      </TableHead>
                       <TableHead>Current Stock</TableHead>
                       <TableHead>Unit</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
@@ -1598,21 +1624,28 @@ export default function InventoryManagement() {
 
             {/* Low Stock Sub-tab */}
             <TabsContent value="low-stock" className="space-y-6">
-              <Input
-                placeholder="Search low stock by item name..."
-                value={lowStockSearch}
-                onChange={(e) => {
-                  setLowStockSearch(e.target.value);
-                  setLowStockPage(1);
-                }}
-                className="max-w-sm"
-                data-testid="input-search-low-stock"
-              />
               <div className="bg-white rounded-lg border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Item Name</TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-2">
+                          Item Name
+                          <ColumnSearchPopover
+                            placeholder="Search low stock by item name..."
+                            currentValue={lowStockSearch}
+                            tableName="low-stock"
+                            onSearch={(value) => {
+                              setLowStockSearch(value);
+                              setLowStockPage(1);
+                            }}
+                            onClear={() => {
+                              setLowStockSearch("");
+                              setLowStockPage(1);
+                            }}
+                          />
+                        </div>
+                      </TableHead>
                       <TableHead>Current Stock</TableHead>
                       <TableHead>Reorder Level</TableHead>
                       <TableHead>Unit</TableHead>
@@ -1760,17 +1793,7 @@ export default function InventoryManagement() {
 
             {/* Purchase Orders Sub-tab */}
             <TabsContent value="purchase-orders" className="space-y-6">
-              <div className="flex justify-between items-center gap-4">
-                <Input
-                  placeholder="Search purchase orders by supplier name..."
-                  value={purchaseOrdersSearch}
-                  onChange={(e) => {
-                    setPurchaseOrdersSearch(e.target.value);
-                    setPurchaseOrdersPage(1);
-                  }}
-                  className="max-w-sm"
-                  data-testid="input-search-purchase-orders"
-                />
+              <div className="flex justify-end items-center gap-4">
                 <Button
                   className="bg-green-500 hover:bg-green-600 text-white"
                   onClick={() => setShowPurchaseOrderModal(true)}
@@ -1786,7 +1809,24 @@ export default function InventoryManagement() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Order ID</TableHead>
-                      <TableHead>Supplier</TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-2">
+                          Supplier
+                          <ColumnSearchPopover
+                            placeholder="Search purchase orders by supplier name..."
+                            currentValue={purchaseOrdersSearch}
+                            tableName="purchase-orders"
+                            onSearch={(value) => {
+                              setPurchaseOrdersSearch(value);
+                              setPurchaseOrdersPage(1);
+                            }}
+                            onClear={() => {
+                              setPurchaseOrdersSearch("");
+                              setPurchaseOrdersPage(1);
+                            }}
+                          />
+                        </div>
+                      </TableHead>
                       <TableHead>Order Date</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Total Amount</TableHead>
@@ -2004,23 +2044,30 @@ export default function InventoryManagement() {
                   Add Wastage
                 </Button>
               </div>
-              <Input
-                placeholder="Search wastage by item name..."
-                value={wastageSearch}
-                onChange={(e) => {
-                  setWastageSearch(e.target.value);
-                  setWastageItemsPage(1);
-                }}
-                className="max-w-sm"
-                data-testid="input-search-wastage"
-              />
 
               <div className="bg-white rounded-lg border">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
-                      <TableHead>Item Name</TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-2">
+                          Item Name
+                          <ColumnSearchPopover
+                            placeholder="Search wastage by item name..."
+                            currentValue={wastageSearch}
+                            tableName="wastage"
+                            onSearch={(value) => {
+                              setWastageSearch(value);
+                              setWastageItemsPage(1);
+                            }}
+                            onClear={() => {
+                              setWastageSearch("");
+                              setWastageItemsPage(1);
+                            }}
+                          />
+                        </div>
+                      </TableHead>
                       <TableHead>Quantity</TableHead>
                       <TableHead>Reason</TableHead>
                     </TableRow>
@@ -2159,17 +2206,7 @@ export default function InventoryManagement() {
 
         {/* Expense Management Tab */}
         <TabsContent value="expense" className="space-y-6">
-          <div className="flex justify-between items-center gap-4">
-            <Input
-              placeholder="Search expenses by utility type..."
-              value={expensesSearch}
-              onChange={(e) => {
-                setExpensesSearch(e.target.value);
-                setExpensesPage(1);
-              }}
-              className="max-w-sm"
-              data-testid="input-search-expenses"
-            />
+          <div className="flex justify-end items-center gap-4">
             <Button
               className="bg-orange-500 hover:bg-orange-600 text-white"
               onClick={() => setShowUtilityExpenseModal(true)}
@@ -2184,7 +2221,24 @@ export default function InventoryManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Utility Type</TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-2">
+                      Utility Type
+                      <ColumnSearchPopover
+                        placeholder="Search expenses by utility type..."
+                        currentValue={expensesSearch}
+                        tableName="expenses"
+                        onSearch={(value) => {
+                          setExpensesSearch(value);
+                          setExpensesPage(1);
+                        }}
+                        onClear={() => {
+                          setExpensesSearch("");
+                          setExpensesPage(1);
+                        }}
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead>Usage Unit</TableHead>
                   <TableHead>Unit Cost</TableHead>
                   <TableHead>Total Cost</TableHead>
@@ -2365,17 +2419,7 @@ export default function InventoryManagement() {
 
         {/* Recipes Tab */}
         <TabsContent value="recipes" className="space-y-6">
-          <div className="flex justify-between items-center gap-4">
-            <Input
-              placeholder="Search recipes by menu item name..."
-              value={recipesSearch}
-              onChange={(e) => {
-                setRecipesSearch(e.target.value);
-                setRecipesPage(1);
-              }}
-              className="max-w-sm"
-              data-testid="input-search-recipes"
-            />
+          <div className="flex justify-end items-center gap-4">
             <Button
               className="bg-purple-500 hover:bg-purple-600 text-white"
               onClick={() => setShowRecipeModal(true)}
@@ -2390,7 +2434,24 @@ export default function InventoryManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-2">
+                      Name
+                      <ColumnSearchPopover
+                        placeholder="Search recipes by menu item name..."
+                        currentValue={recipesSearch}
+                        tableName="recipes"
+                        onSearch={(value) => {
+                          setRecipesSearch(value);
+                          setRecipesPage(1);
+                        }}
+                        onClear={() => {
+                          setRecipesSearch("");
+                          setRecipesPage(1);
+                        }}
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
