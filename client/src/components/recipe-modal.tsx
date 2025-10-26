@@ -24,7 +24,7 @@ const recipeSchema = z.object({
     id: z.number().optional(),
     inventoryItemId: z.coerce.number().min(1, "Item is required"),
     quantity: z.coerce.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
-    unit: z.string().min(1, "Unit is required"),
+    unit: z.string().optional(), // Unit is auto-populated from inventory item
   })).min(1, "At least one ingredient is required"),
 }).refine((data) => {
   if (data.recipeType === "menuItem") {
@@ -343,9 +343,6 @@ export default function RecipeModal({
                 <div className="w-32">
                   <p className="text-sm font-medium text-gray-700">Quantity</p>
                 </div>
-                <div className="w-32">
-                  <p className="text-sm font-medium text-gray-700">Unit</p>
-                </div>
                 <div className="w-10"></div>
               </div>
 
@@ -357,7 +354,14 @@ export default function RecipeModal({
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <Select
-                          onValueChange={(value) => field.onChange(parseInt(value))}
+                          onValueChange={(value) => {
+                            const selectedItem = inventoryItems.find((item) => item.id === parseInt(value));
+                            field.onChange(parseInt(value));
+                            // Auto-populate unit from selected inventory item
+                            if (selectedItem) {
+                              form.setValue(`items.${index}.unit`, selectedItem.unit);
+                            }
+                          }}
                           value={field.value?.toString()}
                         >
                           <FormControl>
@@ -390,23 +394,6 @@ export default function RecipeModal({
                             placeholder="Quantity"
                             {...field}
                             data-testid={`input-quantity-${index}`}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.unit`}
-                    render={({ field }) => (
-                      <FormItem className="w-32">
-                        <FormControl>
-                          <Input
-                            placeholder="Unit"
-                            {...field}
-                            data-testid={`input-unit-${index}`}
                           />
                         </FormControl>
                         <FormMessage />
