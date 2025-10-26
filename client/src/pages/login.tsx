@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "@/lib/auth";
-import scannifyLogo from "@assets/Login - Scannify_1761482506204.png";
+import scannifyLogo from "@assets/New Banner - Scannify_1761489778431.png";
 
 export default function Login() {
   const [, setLocation] = useLocation();

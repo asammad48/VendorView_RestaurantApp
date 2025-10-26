@@ -9,8 +9,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { navigationItems } from "./nav-items";
-import scannifyLogoFull from "@assets/Side bar - Scannify_1761482506203.png";
-import scannifyLogoCollapsed from "@assets/Collapsed Side bar - Scannify_1761482506204.png";
+import scannifyLogoFull from "@assets/New Banner - Scannify_1761489778431.png";
+import scannifyLogoCollapsed from "@assets/New Banner - Scannify_1761489778431.png";
 
 interface CollapsibleSidebarProps {
   collapsed?: boolean;
