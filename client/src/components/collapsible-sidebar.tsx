@@ -54,7 +54,7 @@ export default function CollapsibleSidebar({
               alt="Scannify" 
               className={cn(
                 "w-auto transition-all duration-300",
-                collapsed ? "h-6" : "h-7"
+                collapsed ? "h-8" : "h-12"
               )}
               data-testid="logo-image"
             />

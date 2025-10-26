@@ -55,7 +55,7 @@ export default function Login() {
             <img 
               src={scannifyLogo} 
               alt="Scannify" 
-              className="h-12 w-auto mx-auto mb-4" 
+              className="h-16 w-auto mx-auto mb-4" 
               data-testid="login-logo"
             />
             <h1 className="text-xl font-semibold text-gray-900" data-testid="login-title">Welcome Back!</h1>

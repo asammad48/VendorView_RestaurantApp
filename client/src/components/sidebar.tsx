@@ -16,7 +16,7 @@ export default function Sidebar() {
             <img 
               src={scannifyLogo} 
               alt="Scannify" 
-              className="h-8 w-auto" 
+              className="h-12 w-auto" 
               data-testid="logo-image"
             />
           </div>
