@@ -9,7 +9,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { navigationItems } from "./nav-items";
-import scannifyLogo from "@assets/ChatGPT Image Oct 26, 2025, 04_21_59 AM_1761478009383.png";
+import scannifyLogoFull from "@assets/Side bar - Scannify_1761482506203.png";
+import scannifyLogoCollapsed from "@assets/Collapsed Side bar - Scannify_1761482506204.png";
 
 interface CollapsibleSidebarProps {
   collapsed?: boolean;
@@ -50,7 +51,7 @@ export default function CollapsibleSidebar({
             collapsed && "justify-center"
           )}>
             <img 
-              src={scannifyLogo} 
+              src={collapsed ? scannifyLogoCollapsed : scannifyLogoFull} 
               alt="Scannify" 
               className={cn(
                 "w-auto transition-all duration-300",

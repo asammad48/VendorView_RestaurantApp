@@ -5,9 +5,22 @@ import * as z from "zod";
 import { Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { inventoryApi } from "@/lib/apiRepository";
@@ -24,7 +37,7 @@ interface StockUpdateModalProps {
   onClose: () => void;
   branchId: number;
   stockItem: {
-    inventoryItemId: number;
+    itemId: number;
     itemName: string;
     currentStock: number;
     unit: string;
@@ -32,12 +45,12 @@ interface StockUpdateModalProps {
   onSuccess: () => void;
 }
 
-export default function StockUpdateModal({ 
-  open, 
-  onClose, 
+export default function StockUpdateModal({
+  open,
+  onClose,
   branchId,
   stockItem,
-  onSuccess 
+  onSuccess,
 }: StockUpdateModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -54,6 +67,7 @@ export default function StockUpdateModal({
   // Reset form when stockItem changes or modal opens
   useEffect(() => {
     if (open) {
+      console.log(stockItem);
       form.reset({
         newStock: stockItem.currentStock,
         reason: "",
@@ -65,7 +79,7 @@ export default function StockUpdateModal({
     setIsSubmitting(true);
     try {
       await inventoryApi.updateInventoryStock(branchId, {
-        inventoryItemId: stockItem.inventoryItemId,
+        inventoryItemId: stockItem.itemId,
         newStock: data.newStock,
         reason: data.reason,
       });
@@ -75,8 +89,12 @@ export default function StockUpdateModal({
         description: "Stock updated successfully",
       });
 
-      queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
-      queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", branchId] });
+      queryClient.invalidateQueries({
+        queryKey: ["inventory-stock", branchId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["inventory-low-stock", branchId],
+      });
       onSuccess();
       onClose();
       form.reset();
@@ -100,7 +118,9 @@ export default function StockUpdateModal({
               <Package className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-semibold">Update Stock</DialogTitle>
+              <DialogTitle className="text-lg font-semibold">
+                Update Stock
+              </DialogTitle>
               <DialogDescription className="text-sm text-gray-600">
                 {stockItem.itemName}
               </DialogDescription>
@@ -111,7 +131,12 @@ export default function StockUpdateModal({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">Current Stock: <span className="font-semibold text-gray-900">{stockItem.currentStock} {stockItem.unit}</span></p>
+              <p className="text-sm text-gray-600">
+                Current Stock:{" "}
+                <span className="font-semibold text-gray-900">
+                  {stockItem.currentStock} {stockItem.unit}
+                </span>
+              </p>
             </div>
 
             <FormField

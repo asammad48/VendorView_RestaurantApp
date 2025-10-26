@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "@/lib/auth";
-import scannifyLogo from "@assets/ChatGPT Image Oct 26, 2025, 04_21_59 AM_1761478009383.png";
+import scannifyLogo from "@assets/Login - Scannify_1761482506204.png";
 
 export default function Signup() {
   const [, setLocation] = useLocation();

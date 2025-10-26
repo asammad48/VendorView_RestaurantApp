@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { navigationItems } from "./nav-items";
-import scannifyLogo from "@assets/ChatGPT Image Oct 26, 2025, 04_21_59 AM_1761478009383.png";
+import scannifyLogo from "@assets/Side bar - Scannify_1761482506203.png";
 
 export default function Sidebar() {
   const [location] = useLocation();
