@@ -109,6 +109,12 @@ export default function RecipeModal({
   }, [selectedMenuItemId, recipeType, form]);
 
   useEffect(() => {
+    if (fields.length === 1) {
+      setSelectedIngredientIndex(0);
+    }
+  }, [fields.length]);
+
+  useEffect(() => {
     if (open && recipe) {
       form.reset({
         recipeType: recipe.subMenuItemId ? "subMenuItem" : "menuItem",
@@ -374,7 +380,7 @@ export default function RecipeModal({
                       size="sm"
                       onClick={() => {
                         append({ inventoryItemId: 0, quantity: 1 });
-                        setSelectedIngredientIndex(null);
+                        setSelectedIngredientIndex(fields.length);
                         setNumberOfOrders("");
                       }}
                       data-testid="button-add-ingredient"
