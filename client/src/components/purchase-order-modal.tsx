@@ -43,18 +43,20 @@ export default function PurchaseOrderModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch suppliers
-  const { data: suppliers = [] } = useQuery<any[]>({
+  const { data: suppliersData } = useQuery({
     queryKey: ["inventory-suppliers", branchId],
-    queryFn: async () => (await inventoryApi.getInventorySuppliers(branchId)) as any[],
+    queryFn: async () => await inventoryApi.getInventorySuppliers(branchId),
     enabled: !!branchId && open,
   });
+  const suppliers = Array.isArray(suppliersData) ? suppliersData : (suppliersData as any)?.items || [];
 
   // Fetch inventory items
-  const { data: inventoryItems = [] } = useQuery<any[]>({
+  const { data: inventoryItemsData } = useQuery({
     queryKey: ["inventory-items", branchId],
-    queryFn: async () => (await inventoryApi.getInventoryItemsByBranch(branchId)) as any[],
+    queryFn: async () => await inventoryApi.getInventoryItemsByBranch(branchId),
     enabled: !!branchId && open,
   });
+  const inventoryItems = Array.isArray(inventoryItemsData) ? inventoryItemsData : (inventoryItemsData as any)?.items || [];
 
   const form = useForm<PurchaseOrderFormData>({
     resolver: zodResolver(purchaseOrderSchema),
