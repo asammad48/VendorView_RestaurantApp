@@ -2479,10 +2479,12 @@ export default function InventoryManagement() {
                         className="font-medium"
                         data-testid={`recipe-name-${recipe.id}`}
                       >
-                        {recipe.name}
+                        {recipe.subMenuItemName 
+                          ? recipe.subMenuItemName 
+                          : `${recipe.menuItemName} - ${recipe.variantName}`}
                       </TableCell>
                       <TableCell data-testid={`recipe-type-${recipe.id}`}>
-                        {recipe.type}
+                        {recipe.description}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
