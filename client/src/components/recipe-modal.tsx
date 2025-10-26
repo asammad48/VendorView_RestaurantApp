@@ -23,7 +23,7 @@ const recipeSchema = z.object({
   items: z.array(z.object({
     id: z.number().optional(),
     inventoryItemId: z.coerce.number().min(1, "Item is required"),
-    quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0"),
+    quantity: z.coerce.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
     unit: z.string().min(1, "Unit is required"),
   })).min(1, "At least one ingredient is required"),
 }).refine((data) => {
@@ -381,7 +381,7 @@ export default function RecipeModal({
                         <FormControl>
                           <Input
                             type="number"
-                            step="0.01"
+                            step="0.001"
                             placeholder="Quantity"
                             {...field}
                             data-testid={`input-quantity-${index}`}
