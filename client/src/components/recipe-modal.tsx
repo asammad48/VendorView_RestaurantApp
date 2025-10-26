@@ -85,7 +85,7 @@ export default function RecipeModal({
       menuItemId: 0,
       variantId: 0,
       subMenuItemId: 0,
-      items: [{ inventoryItemId: 0, quantity: 1, unit: "" }],
+      items: [{ inventoryItemId: 0, quantity: 1 }],
     },
   });
 
@@ -328,7 +328,7 @@ export default function RecipeModal({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ inventoryItemId: 0, quantity: 1, unit: "" })}
+                  onClick={() => append({ inventoryItemId: 0, quantity: 1 })}
                   data-testid="button-add-ingredient"
                 >
                   <Plus className="w-4 h-4 mr-1" />
@@ -342,6 +342,9 @@ export default function RecipeModal({
                 </div>
                 <div className="w-32">
                   <p className="text-sm font-medium text-gray-700">Quantity</p>
+                </div>
+                <div className="w-16">
+                  <p className="text-sm font-medium text-gray-700">Unit</p>
                 </div>
                 <div className="w-10"></div>
               </div>
@@ -359,7 +362,7 @@ export default function RecipeModal({
                             field.onChange(parseInt(value));
                             // Auto-populate unit from selected inventory item
                             if (selectedItem) {
-                              form.setValue(`items.${index}.unit`, selectedItem.unit);
+                              form.setValue(`items.${index}.unit`, selectedItem.unit, { shouldDirty: true });
                             }
                           }}
                           value={field.value?.toString()}
@@ -400,6 +403,13 @@ export default function RecipeModal({
                       </FormItem>
                     )}
                   />
+
+                  {/* Display unit from inventory item */}
+                  <div className="w-16 flex items-center">
+                    <p className="text-sm text-gray-700 font-medium">
+                      {form.watch(`items.${index}.unit`) || "-"}
+                    </p>
+                  </div>
 
                   {fields.length > 1 && (
                     <Button
