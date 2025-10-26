@@ -10,6 +10,7 @@ import {
   Check,
   X,
   Package,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { inventoryApi, branchApi } from "@/lib/apiRepository";
 import AddInventoryCategoryModal from "@/components/add-inventory-category-modal";
 import AddInventorySupplierModal from "@/components/add-inventory-supplier-modal";
@@ -1504,7 +1505,15 @@ export default function InventoryManagement() {
                           colSpan={4}
                           className="text-center py-8 text-gray-500"
                         >
-                          No stock found
+                          <div>
+                            <p>No stock found</p>
+                            <p className="text-xs mt-2">
+                              No inventory items available.{" "}
+                              <Link href="#" onClick={() => setActiveTab("items")} className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-inventory-items-stock">
+                                Go to Inventory Items <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            </p>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ) : (
