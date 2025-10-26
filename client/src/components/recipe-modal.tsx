@@ -60,18 +60,23 @@ export default function RecipeModal({
   const isEdit = !!recipe;
 
   // Fetch menu items search data
-  const { data: menuData } = useQuery<MenuItemSearchData>({
+  const { data: menuData } = useQuery({
     queryKey: ["menu-items-search", branchId],
     queryFn: async () => await inventoryApi.getMenuItemsSearch(branchId),
     enabled: !!branchId && open,
   });
 
   // Fetch inventory items
-  const { data: inventoryItems = [] } = useQuery<InventoryItemSimple[]>({
+  const { data: inventoryItemsData } = useQuery({
     queryKey: ["inventory-items", branchId],
     queryFn: async () => await inventoryApi.getInventoryItemsByBranch(branchId),
     enabled: !!branchId && open,
   });
+
+  // Extract array from pagination response with defensive pattern
+  const inventoryItems: InventoryItemSimple[] = Array.isArray(inventoryItemsData) 
+    ? inventoryItemsData 
+    : (inventoryItemsData as any)?.items || [];
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeSchema),
@@ -93,8 +98,8 @@ export default function RecipeModal({
   const selectedMenuItemId = form.watch("menuItemId");
 
   // Get variants for selected menu item
-  const selectedMenuItemVariants: MenuItemSearchVariant[] = menuData?.variants?.filter(
-    (v) => v.menuItemId === selectedMenuItemId
+  const selectedMenuItemVariants: MenuItemSearchVariant[] = (menuData as MenuItemSearchData)?.variants?.filter(
+    (v: MenuItemSearchVariant) => v.menuItemId === selectedMenuItemId
   ) || [];
 
   // Reset variant when menu item changes
@@ -244,7 +249,7 @@ export default function RecipeModal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {menuData?.menuItems?.map((item) => (
+                          {(menuData as MenuItemSearchData)?.menuItems?.map((item: any) => (
                             <SelectItem key={item.id} value={item.id.toString()}>
                               {item.name}
                             </SelectItem>
@@ -303,7 +308,7 @@ export default function RecipeModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {menuData?.subMenuItems?.map((item) => (
+                        {(menuData as MenuItemSearchData)?.subMenuItems?.map((item: any) => (
                           <SelectItem key={item.id} value={item.id.toString()}>
                             {item.name}
                           </SelectItem>
