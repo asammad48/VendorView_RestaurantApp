@@ -465,11 +465,13 @@ export const API_ENDPOINTS = {
 
   // Inventory endpoints
   INVENTORY_CATEGORIES: "/api/inventory/categories",
+  INVENTORY_CATEGORIES_SIMPLE: "/api/inventory/categories/simple/{branchId}",
   INVENTORY_CATEGORY_BY_ID: "/api/inventory/categories/{id}",
   INVENTORY_SUPPLIERS: "/api/inventory/suppliers",
   INVENTORY_SUPPLIER_BY_ID: "/api/inventory/suppliers/{id}",
   INVENTORY_ITEMS: "/api/inventory/items",
   INVENTORY_ITEMS_BY_BRANCH: "/api/inventory/items/branch/{branchId}",
+  INVENTORY_ITEMS_SIMPLE_BY_BRANCH: "/api/inventory/items/branch/simple/{branchId}",
   INVENTORY_ITEM_BY_ID: "/api/inventory/items/{id}",
 
   // Inventory Stock endpoints
@@ -708,6 +710,7 @@ export const defaultApiConfig: ApiConfig = {
 
     // Inventory endpoints
     getInventoryCategories: API_ENDPOINTS.INVENTORY_CATEGORIES,
+    getInventoryCategoriesSimple: API_ENDPOINTS.INVENTORY_CATEGORIES_SIMPLE,
     createInventoryCategory: API_ENDPOINTS.INVENTORY_CATEGORIES,
     deleteInventoryCategory: API_ENDPOINTS.INVENTORY_CATEGORY_BY_ID,
     getInventorySuppliers: API_ENDPOINTS.INVENTORY_SUPPLIERS,
@@ -717,6 +720,7 @@ export const defaultApiConfig: ApiConfig = {
     deleteInventorySupplier: API_ENDPOINTS.INVENTORY_SUPPLIER_BY_ID,
     getInventoryItems: API_ENDPOINTS.INVENTORY_ITEMS,
     getInventoryItemsByBranch: API_ENDPOINTS.INVENTORY_ITEMS_BY_BRANCH,
+    getInventoryItemsSimpleByBranch: API_ENDPOINTS.INVENTORY_ITEMS_SIMPLE_BY_BRANCH,
     getInventoryItemById: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
     createInventoryItem: API_ENDPOINTS.INVENTORY_ITEMS,
     updateInventoryItem: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
@@ -2322,6 +2326,22 @@ export const inventoryApi = {
     return response.data || [];
   },
 
+  // Get inventory categories simple (non-paginated)
+  getInventoryCategoriesSimple: async (branchId: number) => {
+    const response = await apiRepository.call(
+      "getInventoryCategoriesSimple",
+      "GET",
+      undefined,
+      {},
+      true,
+      { branchId },
+    );
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data || [];
+  },
+
   // Create inventory category
   createInventoryCategory: async (categoryData: {
     name: string;
@@ -2499,6 +2519,22 @@ export const inventoryApi = {
     );
     apiRepository.updateEndpoint("getInventoryItemsByBranch", originalEndpoint);
     
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response.data || [];
+  },
+
+  // Get inventory items simple (non-paginated)
+  getInventoryItemsSimpleByBranch: async (branchId: number) => {
+    const response = await apiRepository.call(
+      "getInventoryItemsSimpleByBranch",
+      "GET",
+      undefined,
+      {},
+      true,
+      { branchId },
+    );
     if (response.error) {
       throw new Error(response.error);
     }

@@ -292,6 +292,17 @@ export default function InventoryManagement() {
     ? categoriesData
     : (categoriesData as any)?.items || [];
 
+  // Fetch simple categories for modals (non-paginated)
+  const { data: simpleCategoriesData } = useQuery({
+    queryKey: ["inventory-categories-simple", branchId],
+    queryFn: async () => {
+      const result = await inventoryApi.getInventoryCategoriesSimple(branchId);
+      return result;
+    },
+    enabled: !!branchId && (showAddItemModal || showEditItemModal),
+  });
+  const simpleCategories = Array.isArray(simpleCategoriesData) ? simpleCategoriesData : [];
+
   // Fetch inventory suppliers (lazy load)
   const {
     data: suppliersData,
@@ -2573,7 +2584,7 @@ export default function InventoryManagement() {
           open={showAddItemModal}
           onClose={() => setShowAddItemModal(false)}
           branchId={branchId}
-          categories={categories}
+          categories={simpleCategories}
           suppliers={suppliers}
           onSuccess={() => {
             refetchItems();
@@ -2593,7 +2604,7 @@ export default function InventoryManagement() {
           }}
           branchId={branchId}
           item={selectedItem}
-          categories={categories}
+          categories={simpleCategories}
           suppliers={suppliers}
           onSuccess={() => {
             refetchItems();

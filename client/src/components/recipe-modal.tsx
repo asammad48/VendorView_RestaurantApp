@@ -66,17 +66,17 @@ export default function RecipeModal({
     enabled: !!branchId && open,
   });
 
-  // Fetch inventory items
+  // Fetch inventory items simple (non-paginated)
   const { data: inventoryItemsData } = useQuery({
-    queryKey: ["inventory-items", branchId],
-    queryFn: async () => await inventoryApi.getInventoryItemsByBranch(branchId),
+    queryKey: ["inventory-items-simple", branchId],
+    queryFn: async () => await inventoryApi.getInventoryItemsSimpleByBranch(branchId),
     enabled: !!branchId && open,
   });
 
-  // Extract array from pagination response with defensive pattern
+  // Simple API returns array directly
   const inventoryItems: InventoryItemSimple[] = Array.isArray(inventoryItemsData) 
     ? inventoryItemsData 
-    : (inventoryItemsData as any)?.items || [];
+    : [];
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeSchema),
