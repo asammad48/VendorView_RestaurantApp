@@ -15,7 +15,7 @@ const itemSchema = z.object({
   name: z.string().min(1, "Item name is required"),
   categoryId: z.number().min(1, "Category is required"),
   unit: z.string().min(1, "Unit is required"),
-  reorderLevel: z.number().min(0, "Reorder level must be at least 0"),
+  reorderLevel: z.number().min(0, "Reorder level must be at least 0").multipleOf(0.001, "Reorder level can have up to 3 decimal places"),
   defaultSupplierId: z.number().optional(),
 });
 
@@ -229,6 +229,7 @@ export default function AddInventoryItemModal({
             <Input
               id="reorderLevel"
               type="number"
+              step="0.001"
               {...form.register("reorderLevel", { valueAsNumber: true })}
               placeholder="Enter reorder level"
               data-testid="input-reorder-level"

@@ -26,7 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { inventoryApi } from "@/lib/apiRepository";
 
 const stockUpdateSchema = z.object({
-  newStock: z.coerce.number().min(0, "Stock must be 0 or greater"),
+  newStock: z.coerce.number().min(0, "Stock must be 0 or greater").multipleOf(0.001, "Stock can have up to 3 decimal places"),
   reason: z.string().min(1, "Reason is required"),
 });
 
@@ -148,7 +148,7 @@ export default function StockUpdateModal({
                   <FormControl>
                     <Input
                       type="number"
-                      step="0.01"
+                      step="0.001"
                       placeholder="Enter new stock quantity"
                       {...field}
                       data-testid="input-new-stock"

@@ -15,7 +15,7 @@ import { inventoryApi } from "@/lib/apiRepository";
 
 const wastageSchema = z.object({
   inventoryItemId: z.coerce.number().min(1, "Please select an item"),
-  quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0"),
+  quantity: z.coerce.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
   reason: z.string().min(1, "Reason is required"),
 });
 
@@ -174,7 +174,7 @@ export default function StockWastageModal({
                   <FormControl>
                     <Input
                       type="number"
-                      step="0.01"
+                      step="0.001"
                       placeholder="Enter wastage quantity"
                       {...field}
                       data-testid="input-quantity"
