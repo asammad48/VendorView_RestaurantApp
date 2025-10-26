@@ -3,7 +3,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, ExternalLink } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -241,6 +242,14 @@ export default function AddInventoryItemModal({
                 ))}
               </SelectContent>
             </Select>
+            {categories.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                No categories found.{" "}
+                <Link href="/inventory-management" className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-categories">
+                  Go to Categories <ExternalLink className="w-3 h-3" />
+                </Link>
+              </p>
+            )}
             {form.formState.errors.categoryId && (
               <p className="text-sm text-red-600 mt-1">{form.formState.errors.categoryId.message}</p>
             )}
@@ -335,6 +344,14 @@ export default function AddInventoryItemModal({
                 ))}
               </SelectContent>
             </Select>
+            {suppliers.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                No suppliers found.{" "}
+                <Link href="/inventory-management" className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-suppliers">
+                  Go to Suppliers <ExternalLink className="w-3 h-3" />
+                </Link>
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
