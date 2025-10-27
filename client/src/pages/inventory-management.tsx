@@ -382,7 +382,7 @@ export default function InventoryManagement() {
       });
     },
     enabled:
-      !!branchId && activeTab === "stock" && stockSubTab === "manage-stock",
+      !!branchId && activeTab === "stock" && (stockSubTab === "manage-stock" || stockSubTab === "stock-wastage"),
   });
   const stock = Array.isArray(stockData)
     ? stockData
@@ -1542,7 +1542,10 @@ export default function InventoryManagement() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setSelectedStockItem(item);
+                                setSelectedStockItem({
+                                  ...item,
+                                  itemId: item.inventoryItemId
+                                } as any);
                                 setShowStockUpdateModal(true);
                               }}
                               data-testid={`button-update-stock-${item.inventoryItemId}`}
@@ -2082,11 +2085,22 @@ export default function InventoryManagement() {
                   </TableHeader>
                   <TableBody>
                     {isLoadingWastage ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8">
-                          Loading wastage records...
-                        </TableCell>
-                      </TableRow>
+                      Array.from({ length: wastageItemsPerPage }, (_, i) => (
+                        <TableRow key={`loading-${i}`}>
+                          <TableCell>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          </TableCell>
+                        </TableRow>
+                      ))
                     ) : wastageItems.length === 0 ? (
                       <TableRow>
                         <TableCell
@@ -2258,11 +2272,34 @@ export default function InventoryManagement() {
               </TableHeader>
               <TableBody>
                 {isLoadingUtilityExpenses ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
-                      Loading utility expenses...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: expensesPerPage }, (_, i) => (
+                    <TableRow key={`loading-${i}`}>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : utilityExpenses.length === 0 ? (
                   <TableRow>
                     <TableCell
@@ -2466,11 +2503,19 @@ export default function InventoryManagement() {
               </TableHeader>
               <TableBody>
                 {isLoadingRecipes ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center">
-                      Loading recipes...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: recipesPerPage }, (_, i) => (
+                    <TableRow key={`loading-${i}`}>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : recipes.length === 0 ? (
                   <TableRow>
                     <TableCell
