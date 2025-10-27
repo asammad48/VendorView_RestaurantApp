@@ -1,4 +1,4 @@
-# Restaurant Management System
+# Scannify - Restaurant & Hotel Management System
 
 ## Overview
 This full-stack restaurant and hotel management application provides comprehensive entity management functionality for both hotels and restaurants. It includes user management, analytics, and reporting via an intuitive dashboard. The system supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics. Recent additions include a full inventory management system with stock tracking, low stock monitoring, purchase order capabilities, stock wastage tracking with date-filtered historical viewing, and expense management with utility expense tracking.
@@ -33,6 +33,8 @@ Technical preferences:
 - **Data Storage**: localStorage for session management and authentication tokens.
 - **Real API Integration**: Users API, Roles API, Entities/Branches API with proper authentication.
 - **Pagination System**: Generic pagination utilities with configurable page sizes (5, 10, 20, 50, 100).
+- **Server-Side Pagination**: All inventory management tables support server-side pagination with query parameters (PageNumber, PageSize, SortBy, IsAscending, SearchTerm). Frontend is ready to consume PaginationResponse structure from backend.
+- **PaginationResponse Handling**: All inventory endpoints (Categories, Items, Suppliers, Stock, Low Stock, Purchase Orders, Wastage, Utility Expenses, Recipes) use defensive data extraction pattern: `Array.isArray(data) ? data : (data as any)?.items || []` to support both direct array responses and PaginationResponse<T> format with backward compatibility.
 
 ### Authentication & Authorization
 - **Strategy**: Username/password authentication with role-based access.
@@ -45,6 +47,7 @@ Technical preferences:
 - **File Upload**: Image-only file upload for profile/certificate pictures (Base64 encoding, FormData for API).
 - **Mobile Responsiveness**: Full responsive design across all components.
 - **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, Tickets, User, Inventory (Categories, Suppliers, Items, Stock, Purchase Orders, Stock Wastage), and Expense Management (Utility Expenses).
+- **Inventory Management Search**: All inventory tables include search functionality with search bars for filtering by name/relevant field. Search queries are sent as SearchTerm query parameter to the API.
 - **User Management**: Add/Edit User modal with profile pictures, role, and branch assignment, with real API integration and name-only search filtering.
 - **Dashboard Analytics**: Sales summary, item performance, occupancy, peak hours, customer feedback with date range toggles and 7 specialized categories.
 - **Appearance Customization**: Gradient color picker for real-time UI previews.

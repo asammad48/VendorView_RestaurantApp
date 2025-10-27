@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -39,21 +39,24 @@ export default function PurchaseOrderModal({
   onSuccess 
 }: PurchaseOrderModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch suppliers
-  const { data: suppliers = [] } = useQuery<any[]>({
+  const { data: suppliersData } = useQuery({
     queryKey: ["inventory-suppliers", branchId],
-    queryFn: async () => (await inventoryApi.getInventorySuppliers(branchId)) as any[],
+    queryFn: async () => await inventoryApi.getInventorySuppliers(branchId),
     enabled: !!branchId && open,
   });
+  const suppliers = Array.isArray(suppliersData) ? suppliersData : (suppliersData as any)?.items || [];
 
   // Fetch inventory items
-  const { data: inventoryItems = [] } = useQuery<any[]>({
+  const { data: inventoryItemsData } = useQuery({
     queryKey: ["inventory-items", branchId],
-    queryFn: async () => (await inventoryApi.getInventoryItemsByBranch(branchId)) as any[],
+    queryFn: async () => await inventoryApi.getInventoryItemsByBranch(branchId),
     enabled: !!branchId && open,
   });
+  const inventoryItems = Array.isArray(inventoryItemsData) ? inventoryItemsData : (inventoryItemsData as any)?.items || [];
 
   const form = useForm<PurchaseOrderFormData>({
     resolver: zodResolver(purchaseOrderSchema),
@@ -86,6 +89,7 @@ export default function PurchaseOrderModal({
         description: "Purchase order created successfully",
       });
 
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders", branchId] });
       onSuccess();
       onClose();
       form.reset();

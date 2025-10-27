@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -14,7 +15,7 @@ import { inventoryApi } from "@/lib/apiRepository";
 
 const wastageSchema = z.object({
   inventoryItemId: z.coerce.number().min(1, "Please select an item"),
-  quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0"),
+  quantity: z.coerce.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
   reason: z.string().min(1, "Reason is required"),
 });
 
@@ -41,6 +42,7 @@ export default function StockWastageModal({
   onSuccess 
 }: StockWastageModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedItem, setSelectedItem] = useState<typeof inventoryItems[0] | null>(null);
 
@@ -80,6 +82,9 @@ export default function StockWastageModal({
         description: "Stock wastage recorded successfully",
       });
 
+      queryClient.invalidateQueries({ queryKey: ["inventory-wastage", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", branchId] });
       onSuccess();
       onClose();
       form.reset();
@@ -169,7 +174,7 @@ export default function StockWastageModal({
                   <FormControl>
                     <Input
                       type="number"
-                      step="0.01"
+                      step="0.001"
                       placeholder="Enter wastage quantity"
                       {...field}
                       data-testid="input-quantity"

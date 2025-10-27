@@ -61,6 +61,7 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-size: 0.9375rem;
     /* Prevent horizontal scrolling on main viewport */
     overflow-x: hidden;
   }
@@ -70,11 +71,80 @@
     max-width: 100vw;
     overflow-x: hidden;
   }
+
+  /* Sleeker heading sizes */
+  h1 {
+    @apply text-xl font-semibold;
+  }
+  
+  h2 {
+    @apply text-lg font-semibold;
+  }
+  
+  h3 {
+    @apply text-base font-semibold;
+  }
+  
+  h4 {
+    @apply text-sm font-semibold;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Compact utilities for sleeker design */
+  .compact-card {
+    @apply gap-3 p-4;
+  }
+
+  .compact-table {
+    @apply text-xs;
+  }
+
+  .compact-table th {
+    @apply py-2 px-3 text-xs font-medium;
+  }
+
+  .compact-table td {
+    @apply py-2 px-3 text-xs;
+  }
+
+  .compact-form {
+    @apply text-sm;
+  }
+
+  .compact-form input,
+  .compact-form select,
+  .compact-form textarea {
+    @apply py-2 px-3 text-sm;
+  }
+
+  .compact-button {
+    @apply py-1.5 px-3 text-sm;
+  }
+
+  .compact-badge {
+    @apply px-2 py-0.5 text-xs;
+  }
+
+  /* Management pages specific styles */
+  .management-page h2 {
+    @apply text-lg font-semibold;
+  }
+
+  .management-page .space-y-6 {
+    @apply space-y-4;
+  }
+
+  .management-page button {
+    @apply text-sm py-1.5 px-3;
+  }
+
+  .management-page input {
+    @apply text-sm py-2;
   }
 }
 
@@ -109,7 +179,7 @@
 
 /* Navigation styles */
 .nav-item {
-  @apply flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-gray-600 hover:text-green-600 hover:bg-green-50;
+  @apply flex items-center w-full px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ease-in-out text-gray-600 hover:text-green-600 hover:bg-green-50;
 }
 
 .nav-item.active {
@@ -117,7 +187,7 @@
 }
 
 .nav-item svg {
-  @apply mr-3 flex-shrink-0 h-4 w-4 text-gray-500 group-hover:text-green-600;
+  @apply mr-2 flex-shrink-0 h-3.5 w-3.5 text-gray-500 group-hover:text-green-600;
 }
 
 .nav-item.active svg {
@@ -136,16 +206,16 @@
 
 /* Status badge styles */
 .status-active {
-  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  @apply inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800;
 }
 
 .status-inactive {
-  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800;
+  @apply inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-100 text-orange-800;
 }
 
 /* Custom button variants for restaurant cards */
 .action-button {
-  @apply flex flex-col items-center text-sm font-medium transition-colors duration-200;
+  @apply flex flex-col items-center text-xs font-medium transition-colors duration-200;
 }
 
 .action-button-manage {
@@ -224,20 +294,20 @@
 
 /* Responsive grid layouts with flex-wrap fallbacks */
 .stats-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
 }
 
 .restaurant-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
 }
 
 .analytics-grid {
-  @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-4;
 }
 
 /* Flexible container layouts */
 .flex-container-wrap {
-  @apply flex flex-wrap gap-4;
+  @apply flex flex-wrap gap-3;
 }
 
 .flex-container-wrap > * {
@@ -246,12 +316,12 @@
 
 /* Responsive card containers */
 .card-grid {
-  @apply grid gap-4 grid-cols-1;
+  @apply grid gap-3 grid-cols-1;
 }
 
 @media (min-width: 640px) {
   .card-grid {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 }
 
@@ -288,11 +358,11 @@
 
 /* Form styling */
 .form-input {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
 }
 
 .form-button {
-  @apply w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-green-600 transition-colors duration-200 font-medium;
+  @apply w-full bg-primary text-primary-foreground py-2 text-sm rounded-lg hover:bg-green-600 transition-colors duration-200 font-medium;
 }
 
 .form-button:disabled {
@@ -310,20 +380,20 @@
 }
 
 .search-input input {
-  @apply w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
 }
 
 .search-input .search-icon {
-  @apply absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400;
+  @apply absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-gray-400;
 }
 
 /* Pagination styles */
 .pagination {
-  @apply flex items-center space-x-2;
+  @apply flex items-center space-x-1.5;
 }
 
 .pagination-button {
-  @apply px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm;
+  @apply px-2.5 py-1 border border-gray-300 rounded hover:bg-gray-50 text-xs;
 }
 
 .pagination-button.active {

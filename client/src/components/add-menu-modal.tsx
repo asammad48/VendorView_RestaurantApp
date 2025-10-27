@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { X, Plus } from "lucide-react";
+import { X, Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,7 @@ import { createApiQuery, createApiMutation, formatApiError } from "@/lib/errorHa
 import { useBranchCurrency } from "@/hooks/useBranchCurrency";
 import { validateImage, getConstraintDescription } from "@/lib/imageValidation";
 import type { InsertMenuItem, MenuCategory, MenuItem } from "@/types/schema";
+import { useLocation } from "wouter";
 
 const addMenuSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -64,6 +65,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { formatPrice, getCurrencySymbol } = useBranchCurrency(branchId);
+  const [, navigate] = useLocation();
   const [image, setImage] = useState<string>("");
   const [originalImage, setOriginalImage] = useState<string>(""); // Track original image for comparison
   const [customizations, setCustomizations] = useState<Customization[]>([{ name: "", options: [""] }]);
@@ -74,6 +76,29 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
   // Section visibility states
   const [showCustomizations, setShowCustomizations] = useState<boolean>(true);
   const [showModifiers, setShowModifiers] = useState<boolean>(true);
+  
+  // Navigation handlers
+  const handleNavigateToCategory = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentBranchId = urlParams.get('branchId') || branchId;
+    onClose();
+    setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      params.set('tab', 'Category');
+      navigate(`/restaurant-management?${params.toString()}`);
+    }, 100);
+  };
+  
+  const handleNavigateToSubMenu = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentBranchId = urlParams.get('branchId') || branchId;
+    onClose();
+    setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      params.set('tab', 'SubMenu');
+      navigate(`/restaurant-management?${params.toString()}`);
+    }, 100);
+  };
 
   // Fetch categories for dropdown - refreshes when modal opens
   const { data: categories, isLoading: categoriesLoading, refetch: refetchCategories } = useQuery({
@@ -639,6 +664,22 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
                   ))}
                 </SelectContent>
               </Select>
+              {!categoriesLoading && categories && categories.length === 0 && (
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-gray-700 mb-2">No categories found</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNavigateToCategory}
+                    className="text-blue-600 border-blue-600 hover:bg-blue-100"
+                    data-testid="button-navigate-to-category"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Go to Category Tab
+                  </Button>
+                </div>
+              )}
               {form.formState.errors.categoryId && (
                 <p className="text-sm text-red-500">{form.formState.errors.categoryId.message}</p>
               )}
@@ -795,7 +836,17 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
                     <div className="col-span-full text-center text-gray-500 py-8">
                       <p className="text-lg font-medium mb-2">No SubMenuItems Available</p>
                       <p className="text-sm mb-2">No modifiers are available for branch {branchId}.</p>
-                      <p className="text-sm text-blue-600">Create some SubMenuItems first to use as modifiers.</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNavigateToSubMenu}
+                        className="text-blue-600 border-blue-600 hover:bg-blue-100 mx-auto"
+                        data-testid="button-navigate-to-submenu"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Go to SubMenu Item Tab
+                      </Button>
                       <p className="text-xs mt-2 text-gray-500">Branch ID: {branchId}</p>
                     </div>
                   ) : (

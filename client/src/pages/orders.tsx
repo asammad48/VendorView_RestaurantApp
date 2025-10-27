@@ -1221,7 +1221,7 @@ export default function Orders() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation("/entities")}
+            onClick={() => setLocation("/branches")}
             data-testid="button-back"
           >
             <ArrowLeft className="w-4 h-4" />

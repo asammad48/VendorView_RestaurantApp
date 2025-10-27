@@ -9,6 +9,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { navigationItems } from "./nav-items";
+import scannifyLogoFull from "@assets/New Banner - Scannify_1761489778431.png";
+import scannifyLogoCollapsed from "@assets/New Banner - Scannify_1761489778431.png";
 
 interface CollapsibleSidebarProps {
   collapsed?: boolean;
@@ -48,15 +50,15 @@ export default function CollapsibleSidebar({
             "flex items-center transition-all duration-300",
             collapsed && "justify-center"
           )}>
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm" data-testid="logo-text">R</span>
-            </div>
-            {!collapsed && (
-              <div className="ml-3">
-                <h2 className="text-base font-semibold text-gray-800" data-testid="brand-name">Restaurant</h2>
-                <p className="text-xs text-gray-500" data-testid="brand-subtitle">Dashboard</p>
-              </div>
-            )}
+            <img 
+              src={collapsed ? scannifyLogoCollapsed : scannifyLogoFull} 
+              alt="Scannify" 
+              className={cn(
+                "w-auto transition-all duration-300",
+                collapsed ? "h-8" : "h-12"
+              )}
+              data-testid="logo-image"
+            />
           </div>
           
           <Button
@@ -147,7 +149,7 @@ export default function CollapsibleSidebar({
             "text-xs text-gray-500 text-center",
             collapsed ? "px-1" : "px-3"
           )}>
-            {collapsed ? "©" : "© 2024 Restaurant Dashboard"}
+            {collapsed ? "©" : "© 2024 Scannify"}
           </div>
         </div>
       </div>

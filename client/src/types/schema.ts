@@ -821,8 +821,8 @@ export interface RecipeDetail {
 export const insertRecipeItemSchema = z.object({
   id: z.number().optional(),
   inventoryItemId: z.number().min(1, "Inventory item is required"),
-  quantity: z.number().min(0.01, "Quantity must be greater than 0"),
-  unit: z.string().min(1, "Unit is required"),
+  quantity: z.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
+  unit: z.string().optional(), // Unit is auto-populated from inventory item
 });
 
 export const insertRecipeSchema = z.object({
