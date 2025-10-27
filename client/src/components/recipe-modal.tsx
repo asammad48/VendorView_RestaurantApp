@@ -195,7 +195,7 @@ export default function RecipeModal({
     
     onClose();
     setTimeout(() => {
-      navigate(`/branch-management?EntityId=${branchData.entityId}&BranchId=${branchId}`);
+      navigate(`/restaurant-management?entityId=${branchData.entityId}&branchId=${branchId}&entityType=restaurant&showPricing=true`);
     }, 100);
   };
 

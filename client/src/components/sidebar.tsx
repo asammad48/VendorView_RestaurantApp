@@ -29,7 +29,7 @@ export default function Sidebar() {
               const Icon = item.icon;
               
               // Define branch-related pages that should keep Entities selected
-              const branchRelatedPages = ["/branches", "/restaurant-management", "/hotel-management"];
+              const branchRelatedPages = ["/branches", "/restaurant-management", "/hotel-management", "/inventory-management"];
               
               // Check if current page is branch-related and item is Entities
               const isBranchPageAndEntities = branchRelatedPages.includes(location) && item.href === "/entities";
