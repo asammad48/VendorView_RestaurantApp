@@ -2310,15 +2310,14 @@ export const inventoryApi = {
       if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
     }
     
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getInventoryCategories"];
+    const baseEndpoint = "/api/inventory/categories";
     apiRepository.updateEndpoint(
       "getInventoryCategories",
-      `${originalEndpoint}?${params.toString()}`,
+      `${baseEndpoint}?${params.toString()}`,
     );
 
     const response = await apiRepository.call("getInventoryCategories", "GET");
-    apiRepository.updateEndpoint("getInventoryCategories", originalEndpoint);
+    apiRepository.updateEndpoint("getInventoryCategories", baseEndpoint);
 
     if (response.error) {
       throw new Error(response.error);
@@ -2392,15 +2391,14 @@ export const inventoryApi = {
       if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
     }
     
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getInventorySuppliers"];
+    const baseEndpoint = "/api/inventory/suppliers";
     apiRepository.updateEndpoint(
       "getInventorySuppliers",
-      `${originalEndpoint}?${params.toString()}`,
+      `${baseEndpoint}?${params.toString()}`,
     );
 
     const response = await apiRepository.call("getInventorySuppliers", "GET");
-    apiRepository.updateEndpoint("getInventorySuppliers", originalEndpoint);
+    apiRepository.updateEndpoint("getInventorySuppliers", baseEndpoint);
 
     if (response.error) {
       throw new Error(response.error);
@@ -2503,8 +2501,8 @@ export const inventoryApi = {
       if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
     }
     
-    const originalEndpoint = apiRepository.getConfig().endpoints["getInventoryItemsByBranch"];
-    let endpoint = originalEndpoint.replace('{branchId}', branchId.toString());
+    const baseEndpoint = "/api/inventory/items/branch";
+    let endpoint = `${baseEndpoint}/${branchId}`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
@@ -2517,7 +2515,7 @@ export const inventoryApi = {
       {},
       true,
     );
-    apiRepository.updateEndpoint("getInventoryItemsByBranch", originalEndpoint);
+    apiRepository.updateEndpoint("getInventoryItemsByBranch", baseEndpoint + "/{branchId}");
     
     if (response.error) {
       throw new Error(response.error);
@@ -2636,8 +2634,8 @@ export const inventoryApi = {
       if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
     }
     
-    const originalEndpoint = apiRepository.getConfig().endpoints["getInventoryStockByBranch"];
-    let endpoint = originalEndpoint.replace('{branchId}', branchId.toString());
+    const baseEndpoint = "/api/inventory/stock/branch";
+    let endpoint = `${baseEndpoint}/${branchId}`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
@@ -2650,7 +2648,7 @@ export const inventoryApi = {
       {},
       true,
     );
-    apiRepository.updateEndpoint("getInventoryStockByBranch", originalEndpoint);
+    apiRepository.updateEndpoint("getInventoryStockByBranch", baseEndpoint + "/{branchId}");
     
     if (response.error) {
       throw new Error(response.error);
@@ -2695,8 +2693,8 @@ export const inventoryApi = {
       if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
     }
     
-    const originalEndpoint = apiRepository.getConfig().endpoints["getInventoryLowStockByBranch"];
-    let endpoint = originalEndpoint.replace('{branchId}', branchId.toString());
+    const baseEndpoint = "/api/inventory/lowstock/branch";
+    let endpoint = `${baseEndpoint}/${branchId}`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
@@ -2709,7 +2707,7 @@ export const inventoryApi = {
       {},
       true,
     );
-    apiRepository.updateEndpoint("getInventoryLowStockByBranch", originalEndpoint);
+    apiRepository.updateEndpoint("getInventoryLowStockByBranch", baseEndpoint + "/{branchId}");
     
     if (response.error) {
       throw new Error(response.error);
@@ -2754,8 +2752,8 @@ export const inventoryApi = {
       if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
     }
     
-    const originalEndpoint = apiRepository.getConfig().endpoints["getPurchaseOrdersByBranch"];
-    let endpoint = originalEndpoint.replace('{branchId}', branchId.toString());
+    const baseEndpoint = "/api/inventory/purchaseorders/branch";
+    let endpoint = `${baseEndpoint}/${branchId}`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
@@ -2768,7 +2766,7 @@ export const inventoryApi = {
       {},
       true,
     );
-    apiRepository.updateEndpoint("getPurchaseOrdersByBranch", originalEndpoint);
+    apiRepository.updateEndpoint("getPurchaseOrdersByBranch", baseEndpoint + "/{branchId}");
     
     if (response.error) {
       throw new Error(response.error);
@@ -2861,14 +2859,14 @@ export const inventoryApi = {
       if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
     }
     
-    const originalEndpoint = apiRepository.getConfig().endpoints["getRecipes"];
+    const baseEndpoint = "/api/recipes";
     apiRepository.updateEndpoint(
       "getRecipes",
-      `${originalEndpoint}?${params.toString()}`,
+      `${baseEndpoint}?${params.toString()}`,
     );
 
     const response = await apiRepository.call("getRecipes", "GET");
-    apiRepository.updateEndpoint("getRecipes", originalEndpoint);
+    apiRepository.updateEndpoint("getRecipes", baseEndpoint);
 
     if (response.error) {
       throw new Error(response.error);
@@ -2984,11 +2982,10 @@ export const inventoryApi = {
       if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
     }
     
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getInventoryWastageByBranch"];
+    const baseEndpoint = "/api/inventory/wastage";
     apiRepository.updateEndpoint(
       "getInventoryWastageByBranch",
-      `${originalEndpoint}?${params.toString()}`,
+      `${baseEndpoint}?${params.toString()}`,
     );
 
     const response = await apiRepository.call(
@@ -2997,7 +2994,7 @@ export const inventoryApi = {
     );
     apiRepository.updateEndpoint(
       "getInventoryWastageByBranch",
-      originalEndpoint,
+      baseEndpoint,
     );
 
     if (response.error) {
@@ -3044,8 +3041,8 @@ export const inventoryApi = {
       if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
     }
     
-    const originalEndpoint = apiRepository.getConfig().endpoints["getUtilityExpensesByBranch"];
-    let endpoint = originalEndpoint.replace('{branchId}', branchId.toString());
+    const baseEndpoint = "/api/facilityutilityrecords/branch";
+    let endpoint = `${baseEndpoint}/${branchId}`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
@@ -3058,7 +3055,7 @@ export const inventoryApi = {
       undefined,
       true,
     );
-    apiRepository.updateEndpoint("getUtilityExpensesByBranch", originalEndpoint);
+    apiRepository.updateEndpoint("getUtilityExpensesByBranch", baseEndpoint + "/{branchId}");
     
     if (response.error) {
       throw new Error(response.error);
