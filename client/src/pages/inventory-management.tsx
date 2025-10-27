@@ -252,7 +252,6 @@ export default function InventoryManagement() {
 
   const searchParams = new URLSearchParams(window.location.search);
   const branchId = parseInt(searchParams.get("branchId") || "0");
-  const tabParam = searchParams.get("tab");
 
   // Fetch branch information
   const { data: branchData } = useQuery({
@@ -603,13 +602,6 @@ export default function InventoryManagement() {
         recipesPerPage,
     ),
   );
-
-  // Set active tab from URL parameter
-  useEffect(() => {
-    if (tabParam && ["categories", "suppliers", "items", "stock", "expenses", "recipes"].includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
-  }, [tabParam]);
 
   // Refetch data when tab changes
   useEffect(() => {
@@ -2679,6 +2671,8 @@ export default function InventoryManagement() {
               queryKey: ["inventory-items", branchId],
             });
           }}
+          onNavigateToCategories={() => setActiveTab("categories")}
+          onNavigateToSuppliers={() => setActiveTab("suppliers")}
         />
       )}
 
@@ -2699,6 +2693,8 @@ export default function InventoryManagement() {
               queryKey: ["inventory-items", branchId],
             });
           }}
+          onNavigateToCategories={() => setActiveTab("categories")}
+          onNavigateToSuppliers={() => setActiveTab("suppliers")}
         />
       )}
 
@@ -2786,6 +2782,7 @@ export default function InventoryManagement() {
             refetchRecipes();
             queryClient.invalidateQueries({ queryKey: ["recipes", branchId] });
           }}
+          onNavigateToItems={() => setActiveTab("items")}
         />
       )}
 
@@ -2802,6 +2799,7 @@ export default function InventoryManagement() {
             refetchRecipes();
             queryClient.invalidateQueries({ queryKey: ["recipes", branchId] });
           }}
+          onNavigateToItems={() => setActiveTab("items")}
         />
       )}
 

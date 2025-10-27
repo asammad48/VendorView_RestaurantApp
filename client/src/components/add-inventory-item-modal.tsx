@@ -85,6 +85,8 @@ interface AddInventoryItemModalProps {
   categories: InventoryCategory[];
   suppliers: InventorySupplier[];
   onSuccess?: () => void;
+  onNavigateToCategories?: () => void;
+  onNavigateToSuppliers?: () => void;
 }
 
 export default function AddInventoryItemModal({ 
@@ -94,7 +96,9 @@ export default function AddInventoryItemModal({
   item,
   categories,
   suppliers,
-  onSuccess 
+  onSuccess,
+  onNavigateToCategories,
+  onNavigateToSuppliers
 }: AddInventoryItemModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -115,16 +119,20 @@ export default function AddInventoryItemModal({
 
   const handleNavigateToCategories = () => {
     onClose();
-    setTimeout(() => {
-      navigate(`/inventory-management?branchId=${branchId}&tab=categories`);
-    }, 100);
+    if (onNavigateToCategories) {
+      setTimeout(() => {
+        onNavigateToCategories();
+      }, 100);
+    }
   };
 
   const handleNavigateToSuppliers = () => {
     onClose();
-    setTimeout(() => {
-      navigate(`/inventory-management?branchId=${branchId}&tab=suppliers`);
-    }, 100);
+    if (onNavigateToSuppliers) {
+      setTimeout(() => {
+        onNavigateToSuppliers();
+      }, 100);
+    }
   };
 
   useEffect(() => {

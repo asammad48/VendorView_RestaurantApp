@@ -46,6 +46,7 @@ interface RecipeModalProps {
   branchId: number;
   recipe?: RecipeDetail;
   onSuccess: () => void;
+  onNavigateToItems?: () => void;
 }
 
 export default function RecipeModal({ 
@@ -53,7 +54,8 @@ export default function RecipeModal({
   onClose, 
   branchId,
   recipe,
-  onSuccess 
+  onSuccess,
+  onNavigateToItems
 }: RecipeModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -199,9 +201,11 @@ export default function RecipeModal({
 
   const handleNavigateToInventoryManagement = () => {
     onClose();
-    setTimeout(() => {
-      navigate(`/inventory-management?branchId=${branchId}&tab=items`);
-    }, 100);
+    if (onNavigateToItems) {
+      setTimeout(() => {
+        onNavigateToItems();
+      }, 100);
+    }
   };
 
   const onSubmit = async (data: RecipeFormData) => {
