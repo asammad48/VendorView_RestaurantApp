@@ -113,10 +113,17 @@ export default function AddInventoryItemModal({
     },
   });
 
-  const handleNavigateToInventoryManagement = () => {
+  const handleNavigateToCategories = () => {
     onClose();
     setTimeout(() => {
-      navigate(`/inventory-management?branchId=${branchId}`);
+      navigate(`/inventory-management?branchId=${branchId}&tab=categories`);
+    }, 100);
+  };
+
+  const handleNavigateToSuppliers = () => {
+    onClose();
+    setTimeout(() => {
+      navigate(`/inventory-management?branchId=${branchId}&tab=suppliers`);
     }, 100);
   };
 
@@ -255,7 +262,7 @@ export default function AddInventoryItemModal({
                 No categories found.{" "}
                 <button 
                   type="button"
-                  onClick={handleNavigateToInventoryManagement} 
+                  onClick={handleNavigateToCategories} 
                   className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline" 
                   data-testid="link-categories"
                 >
@@ -362,7 +369,7 @@ export default function AddInventoryItemModal({
                 No suppliers found.{" "}
                 <button 
                   type="button"
-                  onClick={handleNavigateToInventoryManagement} 
+                  onClick={handleNavigateToSuppliers} 
                   className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline" 
                   data-testid="link-suppliers"
                 >

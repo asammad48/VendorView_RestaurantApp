@@ -250,9 +250,9 @@ export default function InventoryManagement() {
   const [expensesSearch, setExpensesSearch] = useState("");
   const [recipesSearch, setRecipesSearch] = useState("");
 
-  const branchId = parseInt(
-    new URLSearchParams(window.location.search).get("branchId") || "0",
-  );
+  const searchParams = new URLSearchParams(window.location.search);
+  const branchId = parseInt(searchParams.get("branchId") || "0");
+  const tabParam = searchParams.get("tab");
 
   // Fetch branch information
   const { data: branchData } = useQuery({
@@ -603,6 +603,13 @@ export default function InventoryManagement() {
         recipesPerPage,
     ),
   );
+
+  // Set active tab from URL parameter
+  useEffect(() => {
+    if (tabParam && ["categories", "suppliers", "items", "stock", "expenses", "recipes"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   // Refetch data when tab changes
   useEffect(() => {

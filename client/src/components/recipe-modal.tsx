@@ -200,7 +200,7 @@ export default function RecipeModal({
   const handleNavigateToInventoryManagement = () => {
     onClose();
     setTimeout(() => {
-      navigate(`/inventory-management?branchId=${branchId}`);
+      navigate(`/inventory-management?branchId=${branchId}&tab=items`);
     }, 100);
   };
 
