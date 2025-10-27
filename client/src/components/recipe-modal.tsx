@@ -5,7 +5,7 @@ import * as z from "zod";
 import { ChefHat, Plus, Trash2, Calculator, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -13,8 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { inventoryApi } from "@/lib/apiRepository";
-import { RecipeDetail, MenuItemSearchData, InventoryItemSimple, MenuItemSearchVariant } from "@/types/schema";
+import { inventoryApi, branchApi } from "@/lib/apiRepository";
+import { RecipeDetail, MenuItemSearchData, InventoryItemSimple, MenuItemSearchVariant, Branch } from "@/types/schema";
 
 const recipeSchema = z.object({
   recipeType: z.enum(["menuItem", "subMenuItem"]),
@@ -57,10 +57,17 @@ export default function RecipeModal({
 }: RecipeModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedIngredientIndex, setSelectedIngredientIndex] = useState<number | null>(null);
   const [numberOfOrders, setNumberOfOrders] = useState<string>("");
   const isEdit = !!recipe;
+
+  const { data: branchData } = useQuery({
+    queryKey: ['branch', branchId],
+    queryFn: async () => await branchApi.getBranchById(branchId) as Branch,
+    enabled: !!branchId && open,
+  });
 
   const { data: menuData } = useQuery({
     queryKey: ["menu-items-search", branchId],
@@ -179,6 +186,22 @@ export default function RecipeModal({
       const subMenuItem = (menuData as MenuItemSearchData)?.subMenuItems?.find((item: any) => item.id === selectedSubMenuItemId);
       return subMenuItem?.name || "";
     }
+  };
+
+  const handleNavigateToBranchManagement = () => {
+    if (!branchData?.entityId) return;
+    
+    onClose();
+    setTimeout(() => {
+      navigate(`/branch-management?EntityId=${branchData.entityId}&BranchId=${branchId}`);
+    }, 100);
+  };
+
+  const handleNavigateToInventoryManagement = () => {
+    onClose();
+    setTimeout(() => {
+      navigate(`/inventory-management?branchId=${branchId}`);
+    }, 100);
   };
 
   const onSubmit = async (data: RecipeFormData) => {
@@ -310,9 +333,14 @@ export default function RecipeModal({
                           {!(menuData as MenuItemSearchData)?.menuItems?.length && (
                             <p className="text-xs text-gray-500 mt-1">
                               No menu items found.{" "}
-                              <Link href="/branch-management" className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-branch-management">
+                              <button 
+                                type="button"
+                                onClick={handleNavigateToBranchManagement} 
+                                className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline" 
+                                data-testid="link-branch-management"
+                              >
                                 Go to Branch Management <ExternalLink className="w-3 h-3" />
-                              </Link>
+                              </button>
                             </p>
                           )}
                           <FormMessage />
@@ -377,9 +405,14 @@ export default function RecipeModal({
                         {!(menuData as MenuItemSearchData)?.subMenuItems?.length && (
                           <p className="text-xs text-gray-500 mt-1">
                             No sub menu items found.{" "}
-                            <Link href="/branch-management" className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-branch-management-submenu">
+                            <button 
+                              type="button"
+                              onClick={handleNavigateToBranchManagement} 
+                              className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline" 
+                              data-testid="link-branch-management-submenu"
+                            >
                               Go to Branch Management <ExternalLink className="w-3 h-3" />
-                            </Link>
+                            </button>
                           </p>
                         )}
                         <FormMessage />
@@ -423,9 +456,14 @@ export default function RecipeModal({
                   {inventoryItems.length === 0 && (
                     <p className="text-xs text-gray-500 mb-3">
                       No inventory items found.{" "}
-                      <Link href="/inventory-management" className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-inventory-items">
+                      <button 
+                        type="button"
+                        onClick={handleNavigateToInventoryManagement} 
+                        className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline" 
+                        data-testid="link-inventory-items"
+                      >
                         Go to Inventory Items <ExternalLink className="w-3 h-3" />
-                      </Link>
+                      </button>
                     </p>
                   )}
 

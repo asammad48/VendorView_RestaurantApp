@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Check, ChevronsUpDown, ExternalLink } from "lucide-react";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,6 +98,7 @@ export default function AddInventoryItemModal({
 }: AddInventoryItemModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const isEdit = !!item;
   const [unitPopoverOpen, setUnitPopoverOpen] = useState(false);
   
@@ -111,6 +112,13 @@ export default function AddInventoryItemModal({
       defaultSupplierId: undefined,
     },
   });
+
+  const handleNavigateToInventoryManagement = () => {
+    onClose();
+    setTimeout(() => {
+      navigate(`/inventory-management?branchId=${branchId}`);
+    }, 100);
+  };
 
   useEffect(() => {
     if (open && item) {
@@ -245,9 +253,14 @@ export default function AddInventoryItemModal({
             {categories.length === 0 && (
               <p className="text-xs text-gray-500 mt-1">
                 No categories found.{" "}
-                <Link href="/inventory-management" className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-categories">
+                <button 
+                  type="button"
+                  onClick={handleNavigateToInventoryManagement} 
+                  className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline" 
+                  data-testid="link-categories"
+                >
                   Go to Categories <ExternalLink className="w-3 h-3" />
-                </Link>
+                </button>
               </p>
             )}
             {form.formState.errors.categoryId && (
@@ -347,9 +360,14 @@ export default function AddInventoryItemModal({
             {suppliers.length === 0 && (
               <p className="text-xs text-gray-500 mt-1">
                 No suppliers found.{" "}
-                <Link href="/inventory-management" className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-suppliers">
+                <button 
+                  type="button"
+                  onClick={handleNavigateToInventoryManagement} 
+                  className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline" 
+                  data-testid="link-suppliers"
+                >
                   Go to Suppliers <ExternalLink className="w-3 h-3" />
-                </Link>
+                </button>
               </p>
             )}
           </div>
