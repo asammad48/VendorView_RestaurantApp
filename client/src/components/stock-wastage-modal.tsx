@@ -142,14 +142,16 @@ export default function StockWastageModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {inventoryItems.map((item) => (
-                        <SelectItem 
-                          key={item.inventoryItemId} 
-                          value={item.inventoryItemId.toString()}
-                        >
-                          {item.itemName} ({item.currentStock} {item.unit})
-                        </SelectItem>
-                      ))}
+                      {inventoryItems
+                        .filter((item) => item && item.inventoryItemId)
+                        .map((item) => (
+                          <SelectItem 
+                            key={item.inventoryItemId} 
+                            value={item.inventoryItemId.toString()}
+                          >
+                            {item.itemName} ({item.currentStock} {item.unit})
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
