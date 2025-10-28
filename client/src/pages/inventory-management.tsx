@@ -301,7 +301,9 @@ export default function InventoryManagement() {
     },
     enabled: !!branchId && (showAddItemModal || showEditItemModal),
   });
-  const simpleCategories = Array.isArray(simpleCategoriesData) ? simpleCategoriesData : [];
+  const simpleCategories = Array.isArray(simpleCategoriesData)
+    ? simpleCategoriesData
+    : [];
 
   // Fetch inventory suppliers (lazy load)
   const {
@@ -382,7 +384,9 @@ export default function InventoryManagement() {
       });
     },
     enabled:
-      !!branchId && activeTab === "stock" && stockSubTab === "manage-stock",
+      !!branchId &&
+      activeTab === "stock" &&
+      (stockSubTab === "manage-stock" || stockSubTab === "stock-wastage"),
   });
   const stock = Array.isArray(stockData)
     ? stockData
@@ -1508,8 +1512,14 @@ export default function InventoryManagement() {
                             <p>No stock found</p>
                             <p className="text-xs mt-2">
                               No inventory items available.{" "}
-                              <Link href="#" onClick={() => setActiveTab("items")} className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-inventory-items-stock">
-                                Go to Inventory Items <ExternalLink className="w-3 h-3" />
+                              <Link
+                                href="#"
+                                onClick={() => setActiveTab("items")}
+                                className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                                data-testid="link-inventory-items-stock"
+                              >
+                                Go to Inventory Items{" "}
+                                <ExternalLink className="w-3 h-3" />
                               </Link>
                             </p>
                           </div>
@@ -1518,23 +1528,21 @@ export default function InventoryManagement() {
                     ) : (
                       stock.map((item) => (
                         <TableRow
-                          key={item.inventoryItemId}
-                          data-testid={`stock-row-${item.inventoryItemId}`}
+                          key={item.itemId}
+                          data-testid={`stock-row-${item.itemId}`}
                         >
                           <TableCell
                             className="font-medium"
-                            data-testid={`stock-name-${item.inventoryItemId}`}
+                            data-testid={`stock-name-${item.itemId}`}
                           >
                             {item.itemName}
                           </TableCell>
                           <TableCell
-                            data-testid={`stock-current-${item.inventoryItemId}`}
+                            data-testid={`stock-current-${item.itemId}`}
                           >
                             {item.currentStock}
                           </TableCell>
-                          <TableCell
-                            data-testid={`stock-unit-${item.inventoryItemId}`}
-                          >
+                          <TableCell data-testid={`stock-unit-${item.itemId}`}>
                             {item.unit}
                           </TableCell>
                           <TableCell>
@@ -1542,10 +1550,13 @@ export default function InventoryManagement() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setSelectedStockItem(item);
+                                setSelectedStockItem({
+                                  ...item,
+                                  itemId: item.itemId,
+                                } as any);
                                 setShowStockUpdateModal(true);
                               }}
-                              data-testid={`button-update-stock-${item.inventoryItemId}`}
+                              data-testid={`button-update-stock-${item.itemId}`}
                             >
                               <Edit className="w-4 h-4 text-blue-600" />
                             </Button>
@@ -2082,11 +2093,22 @@ export default function InventoryManagement() {
                   </TableHeader>
                   <TableBody>
                     {isLoadingWastage ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8">
-                          Loading wastage records...
-                        </TableCell>
-                      </TableRow>
+                      Array.from({ length: wastageItemsPerPage }, (_, i) => (
+                        <TableRow key={`loading-${i}`}>
+                          <TableCell>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          </TableCell>
+                        </TableRow>
+                      ))
                     ) : wastageItems.length === 0 ? (
                       <TableRow>
                         <TableCell
@@ -2258,11 +2280,34 @@ export default function InventoryManagement() {
               </TableHeader>
               <TableBody>
                 {isLoadingUtilityExpenses ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
-                      Loading utility expenses...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: expensesPerPage }, (_, i) => (
+                    <TableRow key={`loading-${i}`}>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : utilityExpenses.length === 0 ? (
                   <TableRow>
                     <TableCell
@@ -2466,11 +2511,19 @@ export default function InventoryManagement() {
               </TableHeader>
               <TableBody>
                 {isLoadingRecipes ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center">
-                      Loading recipes...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: recipesPerPage }, (_, i) => (
+                    <TableRow key={`loading-${i}`}>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : recipes.length === 0 ? (
                   <TableRow>
                     <TableCell
@@ -2481,8 +2534,13 @@ export default function InventoryManagement() {
                         <p>No recipes found</p>
                         <p className="text-xs mt-2">
                           No menu items or sub-menu items available.{" "}
-                          <Link href="/branch-management" className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1" data-testid="link-branch-management-recipes">
-                            Go to Branch Management <ExternalLink className="w-3 h-3" />
+                          <Link
+                            href="/branch-management"
+                            className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                            data-testid="link-branch-management-recipes"
+                          >
+                            Go to Branch Management{" "}
+                            <ExternalLink className="w-3 h-3" />
                           </Link>
                         </p>
                       </div>
@@ -2495,8 +2553,8 @@ export default function InventoryManagement() {
                         className="font-medium"
                         data-testid={`recipe-name-${recipe.id}`}
                       >
-                        {recipe.subMenuItemName 
-                          ? recipe.subMenuItemName 
+                        {recipe.subMenuItemName
+                          ? recipe.subMenuItemName
                           : `${recipe.menuItemName} - ${recipe.variantName}`}
                       </TableCell>
                       <TableCell data-testid={`recipe-type-${recipe.id}`}>
