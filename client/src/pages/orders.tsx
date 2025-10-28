@@ -1875,7 +1875,7 @@ export default function Orders() {
                             data-testid={`menu-item-category-${item.id}`}
                           >
                             <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                              {item.categoryName || "Unknown Category"}
+                              {item.menuCategoryName || "Unknown Category"}
                             </Badge>
                           </TableCell>
                           <TableCell
