@@ -2923,7 +2923,7 @@ export const inventoryApi = {
         params.append("SearchTerm", paginationParams.SearchTerm);
     }
 
-    const baseEndpoint = "/api/recipes";
+    const baseEndpoint = "/api/inventory/recipes";
     apiRepository.updateEndpoint(
       "getRecipes",
       `${baseEndpoint}?${params.toString()}`,
