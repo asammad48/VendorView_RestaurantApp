@@ -471,7 +471,8 @@ export const API_ENDPOINTS = {
   INVENTORY_SUPPLIER_BY_ID: "/api/inventory/suppliers/{id}",
   INVENTORY_ITEMS: "/api/inventory/items",
   INVENTORY_ITEMS_BY_BRANCH: "/api/inventory/items/branch/{branchId}",
-  INVENTORY_ITEMS_SIMPLE_BY_BRANCH: "/api/inventory/items/branch/simple/{branchId}",
+  INVENTORY_ITEMS_SIMPLE_BY_BRANCH:
+    "/api/inventory/items/branch/simple/{branchId}",
   INVENTORY_ITEM_BY_ID: "/api/inventory/items/{id}",
 
   // Inventory Stock endpoints
@@ -513,7 +514,8 @@ export const API_ENDPOINTS = {
   MENU_CATEGORIES: "/api/MenuCategory",
   MENU_CATEGORY_BY_ID: "/api/MenuCategory/{id}",
   MENU_CATEGORIES_BY_BRANCH: "/api/MenuCategory/branch/{branchId}",
-  MENU_CATEGORIES_SIMPLE_BY_BRANCH: "/api/MenuCategory/GetBranchById/{branchId}",
+  MENU_CATEGORIES_SIMPLE_BY_BRANCH:
+    "/api/MenuCategory/GetBranchById/{branchId}",
 
   // SubMenu endpoints
   SUBMENUS: "/api/SubMenuItems",
@@ -669,7 +671,8 @@ export const defaultApiConfig: ApiConfig = {
     updateMenuCategory: API_ENDPOINTS.MENU_CATEGORY_BY_ID,
     deleteMenuCategory: API_ENDPOINTS.MENU_CATEGORY_BY_ID,
     getMenuCategoriesByBranch: API_ENDPOINTS.MENU_CATEGORIES_BY_BRANCH,
-    getMenuCategoriesSimpleByBranch: API_ENDPOINTS.MENU_CATEGORIES_SIMPLE_BY_BRANCH,
+    getMenuCategoriesSimpleByBranch:
+      API_ENDPOINTS.MENU_CATEGORIES_SIMPLE_BY_BRANCH,
 
     // SubMenu endpoints
     getSubMenus: API_ENDPOINTS.SUBMENUS,
@@ -720,7 +723,8 @@ export const defaultApiConfig: ApiConfig = {
     deleteInventorySupplier: API_ENDPOINTS.INVENTORY_SUPPLIER_BY_ID,
     getInventoryItems: API_ENDPOINTS.INVENTORY_ITEMS,
     getInventoryItemsByBranch: API_ENDPOINTS.INVENTORY_ITEMS_BY_BRANCH,
-    getInventoryItemsSimpleByBranch: API_ENDPOINTS.INVENTORY_ITEMS_SIMPLE_BY_BRANCH,
+    getInventoryItemsSimpleByBranch:
+      API_ENDPOINTS.INVENTORY_ITEMS_SIMPLE_BY_BRANCH,
     getInventoryItemById: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
     createInventoryItem: API_ENDPOINTS.INVENTORY_ITEMS,
     updateInventoryItem: API_ENDPOINTS.INVENTORY_ITEM_BY_ID,
@@ -2293,23 +2297,31 @@ export const reservationApi = {
 // Inventory API Helper Functions
 export const inventoryApi = {
   // Get inventory categories by branch
-  getInventoryCategories: async (branchId: number, paginationParams?: {
-    PageNumber?: number;
-    PageSize?: number;
-    SortBy?: string;
-    IsAscending?: boolean;
-    SearchTerm?: string;
-  }) => {
+  getInventoryCategories: async (
+    branchId: number,
+    paginationParams?: {
+      PageNumber?: number;
+      PageSize?: number;
+      SortBy?: string;
+      IsAscending?: boolean;
+      SearchTerm?: string;
+    },
+  ) => {
     const params = new URLSearchParams({ BranchId: branchId.toString() });
-    
+
     if (paginationParams) {
-      if (paginationParams.PageNumber) params.append('PageNumber', paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize) params.append('PageSize', paginationParams.PageSize.toString());
-      if (paginationParams.SortBy) params.append('SortBy', paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined) params.append('IsAscending', paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
+      if (paginationParams.PageNumber)
+        params.append("PageNumber", paginationParams.PageNumber.toString());
+      if (paginationParams.PageSize)
+        params.append("PageSize", paginationParams.PageSize.toString());
+      if (paginationParams.SortBy)
+        params.append("SortBy", paginationParams.SortBy);
+      if (paginationParams.IsAscending !== undefined)
+        params.append("IsAscending", paginationParams.IsAscending.toString());
+      if (paginationParams.SearchTerm)
+        params.append("SearchTerm", paginationParams.SearchTerm);
     }
-    
+
     const baseEndpoint = "/api/inventory/categories";
     apiRepository.updateEndpoint(
       "getInventoryCategories",
@@ -2374,23 +2386,31 @@ export const inventoryApi = {
   },
 
   // Get inventory suppliers by branch
-  getInventorySuppliers: async (branchId: number, paginationParams?: {
-    PageNumber?: number;
-    PageSize?: number;
-    SortBy?: string;
-    IsAscending?: boolean;
-    SearchTerm?: string;
-  }) => {
+  getInventorySuppliers: async (
+    branchId: number,
+    paginationParams?: {
+      PageNumber?: number;
+      PageSize?: number;
+      SortBy?: string;
+      IsAscending?: boolean;
+      SearchTerm?: string;
+    },
+  ) => {
     const params = new URLSearchParams({ branchId: branchId.toString() });
-    
+
     if (paginationParams) {
-      if (paginationParams.PageNumber) params.append('PageNumber', paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize) params.append('PageSize', paginationParams.PageSize.toString());
-      if (paginationParams.SortBy) params.append('SortBy', paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined) params.append('IsAscending', paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
+      if (paginationParams.PageNumber)
+        params.append("PageNumber", paginationParams.PageNumber.toString());
+      if (paginationParams.PageSize)
+        params.append("PageSize", paginationParams.PageSize.toString());
+      if (paginationParams.SortBy)
+        params.append("SortBy", paginationParams.SortBy);
+      if (paginationParams.IsAscending !== undefined)
+        params.append("IsAscending", paginationParams.IsAscending.toString());
+      if (paginationParams.SearchTerm)
+        params.append("SearchTerm", paginationParams.SearchTerm);
     }
-    
+
     const baseEndpoint = "/api/inventory/suppliers";
     apiRepository.updateEndpoint(
       "getInventorySuppliers",
@@ -2484,30 +2504,38 @@ export const inventoryApi = {
   },
 
   // Get inventory items by branch
-  getInventoryItemsByBranch: async (branchId: number, paginationParams?: {
-    PageNumber?: number;
-    PageSize?: number;
-    SortBy?: string;
-    IsAscending?: boolean;
-    SearchTerm?: string;
-  }) => {
+  getInventoryItemsByBranch: async (
+    branchId: number,
+    paginationParams?: {
+      PageNumber?: number;
+      PageSize?: number;
+      SortBy?: string;
+      IsAscending?: boolean;
+      SearchTerm?: string;
+    },
+  ) => {
     const params = new URLSearchParams();
-    
+
     if (paginationParams) {
-      if (paginationParams.PageNumber) params.append('PageNumber', paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize) params.append('PageSize', paginationParams.PageSize.toString());
-      if (paginationParams.SortBy) params.append('SortBy', paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined) params.append('IsAscending', paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
+      if (paginationParams.PageNumber)
+        params.append("PageNumber", paginationParams.PageNumber.toString());
+      if (paginationParams.PageSize)
+        params.append("PageSize", paginationParams.PageSize.toString());
+      if (paginationParams.SortBy)
+        params.append("SortBy", paginationParams.SortBy);
+      if (paginationParams.IsAscending !== undefined)
+        params.append("IsAscending", paginationParams.IsAscending.toString());
+      if (paginationParams.SearchTerm)
+        params.append("SearchTerm", paginationParams.SearchTerm);
     }
-    
+
     const baseEndpoint = "/api/inventory/items/branch";
     let endpoint = `${baseEndpoint}/${branchId}`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
     apiRepository.updateEndpoint("getInventoryItemsByBranch", endpoint);
-    
+
     const response = await apiRepository.call(
       "getInventoryItemsByBranch",
       "GET",
@@ -2515,8 +2543,11 @@ export const inventoryApi = {
       {},
       true,
     );
-    apiRepository.updateEndpoint("getInventoryItemsByBranch", baseEndpoint + "/{branchId}");
-    
+    apiRepository.updateEndpoint(
+      "getInventoryItemsByBranch",
+      baseEndpoint + "/{branchId}",
+    );
+
     if (response.error) {
       throw new Error(response.error);
     }
@@ -2617,30 +2648,37 @@ export const inventoryApi = {
   },
 
   // Get inventory stock by branch
-  getInventoryStockByBranch: async (branchId: number, paginationParams?: {
-    PageNumber?: number;
-    PageSize?: number;
-    SortBy?: string;
-    IsAscending?: boolean;
-    SearchTerm?: string;
-  }) => {
+  getInventoryStockByBranch: async (
+    branchId: number,
+    paginationParams?: {
+      PageNumber?: number;
+      PageSize?: number;
+      SortBy?: string;
+      IsAscending?: boolean;
+      SearchTerm?: string;
+    },
+  ) => {
     const params = new URLSearchParams();
-    
+
     if (paginationParams) {
-      if (paginationParams.PageNumber) params.append('PageNumber', paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize) params.append('PageSize', paginationParams.PageSize.toString());
-      if (paginationParams.SortBy) params.append('SortBy', paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined) params.append('IsAscending', paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
+      if (paginationParams.PageNumber)
+        params.append("PageNumber", paginationParams.PageNumber.toString());
+      if (paginationParams.PageSize)
+        params.append("PageSize", paginationParams.PageSize.toString());
+      if (paginationParams.SortBy)
+        params.append("SortBy", paginationParams.SortBy);
+      if (paginationParams.IsAscending !== undefined)
+        params.append("IsAscending", paginationParams.IsAscending.toString());
+      if (paginationParams.SearchTerm)
+        params.append("SearchTerm", paginationParams.SearchTerm);
     }
-    
-    const baseEndpoint = "/api/inventory/stock/branch";
-    let endpoint = `${baseEndpoint}/${branchId}`;
+
+    const baseEndpoint = "/api/inventory/branch";
+    let endpoint = `${baseEndpoint}/${branchId}/stock`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
     apiRepository.updateEndpoint("getInventoryStockByBranch", endpoint);
-    
     const response = await apiRepository.call(
       "getInventoryStockByBranch",
       "GET",
@@ -2648,8 +2686,7 @@ export const inventoryApi = {
       {},
       true,
     );
-    apiRepository.updateEndpoint("getInventoryStockByBranch", baseEndpoint + "/{branchId}");
-    
+    apiRepository.updateEndpoint("getInventoryStockByBranch", endpoint);
     if (response.error) {
       throw new Error(response.error);
     }
@@ -2676,30 +2713,38 @@ export const inventoryApi = {
   },
 
   // Get inventory low stock by branch
-  getInventoryLowStockByBranch: async (branchId: number, paginationParams?: {
-    PageNumber?: number;
-    PageSize?: number;
-    SortBy?: string;
-    IsAscending?: boolean;
-    SearchTerm?: string;
-  }) => {
+  getInventoryLowStockByBranch: async (
+    branchId: number,
+    paginationParams?: {
+      PageNumber?: number;
+      PageSize?: number;
+      SortBy?: string;
+      IsAscending?: boolean;
+      SearchTerm?: string;
+    },
+  ) => {
     const params = new URLSearchParams();
-    
+
     if (paginationParams) {
-      if (paginationParams.PageNumber) params.append('PageNumber', paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize) params.append('PageSize', paginationParams.PageSize.toString());
-      if (paginationParams.SortBy) params.append('SortBy', paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined) params.append('IsAscending', paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
+      if (paginationParams.PageNumber)
+        params.append("PageNumber", paginationParams.PageNumber.toString());
+      if (paginationParams.PageSize)
+        params.append("PageSize", paginationParams.PageSize.toString());
+      if (paginationParams.SortBy)
+        params.append("SortBy", paginationParams.SortBy);
+      if (paginationParams.IsAscending !== undefined)
+        params.append("IsAscending", paginationParams.IsAscending.toString());
+      if (paginationParams.SearchTerm)
+        params.append("SearchTerm", paginationParams.SearchTerm);
     }
-    
-    const baseEndpoint = "/api/inventory/lowstock/branch";
-    let endpoint = `${baseEndpoint}/${branchId}`;
+
+    const baseEndpoint = "/api/inventory/branch";
+    let endpoint = `${baseEndpoint}/${branchId}/low-stock`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
     apiRepository.updateEndpoint("getInventoryLowStockByBranch", endpoint);
-    
+
     const response = await apiRepository.call(
       "getInventoryLowStockByBranch",
       "GET",
@@ -2707,8 +2752,8 @@ export const inventoryApi = {
       {},
       true,
     );
-    apiRepository.updateEndpoint("getInventoryLowStockByBranch", baseEndpoint + "/{branchId}");
-    
+    apiRepository.updateEndpoint("getInventoryLowStockByBranch", endpoint);
+
     if (response.error) {
       throw new Error(response.error);
     }
@@ -2735,30 +2780,38 @@ export const inventoryApi = {
   },
 
   // Get purchase orders by branch
-  getPurchaseOrdersByBranch: async (branchId: number, paginationParams?: {
-    PageNumber?: number;
-    PageSize?: number;
-    SortBy?: string;
-    IsAscending?: boolean;
-    SearchTerm?: string;
-  }) => {
+  getPurchaseOrdersByBranch: async (
+    branchId: number,
+    paginationParams?: {
+      PageNumber?: number;
+      PageSize?: number;
+      SortBy?: string;
+      IsAscending?: boolean;
+      SearchTerm?: string;
+    },
+  ) => {
     const params = new URLSearchParams();
-    
+
     if (paginationParams) {
-      if (paginationParams.PageNumber) params.append('PageNumber', paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize) params.append('PageSize', paginationParams.PageSize.toString());
-      if (paginationParams.SortBy) params.append('SortBy', paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined) params.append('IsAscending', paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
+      if (paginationParams.PageNumber)
+        params.append("PageNumber", paginationParams.PageNumber.toString());
+      if (paginationParams.PageSize)
+        params.append("PageSize", paginationParams.PageSize.toString());
+      if (paginationParams.SortBy)
+        params.append("SortBy", paginationParams.SortBy);
+      if (paginationParams.IsAscending !== undefined)
+        params.append("IsAscending", paginationParams.IsAscending.toString());
+      if (paginationParams.SearchTerm)
+        params.append("SearchTerm", paginationParams.SearchTerm);
     }
-    
-    const baseEndpoint = "/api/inventory/purchaseorders/branch";
+
+    const baseEndpoint = "/api/inventory/purchase-orders/branch";
     let endpoint = `${baseEndpoint}/${branchId}`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
     apiRepository.updateEndpoint("getPurchaseOrdersByBranch", endpoint);
-    
+
     const response = await apiRepository.call(
       "getPurchaseOrdersByBranch",
       "GET",
@@ -2766,8 +2819,11 @@ export const inventoryApi = {
       {},
       true,
     );
-    apiRepository.updateEndpoint("getPurchaseOrdersByBranch", baseEndpoint + "/{branchId}");
-    
+    apiRepository.updateEndpoint(
+      "getPurchaseOrdersByBranch",
+      baseEndpoint + "/{branchId}",
+    );
+
     if (response.error) {
       throw new Error(response.error);
     }
@@ -2842,23 +2898,31 @@ export const inventoryApi = {
   },
 
   // Get recipes by branch
-  getRecipesByBranch: async (branchId: number, paginationParams?: {
-    PageNumber?: number;
-    PageSize?: number;
-    SortBy?: string;
-    IsAscending?: boolean;
-    SearchTerm?: string;
-  }): Promise<Recipe[]> => {
+  getRecipesByBranch: async (
+    branchId: number,
+    paginationParams?: {
+      PageNumber?: number;
+      PageSize?: number;
+      SortBy?: string;
+      IsAscending?: boolean;
+      SearchTerm?: string;
+    },
+  ): Promise<Recipe[]> => {
     const params = new URLSearchParams({ branchId: branchId.toString() });
-    
+
     if (paginationParams) {
-      if (paginationParams.PageNumber) params.append('PageNumber', paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize) params.append('PageSize', paginationParams.PageSize.toString());
-      if (paginationParams.SortBy) params.append('SortBy', paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined) params.append('IsAscending', paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
+      if (paginationParams.PageNumber)
+        params.append("PageNumber", paginationParams.PageNumber.toString());
+      if (paginationParams.PageSize)
+        params.append("PageSize", paginationParams.PageSize.toString());
+      if (paginationParams.SortBy)
+        params.append("SortBy", paginationParams.SortBy);
+      if (paginationParams.IsAscending !== undefined)
+        params.append("IsAscending", paginationParams.IsAscending.toString());
+      if (paginationParams.SearchTerm)
+        params.append("SearchTerm", paginationParams.SearchTerm);
     }
-    
+
     const baseEndpoint = "/api/recipes";
     apiRepository.updateEndpoint(
       "getRecipes",
@@ -2966,22 +3030,27 @@ export const inventoryApi = {
       SortBy?: string;
       IsAscending?: boolean;
       SearchTerm?: string;
-    }
+    },
   ) => {
     const params = new URLSearchParams({
       branchId: branchId.toString(),
       from: from,
       to: to,
     });
-    
+
     if (paginationParams) {
-      if (paginationParams.PageNumber) params.append('PageNumber', paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize) params.append('PageSize', paginationParams.PageSize.toString());
-      if (paginationParams.SortBy) params.append('SortBy', paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined) params.append('IsAscending', paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
+      if (paginationParams.PageNumber)
+        params.append("PageNumber", paginationParams.PageNumber.toString());
+      if (paginationParams.PageSize)
+        params.append("PageSize", paginationParams.PageSize.toString());
+      if (paginationParams.SortBy)
+        params.append("SortBy", paginationParams.SortBy);
+      if (paginationParams.IsAscending !== undefined)
+        params.append("IsAscending", paginationParams.IsAscending.toString());
+      if (paginationParams.SearchTerm)
+        params.append("SearchTerm", paginationParams.SearchTerm);
     }
-    
+
     const baseEndpoint = "/api/inventory/wastage";
     apiRepository.updateEndpoint(
       "getInventoryWastageByBranch",
@@ -2992,10 +3061,7 @@ export const inventoryApi = {
       "getInventoryWastageByBranch",
       "GET",
     );
-    apiRepository.updateEndpoint(
-      "getInventoryWastageByBranch",
-      baseEndpoint,
-    );
+    apiRepository.updateEndpoint("getInventoryWastageByBranch", baseEndpoint);
 
     if (response.error) {
       throw new Error(response.error);
@@ -3024,30 +3090,38 @@ export const inventoryApi = {
     return response.data;
   },
 
-  getUtilityExpensesByBranch: async (branchId: number, paginationParams?: {
-    PageNumber?: number;
-    PageSize?: number;
-    SortBy?: string;
-    IsAscending?: boolean;
-    SearchTerm?: string;
-  }) => {
+  getUtilityExpensesByBranch: async (
+    branchId: number,
+    paginationParams?: {
+      PageNumber?: number;
+      PageSize?: number;
+      SortBy?: string;
+      IsAscending?: boolean;
+      SearchTerm?: string;
+    },
+  ) => {
     const params = new URLSearchParams();
-    
+
     if (paginationParams) {
-      if (paginationParams.PageNumber) params.append('PageNumber', paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize) params.append('PageSize', paginationParams.PageSize.toString());
-      if (paginationParams.SortBy) params.append('SortBy', paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined) params.append('IsAscending', paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm) params.append('SearchTerm', paginationParams.SearchTerm);
+      if (paginationParams.PageNumber)
+        params.append("PageNumber", paginationParams.PageNumber.toString());
+      if (paginationParams.PageSize)
+        params.append("PageSize", paginationParams.PageSize.toString());
+      if (paginationParams.SortBy)
+        params.append("SortBy", paginationParams.SortBy);
+      if (paginationParams.IsAscending !== undefined)
+        params.append("IsAscending", paginationParams.IsAscending.toString());
+      if (paginationParams.SearchTerm)
+        params.append("SearchTerm", paginationParams.SearchTerm);
     }
-    
+
     const baseEndpoint = "/api/facilityutilityrecords/branch";
     let endpoint = `${baseEndpoint}/${branchId}`;
     if (params.toString()) {
       endpoint = `${endpoint}?${params.toString()}`;
     }
     apiRepository.updateEndpoint("getUtilityExpensesByBranch", endpoint);
-    
+
     const response = await apiRepository.call(
       "getUtilityExpensesByBranch",
       "GET",
@@ -3055,8 +3129,11 @@ export const inventoryApi = {
       undefined,
       true,
     );
-    apiRepository.updateEndpoint("getUtilityExpensesByBranch", baseEndpoint + "/{branchId}");
-    
+    apiRepository.updateEndpoint(
+      "getUtilityExpensesByBranch",
+      baseEndpoint + "/{branchId}",
+    );
+
     if (response.error) {
       throw new Error(response.error);
     }
