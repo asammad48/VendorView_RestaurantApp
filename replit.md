@@ -126,3 +126,36 @@ Technical preferences:
   - Billing period date range selection
   - Real-time data refresh after Add/Update/Delete operations
   - Full CRUD operations with proper cache invalidation
+
+### Create Order Feature
+- **Location**: Orders page with "Create Order" button in header
+- **Functionality**: Comprehensive order creation with menu items, deals, and sub-menu items
+- **API Endpoints**:
+  - GET `/api/branch/{branchId}` - Fetch branch details
+  - GET `/api/branch/configuration/{branchId}` - Fetch branch configuration (tax, service charge, discount)
+  - GET `/api/table/branch/{branchId}` - Fetch tables/locations for the branch
+  - GET `/api/customer-search/branch/{branchId}` - Fetch complete menu for customer display
+  - POST `/api/order` - Create new order
+- **Components**:
+  - CreateOrderModal: Full-screen modal with left-side menu display and right-side order summary
+  - Menu Display: Shows menu items grouped by category with variations, modifiers, customizations, and discount pricing
+  - Deals Section: Displays available deals with pricing and discount information
+  - Sub-Menu Items Section: Shows standalone sub-menu items available for ordering
+  - Order Summary: Real-time calculation of subtotal, discount, service charge, tax, and total
+- **Features**:
+  - Dynamic pricing calculation including variation price, modifier surcharges, and customization options
+  - Discount percentage application from branch configuration
+  - Service charge and tax calculation based on branch settings
+  - Allergen selection integration
+  - Item quantity management with +/- controls
+  - Special instructions field
+  - Tip amount input
+  - Location/table selection
+  - Print receipt option (integrated with existing printer setup)
+  - Real-time order summary updates
+  - Proper payload construction: menu items and sub-items in orderItems array, deals in orderPackages array
+- **Implementation Details**:
+  - Price recalculation via calculateItemPrice function accounts for base variation price plus all modifiers and customizations
+  - Order payload properly partitions menu items and standalone sub-items into orderItems array while routing deals into orderPackages array
+  - All pricing calculations verified to match API expectations
+  - Automatic cache invalidation and order list refresh on successful order creation
