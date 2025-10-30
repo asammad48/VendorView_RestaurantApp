@@ -564,6 +564,9 @@ export const API_ENDPOINTS = {
   RESERVATION_ACTION_UPDATE: "/api/Reservations/{id}/action",
   RESERVATIONS: "/api/Reservations",
 
+  // Customer Search Menu endpoint
+  CUSTOMER_SEARCH_MENU: "/api/customer-search/branch/{branchId}",
+
   // Other endpoints
   ANALYTICS: "/api/analytics",
   FEEDBACKS: "/api/feedbacks",
@@ -768,6 +771,9 @@ export const defaultApiConfig: ApiConfig = {
     createReservation: API_ENDPOINTS.RESERVATIONS,
     updateReservation: API_ENDPOINTS.RESERVATION_BY_ID,
     deleteReservation: API_ENDPOINTS.RESERVATION_BY_ID,
+
+    // Customer Search Menu endpoint
+    getCustomerSearchMenu: API_ENDPOINTS.CUSTOMER_SEARCH_MENU,
 
     // Other endpoints
     getAnalytics: API_ENDPOINTS.ANALYTICS,

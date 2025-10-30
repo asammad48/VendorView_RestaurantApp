@@ -869,3 +869,155 @@ export interface MenuItemSearchData {
   variants: MenuItemSearchVariant[];
   subMenuItems: MenuItemSearchSubMenuItem[];
 }
+
+// Create Order - Customer Search Menu Types
+export interface CustomerMenuVariation {
+  id: number;
+  name: string;
+  price: number;
+}
+
+export interface CustomerMenuModifier {
+  id: number;
+  name: string;
+  price: number;
+}
+
+export interface CustomerMenuCustomizationOption {
+  id: number;
+  name: string;
+  price: number;
+}
+
+export interface CustomerMenuCustomization {
+  id: number;
+  name: string;
+  options: CustomerMenuCustomizationOption[];
+}
+
+export interface CustomerMenuDiscount {
+  id: number;
+  name: string;
+  value: number;
+  endDate: string;
+}
+
+export interface CustomerMenuItem {
+  menuItemId: number;
+  name: string;
+  description: string;
+  categoryName: string;
+  picture: string;
+  allergenItemContains: string;
+  variations: CustomerMenuVariation[];
+  modifiers: CustomerMenuModifier[];
+  customizations: CustomerMenuCustomization[];
+  discount: CustomerMenuDiscount | null;
+}
+
+export interface CustomerDealMenuItem {
+  menuItemId: number;
+  name: string;
+  allergenItemContains: string;
+  variantsDetails: Array<{
+    menuItemVariantId: number;
+    name: string;
+    quantity: number;
+  }>;
+}
+
+export interface CustomerDealSubMenuItem {
+  subMenuItemId: number;
+  name: string;
+  quantity: number;
+}
+
+export interface CustomerDeal {
+  dealId: number;
+  name: string;
+  description: string;
+  price: number;
+  picture: string;
+  dealEndDate: string;
+  discount: CustomerMenuDiscount | null;
+  menuItems: CustomerDealMenuItem[];
+  subMenuItems: CustomerDealSubMenuItem[];
+}
+
+export interface CustomerSubMenuItem {
+  subMenuItemId: number;
+  name: string;
+  price: number;
+  picture: string;
+}
+
+export interface CustomerSearchMenuResponse {
+  currency: string;
+  timeZone: string;
+  menuItems: CustomerMenuItem[];
+  deals: CustomerDeal[];
+  subMenuItems: CustomerSubMenuItem[];
+  recommendedForYou?: CustomerMenuItem[];
+}
+
+// Branch Configuration Types
+export interface BranchConfiguration {
+  discountPercentage?: number;
+  serviceChargePercentage?: number;
+  taxPercentage?: number;
+  isDiscountOnTotal?: boolean; // true = on total, false = on tax
+}
+
+// Create Order Request Types
+export interface CreateOrderItemModifier {
+  modifierId: number;
+  quantity: number;
+}
+
+export interface CreateOrderItemCustomization {
+  customizationId: number;
+  optionId: number;
+}
+
+export interface CreateOrderItem {
+  menuItemId: number;
+  variantId: number;
+  quantity: number;
+  modifiers: CreateOrderItemModifier[];
+  customizations: CreateOrderItemCustomization[];
+}
+
+export interface CreateOrderPackage {
+  menuPackageId: number;
+  quantity: number;
+}
+
+export interface CreateOrderRequest {
+  branchId: number;
+  locationId: number | null;
+  deviceInfo: string;
+  tipAmount: number;
+  username: string;
+  orderType: number;
+  specialInstruction: string;
+  orderItems: CreateOrderItem[];
+  orderPackages: CreateOrderPackage[];
+  deliveryDetails: any | null;
+  pickupDetails: any | null;
+  splitBills: any | null;
+  allergenIds: number[];
+}
+
+export interface CreateOrderResponse {
+  orderId: number;
+  orderNumber: string;
+  subTotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  serviceCharges: number;
+  deliveryCharges: number;
+  tipAmount: number;
+  totalAmount: number;
+  estimatedPreparationTimeMinutes: number;
+  estimatedDeliveryTimeMinutes: number;
+}
