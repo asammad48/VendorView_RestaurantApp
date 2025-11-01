@@ -92,19 +92,6 @@ export default function CreateOrderModal({
   const [showDeliveryForm, setShowDeliveryForm] = useState(true);
   const [showPickupForm, setShowPickupForm] = useState(true);
 
-  // Auto-collapse forms when details are filled
-  useEffect(() => {
-    if (orderType === 1 && deliveryFullName && deliveryPhone && deliveryAddress) {
-      setShowDeliveryForm(false);
-    }
-  }, [orderType, deliveryFullName, deliveryPhone, deliveryAddress]);
-
-  useEffect(() => {
-    if (orderType === 2 && pickupName && pickupPhone) {
-      setShowPickupForm(false);
-    }
-  }, [orderType, pickupName, pickupPhone]);
-
   // Reset form visibility when order type changes
   useEffect(() => {
     if (orderType === 1) {
@@ -484,11 +471,30 @@ export default function CreateOrderModal({
   const totals = calculateTotals();
   const currency = branch?.currency || menuData?.currency || "PKR";
 
-  // Prevent Enter key from submitting the form
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
+  // Handle delivery form save
+  const handleSaveDeliveryDetails = () => {
+    if (!deliveryFullName || !deliveryPhone || !deliveryAddress) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required delivery details (Name, Phone, Address)",
+        variant: "destructive",
+      });
+      return;
     }
+    setShowDeliveryForm(false);
+  };
+
+  // Handle pickup form save
+  const handleSavePickupDetails = () => {
+    if (!pickupName || !pickupPhone) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required pickup details (Name, Phone)",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowPickupForm(false);
   };
 
   return (
@@ -687,7 +693,6 @@ export default function CreateOrderModal({
                             placeholder="Customer full name"
                             value={deliveryFullName}
                             onChange={(e) => setDeliveryFullName(e.target.value)}
-                            onKeyDown={handleKeyDown}
                             data-testid="input-delivery-fullname"
                           />
                         </div>
@@ -697,7 +702,6 @@ export default function CreateOrderModal({
                             placeholder="Phone number"
                             value={deliveryPhone}
                             onChange={(e) => setDeliveryPhone(e.target.value)}
-                            onKeyDown={handleKeyDown}
                             data-testid="input-delivery-phone"
                           />
                         </div>
@@ -707,7 +711,6 @@ export default function CreateOrderModal({
                             placeholder="Full delivery address"
                             value={deliveryAddress}
                             onChange={(e) => setDeliveryAddress(e.target.value)}
-                            onKeyDown={handleKeyDown}
                             className="min-h-[60px]"
                             data-testid="input-delivery-address"
                           />
@@ -718,7 +721,6 @@ export default function CreateOrderModal({
                             placeholder="Special instructions..."
                             value={deliveryInstruction}
                             onChange={(e) => setDeliveryInstruction(e.target.value)}
-                            onKeyDown={handleKeyDown}
                             className="min-h-[60px]"
                             data-testid="input-delivery-instruction"
                           />
@@ -729,10 +731,16 @@ export default function CreateOrderModal({
                             type="datetime-local"
                             value={deliveryTime}
                             onChange={(e) => setDeliveryTime(e.target.value)}
-                            onKeyDown={handleKeyDown}
                             data-testid="input-delivery-time"
                           />
                         </div>
+                        <Button 
+                          className="w-full" 
+                          onClick={handleSaveDeliveryDetails}
+                          data-testid="button-save-delivery"
+                        >
+                          Save Delivery Details
+                        </Button>
                       </CardContent>
                     </Card>
                   ) : (
@@ -769,7 +777,6 @@ export default function CreateOrderModal({
                             placeholder="Customer name"
                             value={pickupName}
                             onChange={(e) => setPickupName(e.target.value)}
-                            onKeyDown={handleKeyDown}
                             data-testid="input-pickup-name"
                           />
                         </div>
@@ -779,7 +786,6 @@ export default function CreateOrderModal({
                             placeholder="Phone number"
                             value={pickupPhone}
                             onChange={(e) => setPickupPhone(e.target.value)}
-                            onKeyDown={handleKeyDown}
                             data-testid="input-pickup-phone"
                           />
                         </div>
@@ -789,7 +795,6 @@ export default function CreateOrderModal({
                             placeholder="Special instructions..."
                             value={pickupInstruction}
                             onChange={(e) => setPickupInstruction(e.target.value)}
-                            onKeyDown={handleKeyDown}
                             className="min-h-[60px]"
                             data-testid="input-pickup-instruction"
                           />
@@ -800,10 +805,16 @@ export default function CreateOrderModal({
                             type="datetime-local"
                             value={pickupTime}
                             onChange={(e) => setPickupTime(e.target.value)}
-                            onKeyDown={handleKeyDown}
                             data-testid="input-pickup-time"
                           />
                         </div>
+                        <Button 
+                          className="w-full" 
+                          onClick={handleSavePickupDetails}
+                          data-testid="button-save-pickup"
+                        >
+                          Save Pickup Details
+                        </Button>
                       </CardContent>
                     </Card>
                   ) : (
