@@ -77,6 +77,7 @@ import ViewMenuModal from "@/components/view-menu-modal";
 import ViewDealsModal from "@/components/view-deals-modal";
 import { SearchTooltip } from "@/components/SearchTooltip";
 import PrinterModal from "@/components/printer-modal";
+import CreateOrderModal from "@/components/create-order-modal";
 import { useLocation } from "wouter";
 import {
   locationApi,
@@ -342,6 +343,7 @@ export default function Orders() {
   const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
   const [selectedStatusId, setSelectedStatusId] = useState<number | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [showCreateOrderModal, setShowCreateOrderModal] = useState(false);
 
   // Get branch details for the current branch
   const { data: branchData } = useQuery<Branch>({
@@ -1428,6 +1430,14 @@ export default function Orders() {
                 <TabsTrigger value="Cancelled">Cancelled</TabsTrigger>
               </TabsList>
             </Tabs>
+            <Button
+              className="bg-green-500 hover:bg-green-600 text-white"
+              onClick={() => setShowCreateOrderModal(true)}
+              data-testid="button-create-order"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Order
+            </Button>
           </div>
 
           {/* Orders Table */}
@@ -4215,6 +4225,18 @@ export default function Orders() {
         open={showPrinterModal}
         onOpenChange={setShowPrinterModal}
         onConnectionChange={(connected) => setIsPrinterConnected(connected)}
+      />
+
+      {/* Create Order Modal */}
+      <CreateOrderModal
+        isOpen={showCreateOrderModal}
+        onClose={() => setShowCreateOrderModal(false)}
+        branchId={branchId}
+        onOrderCreated={(order) => {
+          // Refresh orders list
+          refetchOrders();
+          setShowCreateOrderModal(false);
+        }}
       />
     </div>
   );
