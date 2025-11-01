@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { X, Plus, Minus, Printer, ShoppingCart, Search } from "lucide-react";
 import {
@@ -31,6 +32,9 @@ import type {
   CreateOrderItemModifier,
   CreateOrderItemCustomization,
   Branch,
+  CreateOrderPickupDetails,
+  CreateOrderDeliveryDetails,
+  OrderType,
 } from "@/types/schema";
 
 interface LocationData {
@@ -71,6 +75,20 @@ export default function CreateOrderModal({
   const [dealSearch, setDealSearch] = useState("");
   const [customizeModalOpen, setCustomizeModalOpen] = useState(false);
   const [selectedItemToCustomize, setSelectedItemToCustomize] = useState<CustomerMenuItem | null>(null);
+  const [orderType, setOrderType] = useState<number>(3); // Default to DineIn
+  
+  // Pickup details state
+  const [pickupName, setPickupName] = useState("");
+  const [pickupPhone, setPickupPhone] = useState("");
+  const [pickupInstruction, setPickupInstruction] = useState("");
+  const [pickupTime, setPickupTime] = useState<string>("");
+  
+  // Delivery details state
+  const [deliveryFullName, setDeliveryFullName] = useState("");
+  const [deliveryPhone, setDeliveryPhone] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryInstruction, setDeliveryInstruction] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState<string>("");
 
   // Fetch branch details
   const { data: branch } = useQuery({
@@ -340,18 +358,47 @@ export default function CreateOrderModal({
           };
         });
 
+      // Build delivery details if order type is Delivery
+      let deliveryDetails: CreateOrderDeliveryDetails | null = null;
+      if (orderType === 1) {
+        if (!deliveryFullName || !deliveryPhone || !deliveryAddress) {
+          throw new Error("Please fill all required delivery details");
+        }
+        deliveryDetails = {
+          fullName: deliveryFullName,
+          phoneNumber: deliveryPhone,
+          deliveryAddress: deliveryAddress,
+          deliveryInstruction: deliveryInstruction,
+          prefferedDeliveryTime: deliveryTime || "",
+        };
+      }
+
+      // Build pickup details if order type is TakeAway
+      let pickupDetails: CreateOrderPickupDetails | null = null;
+      if (orderType === 2) {
+        if (!pickupName || !pickupPhone) {
+          throw new Error("Please fill all required pickup details");
+        }
+        pickupDetails = {
+          name: pickupName,
+          phoneNumber: pickupPhone,
+          pickupInstruction: pickupInstruction,
+          prefferedPickupTime: pickupTime || "",
+        };
+      }
+
       const request: CreateOrderRequest = {
         branchId,
         locationId: selectedLocation,
         deviceInfo: "POS-Web",
         tipAmount,
         username: localStorage.getItem("username") || "admin",
-        orderType: 3,
+        orderType: orderType,
         specialInstruction: specialInstructions,
         orderItems: menuItemsPayload,
         orderPackages: orderPackagesPayload,
-        deliveryDetails: null,
-        pickupDetails: null,
+        deliveryDetails,
+        pickupDetails,
         splitBills: null,
         allergenIds: selectedAllergens,
       };
@@ -371,12 +418,29 @@ export default function CreateOrderModal({
           title: "Order Created",
           description: `Order ${data.orderNumber} created successfully!`,
         });
+        
+        // Invalidate orders cache to refresh the table
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
+        queryClient.invalidateQueries({ queryKey: ["orders", branchId] });
+        
         onOrderCreated?.(data);
         onClose();
+        
+        // Reset all form fields
         setOrderItems([]);
         setSpecialInstructions("");
         setTipAmount(0);
         setSelectedAllergens([]);
+        setOrderType(3);
+        setPickupName("");
+        setPickupPhone("");
+        setPickupInstruction("");
+        setPickupTime("");
+        setDeliveryFullName("");
+        setDeliveryPhone("");
+        setDeliveryAddress("");
+        setDeliveryInstruction("");
+        setDeliveryTime("");
       }
     },
     onError: (error: any) => {
@@ -401,19 +465,142 @@ export default function CreateOrderModal({
         <div className="flex flex-1 overflow-hidden">
           {/* Left Side - Menu Display */}
           <div className="flex-1 border-r overflow-hidden flex flex-col">
-            <div className="px-6 pb-4">
-              <Select value={selectedLocation?.toString()} onValueChange={(val) => setSelectedLocation(parseInt(val))}>
-                <SelectTrigger data-testid="select-location">
-                  <SelectValue placeholder="Select Table/Location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {locations?.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id.toString()}>
-                      {loc.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="px-6 pb-4 space-y-4">
+              {/* Order Type Selection */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Order Type</label>
+                <Select value={orderType.toString()} onValueChange={(val) => setOrderType(parseInt(val))}>
+                  <SelectTrigger data-testid="select-order-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">Dine In</SelectItem>
+                    <SelectItem value="2">Take Away</SelectItem>
+                    <SelectItem value="1">Delivery</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Location Selection (for Dine In) */}
+              {orderType === 3 && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Table/Location</label>
+                  <Select value={selectedLocation?.toString()} onValueChange={(val) => setSelectedLocation(parseInt(val))}>
+                    <SelectTrigger data-testid="select-location">
+                      <SelectValue placeholder="Select Table/Location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations?.map((loc) => (
+                        <SelectItem key={loc.id} value={loc.id.toString()}>
+                          {loc.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Pickup Details Form (for Take Away) */}
+              {orderType === 2 && (
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    <h3 className="font-semibold text-sm">Pickup Details</h3>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Name *</label>
+                      <Input
+                        placeholder="Customer name"
+                        value={pickupName}
+                        onChange={(e) => setPickupName(e.target.value)}
+                        data-testid="input-pickup-name"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Phone Number *</label>
+                      <Input
+                        placeholder="Phone number"
+                        value={pickupPhone}
+                        onChange={(e) => setPickupPhone(e.target.value)}
+                        data-testid="input-pickup-phone"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Pickup Instruction</label>
+                      <Textarea
+                        placeholder="Special instructions..."
+                        value={pickupInstruction}
+                        onChange={(e) => setPickupInstruction(e.target.value)}
+                        className="min-h-[60px]"
+                        data-testid="input-pickup-instruction"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Preferred Pickup Time</label>
+                      <Input
+                        type="datetime-local"
+                        value={pickupTime}
+                        onChange={(e) => setPickupTime(e.target.value)}
+                        data-testid="input-pickup-time"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Delivery Details Form (for Delivery) */}
+              {orderType === 1 && (
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    <h3 className="font-semibold text-sm">Delivery Details</h3>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Full Name *</label>
+                      <Input
+                        placeholder="Customer full name"
+                        value={deliveryFullName}
+                        onChange={(e) => setDeliveryFullName(e.target.value)}
+                        data-testid="input-delivery-fullname"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Phone Number *</label>
+                      <Input
+                        placeholder="Phone number"
+                        value={deliveryPhone}
+                        onChange={(e) => setDeliveryPhone(e.target.value)}
+                        data-testid="input-delivery-phone"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Delivery Address *</label>
+                      <Textarea
+                        placeholder="Full delivery address"
+                        value={deliveryAddress}
+                        onChange={(e) => setDeliveryAddress(e.target.value)}
+                        className="min-h-[60px]"
+                        data-testid="input-delivery-address"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Delivery Instruction</label>
+                      <Textarea
+                        placeholder="Special instructions..."
+                        value={deliveryInstruction}
+                        onChange={(e) => setDeliveryInstruction(e.target.value)}
+                        className="min-h-[60px]"
+                        data-testid="input-delivery-instruction"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Preferred Delivery Time</label>
+                      <Input
+                        type="datetime-local"
+                        value={deliveryTime}
+                        onChange={(e) => setDeliveryTime(e.target.value)}
+                        data-testid="input-delivery-time"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             <ScrollArea className="flex-1 px-6">

@@ -992,6 +992,28 @@ export interface CreateOrderPackage {
   quantity: number;
 }
 
+export enum OrderType {
+  Delivery = 1,
+  TakeAway = 2,
+  DineIn = 3,
+}
+
+// Request DTOs for creating orders (not the same as response DTOs)
+export interface CreateOrderPickupDetails {
+  name: string;
+  phoneNumber: string;
+  pickupInstruction: string;
+  prefferedPickupTime: string;
+}
+
+export interface CreateOrderDeliveryDetails {
+  fullName: string;
+  phoneNumber: string;
+  deliveryAddress: string;
+  deliveryInstruction: string;
+  prefferedDeliveryTime: string;
+}
+
 export interface CreateOrderRequest {
   branchId: number;
   locationId: number | null;
@@ -1002,8 +1024,8 @@ export interface CreateOrderRequest {
   specialInstruction: string;
   orderItems: CreateOrderItem[];
   orderPackages: CreateOrderPackage[];
-  deliveryDetails: any | null;
-  pickupDetails: any | null;
+  deliveryDetails: CreateOrderDeliveryDetails | null;
+  pickupDetails: CreateOrderPickupDetails | null;
   splitBills: any | null;
   allergenIds: number[];
 }
