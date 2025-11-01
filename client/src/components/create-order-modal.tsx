@@ -484,6 +484,13 @@ export default function CreateOrderModal({
   const totals = calculateTotals();
   const currency = branch?.currency || menuData?.currency || "PKR";
 
+  // Prevent Enter key from submitting the form
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] w-full h-[90vh] max-h-[90vh] p-0">
@@ -680,6 +687,7 @@ export default function CreateOrderModal({
                             placeholder="Customer full name"
                             value={deliveryFullName}
                             onChange={(e) => setDeliveryFullName(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             data-testid="input-delivery-fullname"
                           />
                         </div>
@@ -689,6 +697,7 @@ export default function CreateOrderModal({
                             placeholder="Phone number"
                             value={deliveryPhone}
                             onChange={(e) => setDeliveryPhone(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             data-testid="input-delivery-phone"
                           />
                         </div>
@@ -698,6 +707,7 @@ export default function CreateOrderModal({
                             placeholder="Full delivery address"
                             value={deliveryAddress}
                             onChange={(e) => setDeliveryAddress(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             className="min-h-[60px]"
                             data-testid="input-delivery-address"
                           />
@@ -708,6 +718,7 @@ export default function CreateOrderModal({
                             placeholder="Special instructions..."
                             value={deliveryInstruction}
                             onChange={(e) => setDeliveryInstruction(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             className="min-h-[60px]"
                             data-testid="input-delivery-instruction"
                           />
@@ -718,6 +729,7 @@ export default function CreateOrderModal({
                             type="datetime-local"
                             value={deliveryTime}
                             onChange={(e) => setDeliveryTime(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             data-testid="input-delivery-time"
                           />
                         </div>
@@ -757,6 +769,7 @@ export default function CreateOrderModal({
                             placeholder="Customer name"
                             value={pickupName}
                             onChange={(e) => setPickupName(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             data-testid="input-pickup-name"
                           />
                         </div>
@@ -766,6 +779,7 @@ export default function CreateOrderModal({
                             placeholder="Phone number"
                             value={pickupPhone}
                             onChange={(e) => setPickupPhone(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             data-testid="input-pickup-phone"
                           />
                         </div>
@@ -775,6 +789,7 @@ export default function CreateOrderModal({
                             placeholder="Special instructions..."
                             value={pickupInstruction}
                             onChange={(e) => setPickupInstruction(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             className="min-h-[60px]"
                             data-testid="input-pickup-instruction"
                           />
@@ -785,6 +800,7 @@ export default function CreateOrderModal({
                             type="datetime-local"
                             value={pickupTime}
                             onChange={(e) => setPickupTime(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             data-testid="input-pickup-time"
                           />
                         </div>
