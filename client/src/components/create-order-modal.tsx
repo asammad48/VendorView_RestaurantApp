@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { X, Plus, Minus, Printer, ShoppingCart } from "lucide-react";
+import { X, Plus, Minus, Printer, ShoppingCart, Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -39,8 +39,8 @@ interface LocationData {
 }
 
 interface OrderItemSelection {
-  type: 'menuItem' | 'deal' | 'subItem';
-  item: CustomerMenuItem | CustomerDeal | CustomerSubMenuItem;
+  type: 'menuItem' | 'deal';
+  item: CustomerMenuItem | CustomerDeal;
   quantity: number;
   selectedVariation?: number;
   selectedModifiers: CreateOrderItemModifier[];
@@ -67,6 +67,10 @@ export default function CreateOrderModal({
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [tipAmount, setTipAmount] = useState(0);
   const [selectedAllergens, setSelectedAllergens] = useState<number[]>([]);
+  const [menuItemSearch, setMenuItemSearch] = useState("");
+  const [dealSearch, setDealSearch] = useState("");
+  const [customizeModalOpen, setCustomizeModalOpen] = useState(false);
+  const [selectedItemToCustomize, setSelectedItemToCustomize] = useState<CustomerMenuItem | null>(null);
 
   // Fetch branch details
   const { data: branch } = useQuery({
@@ -163,8 +167,8 @@ export default function CreateOrderModal({
 
   // Calculate item price with modifiers and customizations
   const calculateItemPrice = (
-    item: CustomerMenuItem | CustomerDeal | CustomerSubMenuItem,
-    type: 'menuItem' | 'deal' | 'subItem',
+    item: CustomerMenuItem | CustomerDeal,
+    type: 'menuItem' | 'deal',
     selectedVariation?: number,
     selectedModifiers: CreateOrderItemModifier[] = [],
     selectedCustomizations: CreateOrderItemCustomization[] = []
@@ -204,15 +208,12 @@ export default function CreateOrderModal({
       basePrice = deal.discount 
         ? calculateDiscountedPrice(deal.price, deal.discount)
         : deal.price;
-    } else {
-      const subItem = item as CustomerSubMenuItem;
-      basePrice = subItem.price;
     }
 
     return basePrice;
   };
 
-  // Add menu item to order
+  // Add menu item to order - opens customization modal
   const addMenuItem = (item: CustomerMenuItem) => {
     if (!item.variations || item.variations.length === 0) {
       toast({
@@ -222,17 +223,30 @@ export default function CreateOrderModal({
       });
       return;
     }
+    
+    setSelectedItemToCustomize(item);
+    setCustomizeModalOpen(true);
+  };
 
+  // Add customized menu item to order
+  const addCustomizedMenuItem = (
+    item: CustomerMenuItem,
+    selectedVariation: number,
+    selectedModifiers: CreateOrderItemModifier[],
+    selectedCustomizations: CreateOrderItemCustomization[]
+  ) => {
     const newItem: OrderItemSelection = {
       type: 'menuItem',
       item,
       quantity: 1,
-      selectedVariation: item.variations[0].id,
-      selectedModifiers: [],
-      selectedCustomizations: [],
-      price: calculateItemPrice(item, 'menuItem', item.variations[0].id, [], []),
+      selectedVariation,
+      selectedModifiers,
+      selectedCustomizations,
+      price: calculateItemPrice(item, 'menuItem', selectedVariation, selectedModifiers, selectedCustomizations),
     };
     setOrderItems([...orderItems, newItem]);
+    setCustomizeModalOpen(false);
+    setSelectedItemToCustomize(null);
   };
 
   // Add deal to order
@@ -248,18 +262,6 @@ export default function CreateOrderModal({
     setOrderItems([...orderItems, newItem]);
   };
 
-  // Add sub item to order
-  const addSubItem = (subItem: CustomerSubMenuItem) => {
-    const newItem: OrderItemSelection = {
-      type: 'subItem',
-      item: subItem,
-      quantity: 1,
-      selectedModifiers: [],
-      selectedCustomizations: [],
-      price: calculateItemPrice(subItem, 'subItem'),
-    };
-    setOrderItems([...orderItems, newItem]);
-  };
 
   // Update item quantity
   const updateQuantity = (index: number, delta: number) => {
@@ -313,7 +315,7 @@ export default function CreateOrderModal({
   // Create order mutation
   const createOrderMutation = useMutation({
     mutationFn: async () => {
-      // Process menu items (including sub-menu items as regular order items)
+      // Process menu items
       const menuItemsPayload = orderItems
         .filter(item => item.type === 'menuItem')
         .map(item => {
@@ -326,23 +328,6 @@ export default function CreateOrderModal({
             customizations: item.selectedCustomizations,
           };
         });
-
-      // Process sub-menu items as separate order items with menuItemId
-      const subMenuItemsPayload = orderItems
-        .filter(item => item.type === 'subItem')
-        .map(item => {
-          const subItem = item.item as CustomerSubMenuItem;
-          return {
-            menuItemId: subItem.subMenuItemId,
-            variantId: 0, // Sub-items typically don't have variants
-            quantity: item.quantity,
-            modifiers: [],
-            customizations: [],
-          };
-        });
-
-      // Combine all order items
-      const allOrderItems = [...menuItemsPayload, ...subMenuItemsPayload];
 
       // Process deals/packages
       const orderPackagesPayload = orderItems
@@ -363,7 +348,7 @@ export default function CreateOrderModal({
         username: localStorage.getItem("username") || "admin",
         orderType: 3,
         specialInstruction: specialInstructions,
-        orderItems: allOrderItems,
+        orderItems: menuItemsPayload,
         orderPackages: orderPackagesPayload,
         deliveryDetails: null,
         pickupDetails: null,
@@ -439,11 +424,23 @@ export default function CreateOrderModal({
                   <TabsList className="w-full">
                     <TabsTrigger value="menu-items" data-testid="tab-menu-items">Menu Items</TabsTrigger>
                     <TabsTrigger value="deals" data-testid="tab-deals">Deals</TabsTrigger>
-                    <TabsTrigger value="sub-items" data-testid="tab-sub-items">Sides & Drinks</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="menu-items" className="space-y-4 mt-4">
-                    {menuData?.menuItems?.map((item) => (
+                    <div className="relative mb-4">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search menu items..."
+                        value={menuItemSearch}
+                        onChange={(e) => setMenuItemSearch(e.target.value)}
+                        className="pl-10"
+                        data-testid="input-search-menu-items"
+                      />
+                    </div>
+                    {menuData?.menuItems?.filter(item => 
+                      item.name.toLowerCase().includes(menuItemSearch.toLowerCase()) ||
+                      (item.description ?? '').toLowerCase().includes(menuItemSearch.toLowerCase())
+                    ).map((item) => (
                       <Card key={item.menuItemId} data-testid={`menu-item-${item.menuItemId}`}>
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start">
@@ -489,7 +486,20 @@ export default function CreateOrderModal({
                   </TabsContent>
 
                   <TabsContent value="deals" className="space-y-4 mt-4">
-                    {menuData?.deals?.map((deal) => (
+                    <div className="relative mb-4">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search deals..."
+                        value={dealSearch}
+                        onChange={(e) => setDealSearch(e.target.value)}
+                        className="pl-10"
+                        data-testid="input-search-deals"
+                      />
+                    </div>
+                    {menuData?.deals?.filter(deal => 
+                      deal.name.toLowerCase().includes(dealSearch.toLowerCase()) ||
+                      (deal.description ?? '').toLowerCase().includes(dealSearch.toLowerCase())
+                    ).map((deal) => (
                       <Card key={deal.dealId} data-testid={`deal-${deal.dealId}`}>
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start">
@@ -528,30 +538,6 @@ export default function CreateOrderModal({
                     ))}
                   </TabsContent>
 
-                  <TabsContent value="sub-items" className="space-y-4 mt-4">
-                    {menuData?.subMenuItems?.map((subItem) => (
-                      <Card key={subItem.subMenuItemId} data-testid={`sub-item-${subItem.subMenuItemId}`}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h3 className="font-semibold">{subItem.name}</h3>
-                              <span className="font-bold">
-                                {currency} {subItem.price.toFixed(2)}
-                              </span>
-                            </div>
-                            <Button 
-                              size="sm" 
-                              onClick={() => addSubItem(subItem)}
-                              data-testid={`button-add-subitem-${subItem.subMenuItemId}`}
-                            >
-                              <Plus className="w-4 h-4 mr-1" />
-                              Add
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </TabsContent>
                 </Tabs>
               )}
             </ScrollArea>
@@ -575,15 +561,9 @@ export default function CreateOrderModal({
                 <div className="space-y-3">
                   {orderItems.map((orderItem, index) => {
                     const item = orderItem.item;
-                    let itemName = '';
-                    
-                    if (orderItem.type === 'menuItem') {
-                      itemName = (item as CustomerMenuItem).name;
-                    } else if (orderItem.type === 'deal') {
-                      itemName = (item as CustomerDeal).name;
-                    } else {
-                      itemName = (item as CustomerSubMenuItem).name;
-                    }
+                    const itemName = orderItem.type === 'menuItem' 
+                      ? (item as CustomerMenuItem).name
+                      : (item as CustomerDeal).name;
 
                     return (
                       <Card key={index} data-testid={`order-item-${index}`}>
@@ -726,6 +706,203 @@ export default function CreateOrderModal({
                 {createOrderMutation.isPending ? "Creating..." : "Create Order"}
               </Button>
             </div>
+          </div>
+        </div>
+      </DialogContent>
+
+      {/* Customization Modal */}
+      {selectedItemToCustomize && (
+        <MenuItemCustomizationModal
+          isOpen={customizeModalOpen}
+          onClose={() => {
+            setCustomizeModalOpen(false);
+            setSelectedItemToCustomize(null);
+          }}
+          menuItem={selectedItemToCustomize}
+          onAdd={addCustomizedMenuItem}
+          currency={currency}
+        />
+      )}
+    </Dialog>
+  );
+}
+
+// Menu Item Customization Modal Component
+interface MenuItemCustomizationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  menuItem: CustomerMenuItem;
+  onAdd: (
+    item: CustomerMenuItem,
+    selectedVariation: number,
+    selectedModifiers: CreateOrderItemModifier[],
+    selectedCustomizations: CreateOrderItemCustomization[]
+  ) => void;
+  currency: string;
+}
+
+function MenuItemCustomizationModal({
+  isOpen,
+  onClose,
+  menuItem,
+  onAdd,
+  currency,
+}: MenuItemCustomizationModalProps) {
+  const [selectedVariation, setSelectedVariation] = useState<number>(menuItem.variations[0]?.id || 0);
+  const [selectedModifiers, setSelectedModifiers] = useState<Map<number, number>>(new Map());
+  const [selectedCustomizations, setSelectedCustomizations] = useState<Map<number, number>>(new Map());
+
+  const handleModifierChange = (modifierId: number, quantity: number) => {
+    const newMap = new Map(selectedModifiers);
+    if (quantity > 0) {
+      newMap.set(modifierId, quantity);
+    } else {
+      newMap.delete(modifierId);
+    }
+    setSelectedModifiers(newMap);
+  };
+
+  const handleCustomizationChange = (customizationId: number, optionId: number) => {
+    const newMap = new Map(selectedCustomizations);
+    newMap.set(customizationId, optionId);
+    setSelectedCustomizations(newMap);
+  };
+
+  const handleAdd = () => {
+    const modifiers: CreateOrderItemModifier[] = Array.from(selectedModifiers.entries()).map(([modifierId, quantity]) => ({
+      modifierId,
+      quantity,
+    }));
+
+    const customizations: CreateOrderItemCustomization[] = Array.from(selectedCustomizations.entries()).map(([customizationId, optionId]) => ({
+      customizationId,
+      optionId,
+    }));
+
+    onAdd(menuItem, selectedVariation, modifiers, customizations);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Customize {menuItem.name}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Variation Selection */}
+          {menuItem.variations && menuItem.variations.length > 1 && (
+            <div>
+              <label className="text-sm font-medium mb-2 block">Select Variation</label>
+              <Select 
+                value={selectedVariation.toString()} 
+                onValueChange={(val) => setSelectedVariation(parseInt(val))}
+              >
+                <SelectTrigger data-testid="select-variation">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {menuItem.variations.map((variation) => (
+                    <SelectItem key={variation.id} value={variation.id.toString()}>
+                      {variation.name} - {currency} {variation.price.toFixed(2)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Modifiers */}
+          {menuItem.modifiers && menuItem.modifiers.length > 0 && (
+            <div>
+              <label className="text-sm font-medium mb-2 block">Modifiers</label>
+              <div className="space-y-3">
+                {menuItem.modifiers.map((modifier) => (
+                  <Card key={modifier.id}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">{modifier.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {currency} {modifier.price.toFixed(2)} each
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleModifierChange(modifier.id, (selectedModifiers.get(modifier.id) || 0) - 1)}
+                            disabled={!selectedModifiers.has(modifier.id) || selectedModifiers.get(modifier.id) === 0}
+                            data-testid={`button-decrease-modifier-${modifier.id}`}
+                          >
+                            <Minus className="w-3 h-3" />
+                          </Button>
+                          <span className="w-8 text-center" data-testid={`modifier-quantity-${modifier.id}`}>
+                            {selectedModifiers.get(modifier.id) || 0}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleModifierChange(modifier.id, (selectedModifiers.get(modifier.id) || 0) + 1)}
+                            data-testid={`button-increase-modifier-${modifier.id}`}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Customizations */}
+          {menuItem.customizations && menuItem.customizations.length > 0 && (
+            <div>
+              <label className="text-sm font-medium mb-2 block">Customizations</label>
+              <div className="space-y-4">
+                {menuItem.customizations.map((customization) => (
+                  <div key={customization.id}>
+                    <p className="font-medium mb-2">{customization.name}</p>
+                    <Select
+                      value={selectedCustomizations.get(customization.id)?.toString() || ''}
+                      onValueChange={(val) => handleCustomizationChange(customization.id, parseInt(val))}
+                    >
+                      <SelectTrigger data-testid={`select-customization-${customization.id}`}>
+                        <SelectValue placeholder="Select an option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customization.options.map((option) => (
+                          <SelectItem key={option.id} value={option.id.toString()}>
+                            {option.name} {option.price > 0 && `(+${currency} ${option.price.toFixed(2)})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-4">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={onClose}
+              data-testid="button-cancel-customize"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={handleAdd}
+              data-testid="button-confirm-add"
+            >
+              Add to Order
+            </Button>
           </div>
         </div>
       </DialogContent>
