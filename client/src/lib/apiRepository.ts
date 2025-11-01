@@ -504,6 +504,7 @@ export const API_ENDPOINTS = {
   MENU_ITEM_SEARCH: "/api/MenuItem/search/{branchId}",
 
   // Order endpoints
+  CREATE_ORDER: "/api/order",
   ORDERS: "/api/orders",
   ORDER_BY_ID: "/api/orders/{id}",
   ORDERS_BY_BRANCH: "/api/Order/ByBranch",
@@ -660,7 +661,7 @@ export const defaultApiConfig: ApiConfig = {
 
     // Order endpoints
     getOrders: API_ENDPOINTS.ORDERS,
-    createOrder: API_ENDPOINTS.ORDERS,
+    createOrder: API_ENDPOINTS.CREATE_ORDER,
     getOrderById: API_ENDPOINTS.ORDER_BY_ID,
     updateOrder: API_ENDPOINTS.ORDER_BY_ID,
     updateOrderStatus: API_ENDPOINTS.UPDATE_ORDER_STATUS,
