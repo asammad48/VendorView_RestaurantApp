@@ -89,6 +89,35 @@ export default function CreateOrderModal({
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryInstruction, setDeliveryInstruction] = useState("");
   const [deliveryTime, setDeliveryTime] = useState<string>("");
+  const [showDeliveryForm, setShowDeliveryForm] = useState(true);
+  const [showPickupForm, setShowPickupForm] = useState(true);
+
+  // Auto-collapse forms when details are filled
+  useEffect(() => {
+    if (orderType === 1 && deliveryFullName && deliveryPhone && deliveryAddress) {
+      setShowDeliveryForm(false);
+    }
+  }, [orderType, deliveryFullName, deliveryPhone, deliveryAddress]);
+
+  useEffect(() => {
+    if (orderType === 2 && pickupName && pickupPhone) {
+      setShowPickupForm(false);
+    }
+  }, [orderType, pickupName, pickupPhone]);
+
+  // Reset form visibility when order type changes
+  useEffect(() => {
+    if (orderType === 1) {
+      setShowDeliveryForm(true);
+      setShowPickupForm(false);
+    } else if (orderType === 2) {
+      setShowPickupForm(true);
+      setShowDeliveryForm(false);
+    } else {
+      setShowDeliveryForm(false);
+      setShowPickupForm(false);
+    }
+  }, [orderType]);
 
   // Fetch branch details
   const { data: branch } = useQuery({
@@ -499,108 +528,6 @@ export default function CreateOrderModal({
                   </Select>
                 </div>
               )}
-
-              {/* Pickup Details Form (for Take Away) */}
-              {orderType === 2 && (
-                <Card>
-                  <CardContent className="p-4 space-y-3">
-                    <h3 className="font-semibold text-sm">Pickup Details</h3>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Name *</label>
-                      <Input
-                        placeholder="Customer name"
-                        value={pickupName}
-                        onChange={(e) => setPickupName(e.target.value)}
-                        data-testid="input-pickup-name"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Phone Number *</label>
-                      <Input
-                        placeholder="Phone number"
-                        value={pickupPhone}
-                        onChange={(e) => setPickupPhone(e.target.value)}
-                        data-testid="input-pickup-phone"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Pickup Instruction</label>
-                      <Textarea
-                        placeholder="Special instructions..."
-                        value={pickupInstruction}
-                        onChange={(e) => setPickupInstruction(e.target.value)}
-                        className="min-h-[60px]"
-                        data-testid="input-pickup-instruction"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Preferred Pickup Time</label>
-                      <Input
-                        type="datetime-local"
-                        value={pickupTime}
-                        onChange={(e) => setPickupTime(e.target.value)}
-                        data-testid="input-pickup-time"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Delivery Details Form (for Delivery) */}
-              {orderType === 1 && (
-                <Card>
-                  <CardContent className="p-4 space-y-3">
-                    <h3 className="font-semibold text-sm">Delivery Details</h3>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Full Name *</label>
-                      <Input
-                        placeholder="Customer full name"
-                        value={deliveryFullName}
-                        onChange={(e) => setDeliveryFullName(e.target.value)}
-                        data-testid="input-delivery-fullname"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Phone Number *</label>
-                      <Input
-                        placeholder="Phone number"
-                        value={deliveryPhone}
-                        onChange={(e) => setDeliveryPhone(e.target.value)}
-                        data-testid="input-delivery-phone"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Delivery Address *</label>
-                      <Textarea
-                        placeholder="Full delivery address"
-                        value={deliveryAddress}
-                        onChange={(e) => setDeliveryAddress(e.target.value)}
-                        className="min-h-[60px]"
-                        data-testid="input-delivery-address"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Delivery Instruction</label>
-                      <Textarea
-                        placeholder="Special instructions..."
-                        value={deliveryInstruction}
-                        onChange={(e) => setDeliveryInstruction(e.target.value)}
-                        className="min-h-[60px]"
-                        data-testid="input-delivery-instruction"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Preferred Delivery Time</label>
-                      <Input
-                        type="datetime-local"
-                        value={deliveryTime}
-                        onChange={(e) => setDeliveryTime(e.target.value)}
-                        data-testid="input-delivery-time"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
 
             <ScrollArea className="flex-1 px-6">
@@ -740,6 +667,149 @@ export default function CreateOrderModal({
             </div>
 
             <ScrollArea className="flex-1 px-6 py-4">
+              {/* Delivery Details Form/Summary */}
+              {orderType === 1 && (
+                <div className="mb-4">
+                  {showDeliveryForm ? (
+                    <Card>
+                      <CardContent className="p-4 space-y-3">
+                        <h3 className="font-semibold text-sm">Delivery Details</h3>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Full Name *</label>
+                          <Input
+                            placeholder="Customer full name"
+                            value={deliveryFullName}
+                            onChange={(e) => setDeliveryFullName(e.target.value)}
+                            data-testid="input-delivery-fullname"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Phone Number *</label>
+                          <Input
+                            placeholder="Phone number"
+                            value={deliveryPhone}
+                            onChange={(e) => setDeliveryPhone(e.target.value)}
+                            data-testid="input-delivery-phone"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Delivery Address *</label>
+                          <Textarea
+                            placeholder="Full delivery address"
+                            value={deliveryAddress}
+                            onChange={(e) => setDeliveryAddress(e.target.value)}
+                            className="min-h-[60px]"
+                            data-testid="input-delivery-address"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Delivery Instruction</label>
+                          <Textarea
+                            placeholder="Special instructions..."
+                            value={deliveryInstruction}
+                            onChange={(e) => setDeliveryInstruction(e.target.value)}
+                            className="min-h-[60px]"
+                            data-testid="input-delivery-instruction"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Preferred Delivery Time</label>
+                          <Input
+                            type="datetime-local"
+                            value={deliveryTime}
+                            onChange={(e) => setDeliveryTime(e.target.value)}
+                            data-testid="input-delivery-time"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="cursor-pointer hover:bg-muted/50" onClick={() => setShowDeliveryForm(true)}>
+                      <CardContent className="p-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-sm">Delivery To:</h4>
+                            <p className="text-sm">{deliveryFullName}</p>
+                            <p className="text-sm text-muted-foreground">{deliveryPhone}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{deliveryAddress}</p>
+                          </div>
+                          <Button variant="ghost" size="sm" data-testid="button-edit-delivery">
+                            Edit
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  <Separator className="my-4" />
+                </div>
+              )}
+
+              {/* Pickup Details Form/Summary */}
+              {orderType === 2 && (
+                <div className="mb-4">
+                  {showPickupForm ? (
+                    <Card>
+                      <CardContent className="p-4 space-y-3">
+                        <h3 className="font-semibold text-sm">Pickup Details</h3>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Name *</label>
+                          <Input
+                            placeholder="Customer name"
+                            value={pickupName}
+                            onChange={(e) => setPickupName(e.target.value)}
+                            data-testid="input-pickup-name"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Phone Number *</label>
+                          <Input
+                            placeholder="Phone number"
+                            value={pickupPhone}
+                            onChange={(e) => setPickupPhone(e.target.value)}
+                            data-testid="input-pickup-phone"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Pickup Instruction</label>
+                          <Textarea
+                            placeholder="Special instructions..."
+                            value={pickupInstruction}
+                            onChange={(e) => setPickupInstruction(e.target.value)}
+                            className="min-h-[60px]"
+                            data-testid="input-pickup-instruction"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Preferred Pickup Time</label>
+                          <Input
+                            type="datetime-local"
+                            value={pickupTime}
+                            onChange={(e) => setPickupTime(e.target.value)}
+                            data-testid="input-pickup-time"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="cursor-pointer hover:bg-muted/50" onClick={() => setShowPickupForm(true)}>
+                      <CardContent className="p-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-sm">Pickup By:</h4>
+                            <p className="text-sm">{pickupName}</p>
+                            <p className="text-sm text-muted-foreground">{pickupPhone}</p>
+                          </div>
+                          <Button variant="ghost" size="sm" data-testid="button-edit-pickup">
+                            Edit
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  <Separator className="my-4" />
+                </div>
+              )}
+
               {orderItems.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
                   No items added yet
