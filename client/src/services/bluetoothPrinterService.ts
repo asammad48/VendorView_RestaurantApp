@@ -318,6 +318,17 @@ export class BluetoothPrinterService {
     allergens?: string[];
     specialInstruction?: string;
     currency?: string;
+    deliveryDetails?: {
+      fullName?: string;
+      phoneNumber?: string;
+      deliveryAddress?: string;
+      deliveryInstruction?: string;
+    };
+    pickupDetails?: {
+      name?: string;
+      phoneNumber?: string;
+      pickupInstruction?: string;
+    };
   }): Promise<{ success: boolean; error?: string }> {
     console.log('[Bluetooth Printer] 🖨️ Print receipt requested');
     console.log('[Bluetooth Printer] Order data:', {
@@ -517,6 +528,53 @@ export class BluetoothPrinterService {
         receipt += orderData.specialInstruction + '\n';
         receipt += '================================\n';
         console.log('[Bluetooth Printer] Added special instructions:', orderData.specialInstruction);
+      }
+      
+      // Delivery details section (if present)
+      if (orderData.deliveryDetails) {
+        const dd = orderData.deliveryDetails;
+        if (dd.fullName || dd.phoneNumber || dd.deliveryAddress) {
+          receipt += '\n';
+          receipt += ESC + '!' + '\x08'; // Bold
+          receipt += 'DELIVERY DETAILS:\n';
+          receipt += ESC + '!' + '\x00'; // Normal
+          if (dd.fullName) {
+            receipt += `Name: ${dd.fullName}\n`;
+          }
+          if (dd.phoneNumber) {
+            receipt += `Phone: ${dd.phoneNumber}\n`;
+          }
+          if (dd.deliveryAddress) {
+            receipt += `Address: ${dd.deliveryAddress}\n`;
+          }
+          if (dd.deliveryInstruction) {
+            receipt += `Instructions: ${dd.deliveryInstruction}\n`;
+          }
+          receipt += '================================\n';
+          console.log('[Bluetooth Printer] Added delivery details');
+        }
+      }
+      
+      // Pickup details section (if present)
+      if (orderData.pickupDetails) {
+        const pd = orderData.pickupDetails;
+        if (pd.name || pd.phoneNumber) {
+          receipt += '\n';
+          receipt += ESC + '!' + '\x08'; // Bold
+          receipt += 'PICKUP DETAILS:\n';
+          receipt += ESC + '!' + '\x00'; // Normal
+          if (pd.name) {
+            receipt += `Name: ${pd.name}\n`;
+          }
+          if (pd.phoneNumber) {
+            receipt += `Phone: ${pd.phoneNumber}\n`;
+          }
+          if (pd.pickupInstruction) {
+            receipt += `Instructions: ${pd.pickupInstruction}\n`;
+          }
+          receipt += '================================\n';
+          console.log('[Bluetooth Printer] Added pickup details');
+        }
       }
       
       // Footer - centered

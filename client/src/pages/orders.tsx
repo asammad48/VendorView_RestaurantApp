@@ -640,7 +640,18 @@ export default function Orders() {
         deliveryCharges: order.deliveryCharges,
         serviceCharges: order.serviceCharges,
         discountAmount: order.discountAmount,
-        tipAmount: order.tipAmount
+        tipAmount: order.tipAmount,
+        deliveryDetails: order.orderDeliveryDetails ? {
+          fullName: order.orderDeliveryDetails.fullName,
+          phoneNumber: order.orderDeliveryDetails.phoneNumber,
+          deliveryAddress: order.orderDeliveryDetails.deliveryAddress,
+          deliveryInstruction: order.orderDeliveryDetails.deliveryInstruction
+        } : undefined,
+        pickupDetails: order.orderPickupDetails ? {
+          name: order.orderPickupDetails.name,
+          phoneNumber: order.orderPickupDetails.phoneNumber,
+          pickupInstruction: order.orderPickupDetails.pickupInstruction
+        } : undefined
       };
 
       const result = await bluetoothPrinterService.printReceipt(orderData);
