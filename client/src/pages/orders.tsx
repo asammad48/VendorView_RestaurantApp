@@ -608,42 +608,8 @@ export default function Orders() {
     }
 
     try {
-      const items = order.orderItems?.map(item => ({
-        name: `${item.itemName || 'Item'}${item.variantName ? ` (${item.variantName})` : ''}`,
-        quantity: item.quantity || 1,
-        price: item.totalPrice || 0
-      })) || [];
-
-      const packageItems = order.orderPackages?.flatMap(pkg => 
-        pkg.orderPackageItems?.map(pkgItem => ({
-          name: `${pkgItem.itemName || 'Package Item'}${pkgItem.variantName ? ` (${pkgItem.variantName})` : ''}`,
-          quantity: pkgItem.quantity || 1,
-          price: 0
-        })) || []
-      ) || [];
-
-      const allItems = [...items, ...packageItems];
-
-      const orderData = {
-        orderNumber: order.orderNumber || 'N/A',
-        date: new Date(order.createdAt).toLocaleString(),
-        items: allItems,
-        subtotal: order.subTotal || 0,
-        tax: order.taxAmount || 0,
-        total: order.totalAmount || 0,
-        branchName: order.branchName || 'Restaurant',
-        currency: order.currency || 'USD',
-        orderType: order.orderType,
-        locationName: order.locationName,
-        specialInstruction: order.specialInstruction,
-        allergens: order.allergens,
-        deliveryCharges: order.deliveryCharges,
-        serviceCharges: order.serviceCharges,
-        discountAmount: order.discountAmount,
-        tipAmount: order.tipAmount
-      };
-
-      const result = await bluetoothPrinterService.printReceipt(orderData);
+      const { printOrderReceipt } = await import('@/utils/printOrderReceipt');
+      const result = await printOrderReceipt(order);
 
       if (result.success) {
         toast({

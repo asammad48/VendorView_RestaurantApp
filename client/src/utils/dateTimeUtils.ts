@@ -116,20 +116,36 @@ export const convertUtcToLocalTime = (utcDateString: string): string => {
 
 /**
  * Formats date for receipt printing (compact format)
- * @param utcDateString - UTC date string from API
- * @returns Formatted string like "Oct 19, 2025 5:48 PM"
+ * Converts UTC time to browser's local timezone
+ * @param utcDateString - UTC date string from API (e.g., "2025-10-19T17:48:12.037288")
+ * @returns Formatted string like "Oct 19, 2025 10:48 PM" (in local time)
  */
 export const formatReceiptDateTime = (utcDateString: string): string => {
   if (!utcDateString) return '';
   
   try {
-    const utcDate = new Date(utcDateString);
+    // Ensure the date string is treated as UTC by appending 'Z' if not present
+    let dateString = utcDateString.trim();
+    if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('T')) {
+      // If it's a simple date format, convert to ISO
+      dateString = new Date(dateString).toISOString();
+    } else if (!dateString.endsWith('Z') && dateString.includes('T') && !dateString.includes('+')) {
+      // If it has 'T' but no timezone indicator, append 'Z' to mark as UTC
+      dateString = dateString + 'Z';
+    }
+    
+    const utcDate = new Date(dateString);
     
     // Check if the date is valid
     if (isNaN(utcDate.getTime())) {
       console.error('Invalid date string:', utcDateString);
       return '';
     }
+    
+    // Log for debugging
+    console.log('[DateTime] UTC input:', utcDateString);
+    console.log('[DateTime] Parsed UTC date:', utcDate.toISOString());
+    console.log('[DateTime] Local date:', utcDate.toLocaleString());
     
     const options: Intl.DateTimeFormatOptions = {
       month: 'short',
@@ -140,7 +156,11 @@ export const formatReceiptDateTime = (utcDateString: string): string => {
       hour12: true,
     };
     
-    return utcDate.toLocaleString(undefined, options);
+    // toLocaleString automatically converts to browser's local timezone
+    const localTimeString = utcDate.toLocaleString(undefined, options);
+    console.log('[DateTime] Formatted local time:', localTimeString);
+    
+    return localTimeString;
   } catch (error) {
     console.error('Error formatting receipt date time:', error);
     return '';

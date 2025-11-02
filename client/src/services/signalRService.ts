@@ -248,66 +248,14 @@ export class SignalRService {
             total: orderData.totalAmount,
             currency: orderData.currency,
             allergens: orderData.allergens?.length || 0,
-            specialInstruction: orderData.specialInstruction || 'None'
+            specialInstruction: orderData.specialInstruction || 'None',
+            hasDeliveryDetails: !!orderData.orderDeliveryDetails,
+            hasPickupDetails: !!orderData.orderPickupDetails
           });
 
-          // Use currency from order data (API now provides it)
-          const currency = orderData.currency || 'USD';
-          console.log('[SignalR] Order currency:', currency);
-
-          // Prepare items for printing
-          const items = [
-            ...(orderData.orderItems || []).map(item => ({
-              name: item.itemName + (item.variantName ? ` (${item.variantName})` : ''),
-              quantity: item.quantity,
-              price: (item.unitPrice),
-              modifiers: item.orderItemModifiers || [],
-              customizations: item.orderItemCustomizations || []
-            })),
-            ...(orderData.orderPackages || []).map(pkg => ({
-              name: `[DEAL] ${pkg.packageName}`,
-              quantity: pkg.quantity,
-              price: (pkg.totalPrice || 0) / (pkg.quantity || 1)
-            }))
-          ];
-
-          // Calculate subtotal from items
-          const subtotal = (orderData.orderItems || []).reduce((sum, item) => sum + (item.totalPrice || 0), 0) +
-                          (orderData.orderPackages || []).reduce((sum, pkg) => sum + (pkg.totalPrice || 0), 0);
-
-          console.log('[SignalR] Prepared receipt data:', {
-            itemCount: items.length,
-            subtotal,
-            deliveryCharges: orderData.deliveryCharges,
-            serviceCharges: orderData.serviceCharges,
-            tax: orderData.taxAmount,
-            discount: orderData.discountAmount,
-            tip: orderData.tipAmount,
-            total: orderData.totalAmount
-          });
-
-          // Import time utility for proper UTC to local conversion
-          const { formatReceiptDateTime } = await import('../utils/dateTimeUtils');
-          
-          // Print receipt with actual order data
-          const printResult = await bluetoothPrinterService.printReceipt({
-            orderNumber: orderData.orderNumber,
-            date: formatReceiptDateTime(orderData.createdAt),
-            items: items,
-            subtotal: subtotal,
-            tax: orderData.taxAmount || 0,
-            total: orderData.totalAmount || 0,
-            branchName: orderData.branchName || 'Restaurant',
-            locationName: orderData.locationName,
-            orderType: orderData.orderType,
-            deliveryCharges: orderData.deliveryCharges,
-            serviceCharges: orderData.serviceCharges,
-            discountAmount: orderData.discountAmount,
-            tipAmount: orderData.tipAmount,
-            allergens: orderData.allergens,
-            specialInstruction: orderData.specialInstruction,
-            currency: currency
-          });
+          // Use shared print function
+          const { printOrderReceipt } = await import('../utils/printOrderReceipt');
+          const printResult = await printOrderReceipt(orderData);
 
           if (printResult.success) {
             console.log('[SignalR] ✅ Receipt printed successfully via Bluetooth!');
