@@ -18,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { apiRepository } from "@/lib/apiRepository";
 import type {
   CustomerMenuItem,
@@ -929,22 +930,31 @@ export default function CreateOrderModal({
 
                 {allergens && allergens.length > 0 && (
                   <div>
-                    <label className="text-sm font-medium">Allergens</label>
-                    <Select
-                      value={selectedAllergens.join(',')}
-                      onValueChange={(val) => setSelectedAllergens(val.split(',').map(Number).filter(Boolean))}
-                    >
-                      <SelectTrigger data-testid="select-allergens">
-                        <SelectValue placeholder="Select allergens" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allergens.map((allergen) => (
-                          <SelectItem key={allergen.id} value={allergen.id.toString()}>
+                    <label className="text-sm font-medium mb-2 block">Allergens</label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                      {allergens.map((allergen) => (
+                        <div key={allergen.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`allergen-${allergen.id}`}
+                            checked={selectedAllergens.includes(allergen.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedAllergens([...selectedAllergens, allergen.id]);
+                              } else {
+                                setSelectedAllergens(selectedAllergens.filter(id => id !== allergen.id));
+                              }
+                            }}
+                            data-testid={`checkbox-allergen-${allergen.id}`}
+                          />
+                          <label
+                            htmlFor={`allergen-${allergen.id}`}
+                            className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          >
                             {allergen.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1034,7 +1044,7 @@ function MenuItemCustomizationModal({
 }: MenuItemCustomizationModalProps) {
   const [selectedVariation, setSelectedVariation] = useState<number>(menuItem.variations[0]?.id || 0);
   const [selectedModifiers, setSelectedModifiers] = useState<Map<number, number>>(new Map());
-  const [selectedCustomizations, setSelectedCustomizations] = useState<Map<number, number>>(new Map());
+  const [selectedCustomizations, setSelectedCustomizations] = useState<Map<number, number[]>>(new Map());
 
   const handleModifierChange = (modifierId: number, quantity: number) => {
     const newMap = new Map(selectedModifiers);
@@ -1046,9 +1056,21 @@ function MenuItemCustomizationModal({
     setSelectedModifiers(newMap);
   };
 
-  const handleCustomizationChange = (customizationId: number, optionId: number) => {
+  const handleCustomizationToggle = (customizationId: number, optionId: number, checked: boolean) => {
     const newMap = new Map(selectedCustomizations);
-    newMap.set(customizationId, optionId);
+    const currentOptions = newMap.get(customizationId) || [];
+    
+    if (checked) {
+      newMap.set(customizationId, [...currentOptions, optionId]);
+    } else {
+      newMap.set(customizationId, currentOptions.filter(id => id !== optionId));
+    }
+    
+    // Remove customization key if no options selected
+    if (newMap.get(customizationId)?.length === 0) {
+      newMap.delete(customizationId);
+    }
+    
     setSelectedCustomizations(newMap);
   };
 
@@ -1058,10 +1080,16 @@ function MenuItemCustomizationModal({
       quantity,
     }));
 
-    const customizations: CreateOrderItemCustomization[] = Array.from(selectedCustomizations.entries()).map(([customizationId, optionId]) => ({
-      customizationId,
-      optionId,
-    }));
+    // Flatten multiple customizations into individual entries
+    const customizations: CreateOrderItemCustomization[] = [];
+    selectedCustomizations.forEach((optionIds, customizationId) => {
+      optionIds.forEach(optionId => {
+        customizations.push({
+          customizationId,
+          optionId,
+        });
+      });
+    });
 
     onAdd(menuItem, selectedVariation, modifiers, customizations);
   };
@@ -1149,21 +1177,24 @@ function MenuItemCustomizationModal({
                 {menuItem.customizations.map((customization) => (
                   <div key={customization.id}>
                     <p className="font-medium mb-2">{customization.name}</p>
-                    <Select
-                      value={selectedCustomizations.get(customization.id)?.toString() || ''}
-                      onValueChange={(val) => handleCustomizationChange(customization.id, parseInt(val))}
-                    >
-                      <SelectTrigger data-testid={`select-customization-${customization.id}`}>
-                        <SelectValue placeholder="Select an option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customization.options.map((option) => (
-                          <SelectItem key={option.id} value={option.id.toString()}>
+                    <div className="space-y-2 border rounded-md p-3">
+                      {customization.options.map((option) => (
+                        <div key={option.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`customization-${customization.id}-option-${option.id}`}
+                            checked={(selectedCustomizations.get(customization.id) || []).includes(option.id)}
+                            onCheckedChange={(checked) => handleCustomizationToggle(customization.id, option.id, checked as boolean)}
+                            data-testid={`checkbox-customization-${customization.id}-option-${option.id}`}
+                          />
+                          <label
+                            htmlFor={`customization-${customization.id}-option-${option.id}`}
+                            className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                          >
                             {option.name} {option.price > 0 && `(+${currency} ${option.price.toFixed(2)})`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
