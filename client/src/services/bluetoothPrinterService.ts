@@ -304,6 +304,8 @@ export class BluetoothPrinterService {
       price: number; 
       modifiers?: Array<{ modifierName: string; price: number; quantity: number }>;
       customizations?: Array<{ customizationName: string; optionName: string }>;
+      packageItems?: Array<{ itemName: string; quantity: number }>;
+      packageSubItems?: Array<{ subItemName: string; quantity: number }>;
     }>;
     subtotal: number;
     tax: number;
@@ -430,6 +432,24 @@ export class BluetoothPrinterService {
         const price = formatPrice(item.price);
         const spaces = 32 - itemLine.length - price.length;
         receipt += itemLine + ' '.repeat(Math.max(spaces, 1)) + price + '\n';
+        
+        // Add package items if this is a deal package
+        if (item.packageItems && item.packageItems.length > 0) {
+          item.packageItems.forEach(pkgItem => {
+            const pkgItemLine = `  - ${pkgItem.itemName}`;
+            const pkgQty = pkgItem.quantity > 1 ? ` (x${pkgItem.quantity})` : '';
+            receipt += pkgItemLine + pkgQty + '\n';
+          });
+        }
+        
+        // Add package sub items if present
+        if (item.packageSubItems && item.packageSubItems.length > 0) {
+          item.packageSubItems.forEach(subItem => {
+            const subItemLine = `  - ${subItem.subItemName}`;
+            const subQty = subItem.quantity > 1 ? ` (x${subItem.quantity})` : '';
+            receipt += subItemLine + subQty + '\n';
+          });
+        }
         
         // Add modifiers if present
         if (item.modifiers && item.modifiers.length > 0) {

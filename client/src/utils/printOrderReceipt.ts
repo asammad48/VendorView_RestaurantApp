@@ -24,11 +24,23 @@ export async function printOrderReceipt(
       modifiers: item.orderItemModifiers || [],
       customizations: item.orderItemCustomizations || []
     })),
-    ...(orderData.orderPackages || []).map(pkg => ({
-      name: `[DEAL] ${pkg.packageName}`,
-      quantity: pkg.quantity,
-      price: (pkg.totalPrice || 0) / (pkg.quantity || 1)
-    }))
+    ...(orderData.orderPackages || []).flatMap(pkg => {
+      // Create main package entry
+      const packageEntry = {
+        name: `[DEAL] ${pkg.packageName}`,
+        quantity: pkg.quantity,
+        price: (pkg.totalPrice || 0) / (pkg.quantity || 1),
+        packageItems: (pkg.orderPackageItems || []).map(pkgItem => ({
+          itemName: pkgItem.itemName + (pkgItem.variantName ? ` (${pkgItem.variantName})` : ''),
+          quantity: pkgItem.quantity
+        })),
+        packageSubItems: (pkg.orderPackageSubItems || []).map(subItem => ({
+          subItemName: subItem.subItemName,
+          quantity: subItem.quantity
+        }))
+      };
+      return [packageEntry];
+    })
   ];
 
   // Calculate subtotal from items
