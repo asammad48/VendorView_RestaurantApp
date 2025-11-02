@@ -46,7 +46,9 @@ export async function printOrderReceipt(
     tip: orderData.tipAmount,
     total: orderData.totalAmount,
     hasDeliveryDetails: !!orderData.orderDeliveryDetails,
-    hasPickupDetails: !!orderData.orderPickupDetails
+    hasPickupDetails: !!orderData.orderPickupDetails,
+    specialInstruction: orderData.specialInstruction || '(none)',
+    allergens: orderData.allergens?.length || 0
   });
 
   // Print receipt with actual order data
