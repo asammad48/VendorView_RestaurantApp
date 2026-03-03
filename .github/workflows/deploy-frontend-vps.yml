@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_ENVIRONMENT: qa
-      VITE_API_BASE_URL: https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net
+      VITE_API_BASE_URL: https://vendorview.restaurantapp.tech
     steps:
       - uses: actions/checkout@v4
 
