@@ -1,53 +1,48 @@
-name: Azure Static Web Apps CI/CD (QA only)
+name: Deploy Frontend (VPS)
 
 on:
   push:
-    branches:
-      - qa
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - qa
+    branches: [ "qa" ]
 
 jobs:
-  build_and_deploy_qa:
-    if: github.ref == 'refs/heads/qa' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed'))
+  deploy-frontend:
     runs-on: ubuntu-latest
-    name: Build and Deploy QA
+    env:
+      VITE_ENVIRONMENT: qa
+      VITE_API_BASE_URL: https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          lfs: false
+      - uses: actions/checkout@v4
 
-      - name: Set QA Environment
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Web
+        run: npm ci && npm run build
+
+      - name: SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Guard remote deploy dir
         run: |
-          echo "VITE_ENVIRONMENT=qa" >> $GITHUB_ENV
-          echo "VITE_API_BASE_URL=https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net" >> $GITHUB_ENV
+          ssh -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=no \
+          ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+          "bash -lc '
+          DIR=\"${{ secrets.FRONTEND_DEPLOY_DIR }}\";
+          [ -n \"$DIR\" ] || (echo \"ERROR: FRONTEND_DEPLOY_DIR empty\"; exit 2);
+          case \"$DIR\" in
+            /|/opt|/opt/|/opt/apps|/opt/apps/|/opt/apps/myapp|/opt/apps/myapp/)
+              echo \"ERROR: deploy dir too broad: $DIR\"; exit 3;;
+          esac;
+          mkdir -p \"$DIR\";
+          echo \"OK: $DIR\"
+          '"
 
-      - name: Build And Deploy QA
-        id: builddeployqa
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_QA }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/"
-          api_location: ""
-          output_location: "dist"
+      - name: Rsync frontend to VPS (SAFE)
+        run: rsync -az --delete -e "ssh -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=no" ./dist/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.FRONTEND_DEPLOY_DIR }}/
 
-  close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.base_ref == 'qa'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job (QA only)
-    steps:
-      - name: Close Pull Request (QA)
-        id: closepullrequestqa
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_QA }}
-          action: "close"
-
-
-
-
+      - name: Reload nginx
+        run: ssh -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo systemctl reload nginx"
