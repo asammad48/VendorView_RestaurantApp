@@ -864,7 +864,14 @@ export const branchApi = {
       formData.append("RestaurantBanner", bannerFile);
     }
 
-    const response = await apiRepository.call("createBranch", "POST", formData);
+      const response = await apiRepository.call("createBranch", "POST", formData);
+      if (response.error) {
+          throw new Error(response.error);
+      }
+
+      if (!response.data) {
+          throw new Error("Failed to create branch");
+      }
     return response.data;
   },
 

@@ -8,9 +8,8 @@ export interface EnvironmentConfig {
 }
 
 // Development URLs
-const DEVELOPMENT_API_URL = "https://5dtrtpzg-44336.inc1.devtunnels.ms";
-const QA_API_URL =
-  "https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net";
+const DEVELOPMENT_API_URL = 'https://3nbf18z7-44336.inc1.devtunnels.ms';
+const QA_API_URL = 'https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net';
 
 // Get API base URL from environment variables or fallback logic
 const getApiBaseUrl = (): string => {
