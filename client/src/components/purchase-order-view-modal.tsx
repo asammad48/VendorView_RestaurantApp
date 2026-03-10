@@ -91,6 +91,15 @@ export default function PurchaseOrderViewModal({
         description: "Purchase order received successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["purchase-order", orderId] });
+      if (orderDetails?.branchId) {
+        queryClient.invalidateQueries({ queryKey: ["purchase-orders", orderDetails.branchId] });
+        queryClient.invalidateQueries({ queryKey: ["inventory-stock", orderDetails.branchId] });
+        queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", orderDetails.branchId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+        queryClient.invalidateQueries({ queryKey: ["inventory-stock"] });
+        queryClient.invalidateQueries({ queryKey: ["inventory-low-stock"] });
+      }
       onSuccess();
       setShowReceiveForm(false);
     },
@@ -114,6 +123,11 @@ export default function PurchaseOrderViewModal({
         description: "Purchase order cancelled successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["purchase-order", orderId] });
+      if (orderDetails?.branchId) {
+        queryClient.invalidateQueries({ queryKey: ["purchase-orders", orderDetails.branchId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      }
       onSuccess();
       onClose();
     },

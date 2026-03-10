@@ -1,21 +1,57 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { z } from "zod";
+import { Check, ChevronsUpDown, ExternalLink } from "lucide-react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { inventoryApi } from "@/lib/apiRepository";
+import { cn } from "@/lib/utils";
+
+const units = [
+  // Weight Units
+  { name: "Milligram", value: "mg", category: "Weight" },
+  { name: "Gram", value: "g", category: "Weight" },
+  { name: "Kilogram", value: "kg", category: "Weight" },
+  { name: "Ounce", value: "oz", category: "Weight" },
+  // Volume Units
+  { name: "Milliliter", value: "ml", category: "Volume" },
+  { name: "Liter", value: "L", category: "Volume" },
+  // Pack Size Units
+  { name: "Each", value: "Each", category: "Pack Size" },
+  { name: "Piece", value: "Piece", category: "Pack Size" },
+  { name: "Single", value: "Single", category: "Pack Size" },
+  { name: "2 Pack", value: "2 Pack", category: "Pack Size" },
+  { name: "3 Pack", value: "3 Pack", category: "Pack Size" },
+  { name: "4 Pack", value: "4 Pack", category: "Pack Size" },
+  { name: "5 Pack", value: "5 Pack", category: "Pack Size" },
+  { name: "6 Pack", value: "6 Pack", category: "Pack Size" },
+  { name: "8 Pack", value: "8 Pack", category: "Pack Size" },
+  { name: "10 Pack", value: "10 Pack", category: "Pack Size" },
+  { name: "12 Pack", value: "12 Pack", category: "Pack Size" },
+  { name: "20 Pack", value: "20 Pack", category: "Pack Size" },
+  { name: "24 Pack", value: "24 Pack", category: "Pack Size" },
+  { name: "30 Pack", value: "30 Pack", category: "Pack Size" },
+  { name: "50 Pack", value: "50 Pack", category: "Pack Size" },
+  { name: "100 Pack", value: "100 Pack", category: "Pack Size" },
+  // Count Units
+  { name: "Dozen", value: "Dozen", category: "Count" },
+  { name: "Half Dozen", value: "Half Dozen", category: "Count" }
+];
 
 const itemSchema = z.object({
   name: z.string().min(1, "Item name is required"),
   categoryId: z.number().min(1, "Category is required"),
   unit: z.string().min(1, "Unit is required"),
-  reorderLevel: z.number().min(0, "Reorder level must be at least 0"),
+  reorderLevel: z.number().min(0, "Reorder level must be at least 0").multipleOf(0.001, "Reorder level can have up to 3 decimal places"),
   defaultSupplierId: z.number().optional(),
 });
 
@@ -49,6 +85,8 @@ interface AddInventoryItemModalProps {
   categories: InventoryCategory[];
   suppliers: InventorySupplier[];
   onSuccess?: () => void;
+  onNavigateToCategories?: () => void;
+  onNavigateToSuppliers?: () => void;
 }
 
 export default function AddInventoryItemModal({ 
@@ -58,10 +96,15 @@ export default function AddInventoryItemModal({
   item,
   categories,
   suppliers,
-  onSuccess 
+  onSuccess,
+  onNavigateToCategories,
+  onNavigateToSuppliers
 }: AddInventoryItemModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const isEdit = !!item;
+  const [unitPopoverOpen, setUnitPopoverOpen] = useState(false);
   
   const form = useForm<ItemFormData>({
     resolver: zodResolver(itemSchema),
@@ -73,6 +116,24 @@ export default function AddInventoryItemModal({
       defaultSupplierId: undefined,
     },
   });
+
+  const handleNavigateToCategories = () => {
+    onClose();
+    if (onNavigateToCategories) {
+      setTimeout(() => {
+        onNavigateToCategories();
+      }, 100);
+    }
+  };
+
+  const handleNavigateToSuppliers = () => {
+    onClose();
+    if (onNavigateToSuppliers) {
+      setTimeout(() => {
+        onNavigateToSuppliers();
+      }, 100);
+    }
+  };
 
   useEffect(() => {
     if (open && item) {
@@ -102,6 +163,9 @@ export default function AddInventoryItemModal({
         title: "Success",
         description: "Item created successfully",
       });
+      queryClient.invalidateQueries({ queryKey: ["inventory-items", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", branchId] });
       onSuccess?.();
       onClose();
       form.reset();
@@ -123,6 +187,9 @@ export default function AddInventoryItemModal({
         title: "Success",
         description: "Item updated successfully",
       });
+      queryClient.invalidateQueries({ queryKey: ["inventory-items", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-stock", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", branchId] });
       onSuccess?.();
       onClose();
       form.reset();
@@ -198,6 +265,19 @@ export default function AddInventoryItemModal({
                 ))}
               </SelectContent>
             </Select>
+            {categories.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                No categories found.{" "}
+                <button 
+                  type="button"
+                  onClick={handleNavigateToCategories} 
+                  className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline" 
+                  data-testid="link-categories"
+                >
+                  Go to Categories <ExternalLink className="w-3 h-3" />
+                </button>
+              </p>
+            )}
             {form.formState.errors.categoryId && (
               <p className="text-sm text-red-600 mt-1">{form.formState.errors.categoryId.message}</p>
             )}
@@ -205,13 +285,55 @@ export default function AddInventoryItemModal({
 
           <div>
             <Label htmlFor="unit">Unit</Label>
-            <Input
-              id="unit"
-              {...form.register("unit")}
-              placeholder="e.g., Kg, L, pcs"
-              data-testid="input-unit"
-              disabled={isEdit}
-            />
+            <Popover open={unitPopoverOpen} onOpenChange={setUnitPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={unitPopoverOpen}
+                  className="w-full justify-between"
+                  disabled={isEdit}
+                  data-testid="select-unit"
+                >
+                  {form.watch("unit")
+                    ? units.find((unit) => unit.value === form.watch("unit"))?.name
+                    : "Select unit..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search unit..." />
+                  <CommandList>
+                    <CommandEmpty>No unit found.</CommandEmpty>
+                    {["Weight", "Volume", "Pack Size", "Count"].map((category) => (
+                      <CommandGroup key={category} heading={category}>
+                        {units
+                          .filter((unit) => unit.category === category)
+                          .map((unit) => (
+                            <CommandItem
+                              key={unit.value}
+                              value={unit.name}
+                              onSelect={() => {
+                                form.setValue("unit", unit.value);
+                                setUnitPopoverOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  form.watch("unit") === unit.value ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {unit.name}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             {form.formState.errors.unit && (
               <p className="text-sm text-red-600 mt-1">{form.formState.errors.unit.message}</p>
             )}
@@ -222,6 +344,7 @@ export default function AddInventoryItemModal({
             <Input
               id="reorderLevel"
               type="number"
+              step="0.001"
               {...form.register("reorderLevel", { valueAsNumber: true })}
               placeholder="Enter reorder level"
               data-testid="input-reorder-level"
@@ -249,6 +372,19 @@ export default function AddInventoryItemModal({
                 ))}
               </SelectContent>
             </Select>
+            {suppliers.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                No suppliers found.{" "}
+                <button 
+                  type="button"
+                  onClick={handleNavigateToSuppliers} 
+                  className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline" 
+                  data-testid="link-suppliers"
+                >
+                  Go to Suppliers <ExternalLink className="w-3 h-3" />
+                </button>
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

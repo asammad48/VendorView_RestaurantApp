@@ -1,4 +1,4 @@
-# Restaurant Management System
+# Scannify - Restaurant & Hotel Management System
 
 ## Overview
 This full-stack restaurant and hotel management application provides comprehensive entity management functionality for both hotels and restaurants. It includes user management, analytics, and reporting via an intuitive dashboard. The system supports multiple entities with role-based access control for managers, waiters, and chefs, aiming to streamline operations and enhance decision-making in the hospitality sector. Key capabilities include dynamic page routing, mobile responsiveness, subscription plan integration, comprehensive orders and menu management (including deals and services), ticket reporting, user management, and advanced analytics. Recent additions include a full inventory management system with stock tracking, low stock monitoring, purchase order capabilities, stock wastage tracking with date-filtered historical viewing, and expense management with utility expense tracking.
@@ -33,6 +33,8 @@ Technical preferences:
 - **Data Storage**: localStorage for session management and authentication tokens.
 - **Real API Integration**: Users API, Roles API, Entities/Branches API with proper authentication.
 - **Pagination System**: Generic pagination utilities with configurable page sizes (5, 10, 20, 50, 100).
+- **Server-Side Pagination**: All inventory management tables support server-side pagination with query parameters (PageNumber, PageSize, SortBy, IsAscending, SearchTerm). Frontend is ready to consume PaginationResponse structure from backend.
+- **PaginationResponse Handling**: All inventory endpoints (Categories, Items, Suppliers, Stock, Low Stock, Purchase Orders, Wastage, Utility Expenses, Recipes) use defensive data extraction pattern: `Array.isArray(data) ? data : (data as any)?.items || []` to support both direct array responses and PaginationResponse<T> format with backward compatibility.
 
 ### Authentication & Authorization
 - **Strategy**: Username/password authentication with role-based access.
@@ -45,6 +47,7 @@ Technical preferences:
 - **File Upload**: Image-only file upload for profile/certificate pictures (Base64 encoding, FormData for API).
 - **Mobile Responsiveness**: Full responsive design across all components.
 - **Comprehensive Management Systems**: Includes Orders, Menu (with CRUD, add-ons, customizations), Deals, Services, Tickets, User, Inventory (Categories, Suppliers, Items, Stock, Purchase Orders, Stock Wastage), and Expense Management (Utility Expenses).
+- **Inventory Management Search**: All inventory tables include search functionality with search bars for filtering by name/relevant field. Search queries are sent as SearchTerm query parameter to the API.
 - **User Management**: Add/Edit User modal with profile pictures, role, and branch assignment, with real API integration and name-only search filtering.
 - **Dashboard Analytics**: Sales summary, item performance, occupancy, peak hours, customer feedback with date range toggles and 7 specialized categories.
 - **Appearance Customization**: Gradient color picker for real-time UI previews.
@@ -123,3 +126,43 @@ Technical preferences:
   - Billing period date range selection
   - Real-time data refresh after Add/Update/Delete operations
   - Full CRUD operations with proper cache invalidation
+
+### Create Order Feature
+- **Location**: Orders page with "Create Order" button in header
+- **Functionality**: Comprehensive order creation with menu items, deals, and customization with support for three order types
+- **Order Types**: Delivery (1), TakeAway (2), DineIn (3) with conditional form display
+- **API Endpoints**:
+  - GET `/api/branch/{branchId}` - Fetch branch details
+  - GET `/api/branch/configuration/{branchId}` - Fetch branch configuration (tax, service charge, discount)
+  - GET `/api/table/branch/{branchId}` - Fetch tables/locations for the branch
+  - GET `/api/customer-search/branch/{branchId}` - Fetch complete menu for customer display
+  - POST `/api/order` - Create new order
+- **Components**:
+  - CreateOrderModal: Full-screen modal with left-side menu display and right-side order summary
+  - Menu Display: Shows menu items grouped by category with variations, modifiers, customizations, and discount pricing
+  - Deals Section: Displays available deals with pricing and discount information
+  - Customization Modal: Allows selection of modifiers and customizations before adding items to order
+  - Order Summary: Real-time calculation of subtotal, discount, service charge, tax, and total
+- **Features**:
+  - Order Type Selection with conditional UI:
+    - **DineIn**: Shows table/location selector
+    - **TakeAway**: Shows pickup details form (name, phone, instruction, preferred time)
+    - **Delivery**: Shows delivery details form (full name, phone, address, instruction, preferred time)
+  - Search functionality for menu items and deals
+  - Dynamic pricing calculation including variation price, modifier surcharges, and customization options
+  - Discount percentage application from branch configuration
+  - Service charge and tax calculation based on branch settings
+  - Allergen selection integration
+  - Item quantity management with +/- controls
+  - Special instructions field
+  - Tip amount input
+  - Print receipt option (integrated with existing printer setup)
+  - Real-time order summary updates
+  - Proper payload construction: menu items and sub-items in orderItems array, deals in orderPackages array
+- **Implementation Details**:
+  - Price recalculation via calculateItemPrice function accounts for base variation price plus all modifiers and customizations
+  - Order payload properly partitions menu items and standalone sub-items into orderItems array while routing deals into orderPackages array
+  - Separate request DTOs (CreateOrderPickupDetails, CreateOrderDeliveryDetails) for type safety
+  - Conditional validation based on selected order type
+  - All pricing calculations verified to match API expectations
+  - Automatic cache invalidation and order list refresh on successful order creation

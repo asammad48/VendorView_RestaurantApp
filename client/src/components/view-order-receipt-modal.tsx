@@ -189,6 +189,60 @@ export function ViewOrderReceiptModal({
             </div>
           )}
 
+          {/* Special Instructions */}
+          {order.specialInstruction && (
+            <div className="border-t border-gray-300 pt-3 mt-4">
+              <p className="text-xs font-semibold text-gray-700 mb-1">Special Instructions:</p>
+              <p className="text-sm text-gray-600 italic">{order.specialInstruction}</p>
+            </div>
+          )}
+
+          {/* Allergen Information */}
+          {order.allergens && order.allergens.length > 0 && (
+            <div className="border-t border-gray-300 pt-3 mt-4">
+              <p className="text-xs font-semibold text-gray-700 mb-1">Allergen Warnings:</p>
+              <div className="flex flex-wrap gap-1">
+                {order.allergens.map((allergen: string, index: number) => (
+                  <span 
+                    key={index}
+                    className="inline-block bg-red-100 text-red-800 text-xs px-2 py-1 rounded"
+                    data-testid={`allergen-${index}`}
+                  >
+                    {allergen}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Delivery/Pickup Details */}
+          {order.orderDeliveryDetails && (
+            <div className="border-t border-gray-300 pt-3 mt-4">
+              <p className="text-xs font-semibold text-gray-700 mb-2">Delivery Details:</p>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p><span className="font-medium">Name:</span> {order.orderDeliveryDetails.fullName}</p>
+                <p><span className="font-medium">Phone:</span> {order.orderDeliveryDetails.phoneNumber}</p>
+                <p><span className="font-medium">Address:</span> {order.orderDeliveryDetails.deliveryAddress}</p>
+                {order.orderDeliveryDetails.deliveryInstruction && (
+                  <p><span className="font-medium">Instructions:</span> {order.orderDeliveryDetails.deliveryInstruction}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {order.orderPickupDetails && (
+            <div className="border-t border-gray-300 pt-3 mt-4">
+              <p className="text-xs font-semibold text-gray-700 mb-2">Pickup Details:</p>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p><span className="font-medium">Name:</span> {order.orderPickupDetails.name}</p>
+                <p><span className="font-medium">Phone:</span> {order.orderPickupDetails.phoneNumber}</p>
+                {order.orderPickupDetails.pickupInstruction && (
+                  <p><span className="font-medium">Instructions:</span> {order.orderPickupDetails.pickupInstruction}</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Calculations */}
           <div className="border-t border-gray-300 pt-3 mt-4 space-y-2">
             <div className="flex justify-between text-sm">

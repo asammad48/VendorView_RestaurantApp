@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { X, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBranchCurrency } from "@/hooks/useBranchCurrency";
 import { convertToUTC, convertLocalDateToUTC, convertUTCToLocalDate } from "@/lib/currencyUtils";
 import { validateImage, getConstraintDescription } from "@/lib/imageValidation";
+import { useLocation } from "wouter";
 
 interface AddDealsModalProps {
   open: boolean;
@@ -53,6 +54,26 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { formatPrice, getCurrencySymbol } = useBranchCurrency(branchId);
+  const [, navigate] = useLocation();
+  
+  // Navigation handlers
+  const handleNavigateToMenu = () => {
+    onOpenChange(false);
+    setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      params.set('tab', 'Menu');
+      navigate(`/restaurant-management?${params.toString()}`);
+    }, 100);
+  };
+  
+  const handleNavigateToSubMenu = () => {
+    onOpenChange(false);
+    setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      params.set('tab', 'SubMenu');
+      navigate(`/restaurant-management?${params.toString()}`);
+    }, 100);
+  };
 
   const { data: menuItems = [], isLoading: menuItemsLoading } = useQuery({
     queryKey: ['menu-items-simple', branchId, open], // Include 'open' to refresh when modal opens
@@ -502,8 +523,19 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
                     <p className="text-gray-500">Loading menu items...</p>
                   </div>
                 ) : menuItems.length === 0 ? (
-                  <div className="text-center py-4">
-                    <p className="text-gray-500">No menu items available</p>
+                  <div className="text-center py-4 space-y-3">
+                    <p className="text-gray-500 mb-2">No menu items available</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNavigateToMenu}
+                      className="text-blue-600 border-blue-600 hover:bg-blue-100"
+                      data-testid="button-navigate-to-menu"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Go to Menu Tab
+                    </Button>
                   </div>
                 ) : (
                   menuItems.map((item) => {
@@ -567,8 +599,19 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
                     <p className="text-gray-500">Loading sub menu items...</p>
                   </div>
                 ) : subMenuItems.length === 0 ? (
-                  <div className="text-center py-4">
-                    <p className="text-gray-500">No sub menu items available</p>
+                  <div className="text-center py-4 space-y-3">
+                    <p className="text-gray-500 mb-2">No sub menu items available</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNavigateToSubMenu}
+                      className="text-blue-600 border-blue-600 hover:bg-blue-100"
+                      data-testid="button-navigate-to-submenu-deals"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Go to SubMenu Item Tab
+                    </Button>
                   </div>
                 ) : (
                   subMenuItems.map((item) => {

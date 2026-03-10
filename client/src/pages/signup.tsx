@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "@/lib/auth";
+import scannifyLogo from "@assets/New Banner - Scannify_1761489778431.png";
 
 export default function Signup() {
   const [, setLocation] = useLocation();
@@ -64,7 +65,12 @@ export default function Signup() {
       <Card className="w-full max-w-md mx-4">
         <CardContent className="pt-6">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-gray-300 rounded-lg mx-auto mb-4" data-testid="signup-logo"></div>
+            <img 
+              src={scannifyLogo} 
+              alt="Scannify" 
+              className="h-16 w-auto mx-auto mb-4" 
+              data-testid="signup-logo"
+            />
             <h1 className="text-xl font-semibold text-gray-900" data-testid="signup-title">Sign Up</h1>
           </div>
           

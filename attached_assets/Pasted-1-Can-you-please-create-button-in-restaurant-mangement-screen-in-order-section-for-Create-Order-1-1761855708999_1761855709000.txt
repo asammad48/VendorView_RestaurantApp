@@ -1,0 +1,211 @@
+1. Can you please create button in restaurant-mangement screen, in order section for Create Order
+1. Now when button will be clicked , it will open new component without refreshing the screen , on that screen you need to get branch details from API , branch COnfiguration from API, Tables/Locations from API -> All of them will be getting from Server as fresh data
+3. Now you need to integrate an API to display menu in that component (recommendedForYou will be skipped) 
+Reqesut:-
+curl -X 'GET' \
+  'https://5dtrtpzg-44336.inc1.devtunnels.ms/api/customer-search/branch/6' \
+  -H 'accept: text/plain'
+Response:-
+{
+  "currency": "PKR",
+  "timeZone": "Asia/Karachi",
+  "menuItems": [
+    {
+      "menuItemId": 101,
+      "name": "Cheese Burger",
+      "description": "Juicy beef patty with melted cheese and fresh vegetables.",
+      "categoryName": "Burgers",
+      "picture": "images/cheeseburger.jpg",
+      "allergenItemContains": "Dairy, Gluten",
+      "variations": [
+        {
+          "id": 1,
+          "name": "Single Patty",
+          "price": 750.00
+        },
+        {
+          "id": 2,
+          "name": "Double Patty",
+          "price": 950.00
+        }
+      ],
+      "modifiers": [
+        {
+          "id": 10,
+          "name": "Extra Cheese",
+          "price": 100.00
+        },
+        {
+          "id": 11,
+          "name": "Bacon",
+          "price": 150.00
+        }
+      ],
+      "customizations": [
+        {
+          "id": 1,
+          "name": "Choose Sauce",
+          "options": [
+            { "id": 1, "name": "Ketchup", "price": 0.00 },
+            { "id": 2, "name": "Mayo", "price": 0.00 },
+            { "id": 3, "name": "BBQ", "price": 30.00 }
+          ]
+        }
+      ],
+      "discount": {
+        "id": 201,
+        "name": "Weekend Deal",
+        "value": 10.00,
+        "endDate": "2025-11-05T00:00:00"
+      }
+    }
+  ],
+  "deals": [
+    {
+      "dealId": 301,
+      "name": "Burger Combo Deal",
+      "description": "1 Cheese Burger + 1 Fries + 1 Drink",
+      "price": 1100.00,
+      "picture": "images/combo.jpg",
+      "dealEndDate": "2025-11-10T00:00:00",
+      "discount": {
+        "id": 401,
+        "name": "Limited Time Offer",
+        "value": 15.00,
+        "endDate": "2025-11-10T00:00:00"
+      },
+      "menuItems": [
+        {
+          "menuItemId": 101,
+          "name": "Cheese Burger",
+          "allergenItemContains": "Dairy, Gluten",
+          "variantsDetails": [
+            {
+              "menuItemVariantId": 1,
+              "name": "Single Patty",
+              "quantity": 1
+            }
+          ]
+        }
+      ],
+      "subMenuItems": [
+        {
+          "subMenuItemId": 501,
+          "name": "French Fries",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "subMenuItems": [
+    {
+      "subMenuItemId": 501,
+      "name": "French Fries",
+      "price": 250.00,
+      "picture": "images/fries.jpg"
+    },
+    {
+      "subMenuItemId": 502,
+      "name": "Cold Drink",
+      "price": 180.00,
+      "picture": "images/cold_drink.jpg"
+    }
+  ],
+  "recommendedForYou": [
+    {
+      "menuItemId": 102,
+      "name": "Grilled Chicken Sandwich",
+      "description": "Grilled chicken breast with lettuce and mayo.",
+      "categoryName": "Sandwiches",
+      "picture": "images/chicken_sandwich.jpg",
+      "allergenItemContains": "Gluten",
+      "variations": [
+        { "id": 3, "name": "Regular", "price": 650.00 }
+      ],
+      "modifiers": [],
+      "customizations": [],
+      "discount": null
+    }
+  ]
+}
+4. If item has discount applied then Actual price will be cut , And discounted price will be diplayed
+
+5. We will select items , subItem and deals from Menu -> With Discount applied -> Sum them up 
+
+6. After that we will have some configuration Like Discount Percentage , Service Charge Percentage , Also we have confiugration that Discount will applied on Total Amount or tax amount .
+
+7. You need to diplay order price as well right section of component , and the left we will have full menu
+
+8. You need to display allergens as well , for which you need to call an API which you already calling in MenuItem Section
+
+9. Then we will call create Order API to place an Order 
+Request:-
+https://5dtrtpzg-44336.inc1.devtunnels.ms/api/Order
+
+Request object:-
+{
+  "branchId": 101,
+  "locationId": null,
+  "deviceInfo": "POS-Terminal-12",
+  "tipAmount": 200,
+  "username": "abdul.sammad",
+  "orderType": 3,
+  "specialInstruction": "Less salt please.",
+  "orderItems": [
+    {
+      "menuItemId": 501,
+      "variantId": 1,
+      "quantity": 2,
+      "modifiers": [
+        {
+          "modifierId": 11,
+          "quantity": 1
+        }
+      ],
+      "customizations": [
+        {
+          "customizationId": 101,
+          "optionId": 1001
+        }
+      ]
+    },
+    {
+      "menuItemId": 502,
+      "variantId": 3,
+      "quantity": 1,
+      "modifiers": [],
+      "customizations": []
+    }
+  ],
+  "orderPackages": [
+    {
+      "menuPackageId": 301,
+      "quantity": 1
+    }
+  ],
+  "deliveryDetails": null,
+  "pickupDetails": null,
+  "splitBills": null,
+  "allergenIds": [2, 4]
+}
+
+Response:-
+{
+    "orderId": 76,
+    "orderNumber": "000000000076",
+    "subTotal": 1600.00,
+    "discountAmount": 0,
+    "taxAmount": 272.00000000000000000000000000,
+    "serviceCharges": 300.00000000000000000000000000,
+    "deliveryCharges": 0,
+    "tipAmount": 0,
+    "totalAmount": 2172.0000000000000000000000000,
+    "estimatedPreparationTimeMinutes": 45,
+    "estimatedDeliveryTimeMinutes": 0
+}
+
+10 . Also will have an option to print the receipt , and you need to use the same API which we are using in signalR event when order is placed to get the order info in details .
+
+
+
+

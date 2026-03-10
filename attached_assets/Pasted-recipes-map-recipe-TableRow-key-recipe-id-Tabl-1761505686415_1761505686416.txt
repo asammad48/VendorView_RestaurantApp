@@ -1,0 +1,45 @@
+recipes.map((recipe) => (
+                    <TableRow key={recipe.id}>
+                      <TableCell
+                        className="font-medium"
+                        data-testid={`recipe-name-${recipe.id}`}
+                      >
+                        {recipe.name}
+                      </TableCell>
+                      <TableCell data-testid={`recipe-type-${recipe.id}`}>
+                        {recipe.type}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
+                              const recipeDetails =
+                                await inventoryApi.getRecipeById(recipe.id);
+                              setSelectedRecipe(recipeDetails);
+                              setShowEditRecipeModal(true);
+                            }}
+                            data-testid={`button-edit-recipe-${recipe.id}`}
+                          >
+                            <Edit className="w-4 h-4 text-blue-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setDeleteItem({
+                                type: "recipe",
+                                id: recipe.id.toString(),
+                                name: recipe.name,
+                              });
+                              setShowDeleteModal(true);
+                            }}
+                            data-testid={`button-delete-recipe-${recipe.id}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))

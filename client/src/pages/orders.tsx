@@ -77,6 +77,7 @@ import ViewMenuModal from "@/components/view-menu-modal";
 import ViewDealsModal from "@/components/view-deals-modal";
 import { SearchTooltip } from "@/components/SearchTooltip";
 import PrinterModal from "@/components/printer-modal";
+import CreateOrderModal from "@/components/create-order-modal";
 import { useLocation } from "wouter";
 import {
   locationApi,
@@ -342,6 +343,7 @@ export default function Orders() {
   const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
   const [selectedStatusId, setSelectedStatusId] = useState<number | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [showCreateOrderModal, setShowCreateOrderModal] = useState(false);
 
   // Get branch details for the current branch
   const { data: branchData } = useQuery<Branch>({
@@ -606,42 +608,8 @@ export default function Orders() {
     }
 
     try {
-      const items = order.orderItems?.map(item => ({
-        name: `${item.itemName || 'Item'}${item.variantName ? ` (${item.variantName})` : ''}`,
-        quantity: item.quantity || 1,
-        price: item.totalPrice || 0
-      })) || [];
-
-      const packageItems = order.orderPackages?.flatMap(pkg => 
-        pkg.orderPackageItems?.map(pkgItem => ({
-          name: `${pkgItem.itemName || 'Package Item'}${pkgItem.variantName ? ` (${pkgItem.variantName})` : ''}`,
-          quantity: pkgItem.quantity || 1,
-          price: 0
-        })) || []
-      ) || [];
-
-      const allItems = [...items, ...packageItems];
-
-      const orderData = {
-        orderNumber: order.orderNumber || 'N/A',
-        date: new Date(order.createdAt).toLocaleString(),
-        items: allItems,
-        subtotal: order.subTotal || 0,
-        tax: order.taxAmount || 0,
-        total: order.totalAmount || 0,
-        branchName: order.branchName || 'Restaurant',
-        currency: order.currency || 'USD',
-        orderType: order.orderType,
-        locationName: order.locationName,
-        specialInstruction: order.specialInstruction,
-        allergens: order.allergens,
-        deliveryCharges: order.deliveryCharges,
-        serviceCharges: order.serviceCharges,
-        discountAmount: order.discountAmount,
-        tipAmount: order.tipAmount
-      };
-
-      const result = await bluetoothPrinterService.printReceipt(orderData);
+      const { printOrderReceipt } = await import('@/utils/printOrderReceipt');
+      const result = await printOrderReceipt(order);
 
       if (result.success) {
         toast({
@@ -1221,7 +1189,7 @@ export default function Orders() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation("/entities")}
+            onClick={() => setLocation("/branches")}
             data-testid="button-back"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -1428,6 +1396,14 @@ export default function Orders() {
                 <TabsTrigger value="Cancelled">Cancelled</TabsTrigger>
               </TabsList>
             </Tabs>
+            <Button
+              className="bg-green-500 hover:bg-green-600 text-white"
+              onClick={() => setShowCreateOrderModal(true)}
+              data-testid="button-create-order"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Order
+            </Button>
           </div>
 
           {/* Orders Table */}
@@ -1875,7 +1851,7 @@ export default function Orders() {
                             data-testid={`menu-item-category-${item.id}`}
                           >
                             <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                              {item.categoryName || "Unknown Category"}
+                              {item.menuCategoryName || "Unknown Category"}
                             </Badge>
                           </TableCell>
                           <TableCell
@@ -4215,6 +4191,18 @@ export default function Orders() {
         open={showPrinterModal}
         onOpenChange={setShowPrinterModal}
         onConnectionChange={(connected) => setIsPrinterConnected(connected)}
+      />
+
+      {/* Create Order Modal */}
+      <CreateOrderModal
+        isOpen={showCreateOrderModal}
+        onClose={() => setShowCreateOrderModal(false)}
+        branchId={branchId}
+        onOrderCreated={(order) => {
+          // Refresh orders list
+          refetchOrders();
+          setShowCreateOrderModal(false);
+        }}
       />
     </div>
   );

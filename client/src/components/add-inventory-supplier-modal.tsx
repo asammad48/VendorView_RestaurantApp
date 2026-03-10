@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,7 @@ interface AddInventorySupplierModalProps {
 
 export default function AddInventorySupplierModal({ open, onClose, branchId, supplier, onSuccess }: AddInventorySupplierModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const isEdit = !!supplier;
   
   const form = useForm<SupplierFormData>({
@@ -82,6 +83,7 @@ export default function AddInventorySupplierModal({ open, onClose, branchId, sup
         title: "Success",
         description: "Supplier created successfully",
       });
+      queryClient.invalidateQueries({ queryKey: ["inventory-suppliers", branchId] });
       onSuccess?.();
       form.reset({
         name: "",
@@ -109,6 +111,7 @@ export default function AddInventorySupplierModal({ open, onClose, branchId, sup
         title: "Success",
         description: "Supplier updated successfully",
       });
+      queryClient.invalidateQueries({ queryKey: ["inventory-suppliers", branchId] });
       onSuccess?.();
       onClose();
     },
