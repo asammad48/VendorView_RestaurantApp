@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { PhoneNumberInput } from "@/components/ui/phone-number-input";
 import { insertBranchSchema, type InsertBranch, type Branch } from "@/types/schema";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -339,11 +340,12 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Contact Number</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
+                    <PhoneNumberInput
+                      value={field.value}
+                      onChange={field.onChange}
                       placeholder="Enter contact number"
-                      className="w-full"
-                      data-testid="input-contact-number"
+                      selectTestId="select-branch-phone-country"
+                      inputTestId="input-contact-number"
                     />
                   </FormControl>
                   <FormMessage />
@@ -378,7 +380,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                       <PopoverContent className="w-full p-0">
                         <Command>
                           <CommandInput placeholder="Search timezone..." />
-                          <CommandList>
+                          <CommandList className="max-h-56 overflow-y-auto">
                             <CommandEmpty>No timezone found.</CommandEmpty>
                             <CommandGroup>
                               {Array.isArray(timezones) && timezones.map((timezone: any) => (
@@ -437,7 +439,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                       <PopoverContent className="w-full p-0">
                         <Command>
                           <CommandInput placeholder="Search currency..." />
-                          <CommandList>
+                          <CommandList className="max-h-56 overflow-y-auto">
                             <CommandEmpty>No currency found.</CommandEmpty>
                             <CommandGroup>
                               {Array.isArray(currencies) && currencies.map((currency: any) => (
@@ -575,7 +577,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
 
             {/* Social Links */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Social Links (Optional)</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Social Links</h3>
               
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -583,7 +585,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                   name="InstagramLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Instagram</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Instagram *</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -602,7 +604,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                   name="WhatsappLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">WhatsApp</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">WhatsApp *</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -621,7 +623,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                   name="FacebookLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Facebook</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Facebook *</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -640,7 +642,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                   name="GoogleMapsLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Google Maps</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Google Maps *</FormLabel>
                       <FormControl>
                         <Input
                           {...field}

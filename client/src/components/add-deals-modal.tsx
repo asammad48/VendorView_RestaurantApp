@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -502,10 +503,10 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-gray-700">Description</FormLabel>
                   <FormControl>
-                    <Input
+                    <Textarea
                       {...field}
                       placeholder="Enter deal description"
-                      className="w-full"
+                      className="w-full min-h-[120px] max-h-[220px] overflow-y-auto"
                     />
                   </FormControl>
                   <FormMessage />

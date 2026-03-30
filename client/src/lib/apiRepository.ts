@@ -312,8 +312,11 @@ export class ApiRepository {
     }
 
     this.clearTokens();
-    // You can implement additional logic here like redirecting to login page
-    // For now, we'll just clear the tokens
+    localStorage.removeItem("restaurant_current_user");
+    localStorage.removeItem("current_user");
+    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
     console.log("Authentication failed. Tokens cleared.");
   }
 

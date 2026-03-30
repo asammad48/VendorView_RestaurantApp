@@ -32,7 +32,7 @@ export default function Sidebar() {
               const branchRelatedPages = ["/branches", "/restaurant-management", "/hotel-management", "/inventory-management"];
               
               // Check if current page is branch-related and item is Entities
-              const isBranchPageAndEntities = branchRelatedPages.includes(location) && item.href === "/entities";
+              const isBranchPageAndEntities = branchRelatedPages.some((path) => location.startsWith(path)) && item.href === "/entities";
               
               const isActive = location === item.href || 
                              (location === "/" && item.href === "/dashboard") ||

@@ -17,7 +17,7 @@ interface BranchCardProps {
 
 export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfigure, onInventory }: BranchCardProps) {
   return (
-    <Card className="group bg-white border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden rounded-2xl" data-testid={`card-branch-${branch.id}`}>
+    <Card className="group bg-white border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden rounded-2xl w-full min-w-0" data-testid={`card-branch-${branch.id}`}>
       {/* Header Image Section */}
       <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
         <img 
@@ -64,7 +64,20 @@ export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfi
           <Alert className="mb-4 border-amber-200 bg-amber-50">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-800 text-sm">
-              Branch configuration incomplete. Please configure to continue.
+              Branch configuration incomplete. Please{" "}
+              {onConfigure ? (
+                <button
+                  type="button"
+                  onClick={() => onConfigure(branch)}
+                  className="underline font-semibold hover:text-amber-900"
+                  data-testid={`button-inline-configure-${branch.id}`}
+                >
+                  configure
+                </button>
+              ) : (
+                "configure"
+              )}{" "}
+              to continue.
             </AlertDescription>
           </Alert>
         )}
