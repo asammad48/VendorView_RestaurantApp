@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import CollapsibleSidebar from "./collapsible-sidebar";
 import Header from "./header";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { navigationItems } from "./nav-items";
+import { navigationItems, isNavigationItemActive } from "./nav-items";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -58,7 +58,7 @@ export default function Layout({ children }: LayoutProps) {
               <div className="space-y-1">
                 {navigationItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = location === item.href || (location === "/" && item.href === "/dashboard");
+                  const isActive = isNavigationItemActive(location, item.href);
                   
                   return (
                     <Link

@@ -17,7 +17,7 @@ interface BranchCardProps {
 
 export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfigure, onInventory }: BranchCardProps) {
   return (
-    <Card className="group bg-white border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden rounded-2xl" data-testid={`card-branch-${branch.id}`}>
+    <Card className="group bg-white border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden rounded-2xl w-full min-w-0" data-testid={`card-branch-${branch.id}`}>
       {/* Header Image Section */}
       <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
         <img 
@@ -64,7 +64,20 @@ export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfi
           <Alert className="mb-4 border-amber-200 bg-amber-50">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-800 text-sm">
-              Branch configuration incomplete. Please configure to continue.
+              Branch configuration incomplete. Please{" "}
+              {onConfigure ? (
+                <button
+                  type="button"
+                  onClick={() => onConfigure(branch)}
+                  className="underline font-semibold hover:text-amber-900"
+                  data-testid={`button-inline-configure-${branch.id}`}
+                >
+                  configure
+                </button>
+              ) : (
+                "configure"
+              )}{" "}
+              to continue.
             </AlertDescription>
           </Alert>
         )}
@@ -145,12 +158,12 @@ export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfi
           )}
           
           {/* Secondary Actions */}
-          <div className="w-full flex flex-wrap gap-2 justify-center">
+          <div className="w-full grid grid-cols-3 gap-2">
             {onConfigure && (
               <Button
                 variant="outline"
                 size="sm"
-                className="px-4 py-2 border-[#15803d] text-[#15803d] hover:bg-[#15803d]/5 font-medium h-9 text-xs"
+                className="w-full px-2 py-2 border-[#15803d] text-[#15803d] hover:bg-[#15803d]/5 font-medium h-9 text-xs"
                 onClick={() => onConfigure(branch)}
                 data-testid={`button-configure-${branch.id}`}
               >
@@ -162,7 +175,7 @@ export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfi
               <Button
                 variant="outline"
                 size="sm"
-                className="px-4 py-2 border-[#15803d] text-[#15803d] hover:bg-[#15803d]/5 font-medium h-9 text-xs"
+                className="w-full px-2 py-2 border-[#15803d] text-[#15803d] hover:bg-[#15803d]/5 font-medium h-9 text-xs"
                 onClick={() => onEdit(branch)}
                 data-testid={`button-edit-${branch.id}`}
               >
@@ -174,7 +187,7 @@ export default function BranchCard({ branch, onManage, onEdit, onDelete, onConfi
               <Button
                 variant="outline"
                 size="sm"
-                className="px-4 py-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium h-9 text-xs"
+                className="w-full px-2 py-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium h-9 text-xs"
                 onClick={() => onDelete(branch)}
                 data-testid={`button-delete-${branch.id}`}
               >

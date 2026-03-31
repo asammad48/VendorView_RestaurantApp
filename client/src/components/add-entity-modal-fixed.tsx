@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { PhoneNumberInput } from "@/components/ui/phone-number-input";
 
 const formSchema = insertEntitySchema;
 type FormData = z.infer<typeof formSchema>;
@@ -208,10 +209,12 @@ export default function AddEntityModal({ open, onOpenChange }: AddEntityModalPro
                   <FormItem>
                     <FormLabel>Phone Number *</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="+1234567890" 
-                        {...field} 
-                        data-testid="input-entity-phone"
+                      <PhoneNumberInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Enter phone number"
+                        selectTestId="select-entity-phone-country"
+                        inputTestId="input-entity-phone"
                       />
                     </FormControl>
                     <FormMessage />
