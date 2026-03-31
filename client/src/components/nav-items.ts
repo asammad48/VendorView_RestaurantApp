@@ -40,8 +40,7 @@ export const navigationItems = [
   },
 ];
 
-const entityRelatedPaths = ["/branches", "/inventory-management"];
-const entityExcludedPaths = ["/restaurant-management", "/hotel-management"];
+const entityRelatedPaths = ["/branches", "/inventory-management", "/restaurant-management", "/hotel-management"];
 
 const normalizePath = (rawPath: string) => rawPath.split("?")[0].split("#")[0];
 
@@ -61,7 +60,6 @@ export const isNavigationItemActive = (currentPath: string, itemHref: string) =>
 
   if (
     itemHref === "/entities" &&
-    !entityExcludedPaths.some((path) => isWithinPath(normalizedPath, path)) &&
     entityRelatedPaths.some((path) => isWithinPath(normalizedPath, path))
   ) {
     return true;
