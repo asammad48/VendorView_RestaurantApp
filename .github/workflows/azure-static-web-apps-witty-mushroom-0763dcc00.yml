@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_ENVIRONMENT: qa
-      VITE_API_BASE_URL: https://vendorview.restaurantapp.tech
+      VITE_API_BASE_URL: https://dashboard.scannify.net
     steps:
       - uses: actions/checkout@v4
 
