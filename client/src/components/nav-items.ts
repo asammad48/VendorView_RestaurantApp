@@ -39,3 +39,35 @@ export const navigationItems = [
     icon: FileText,
   },
 ];
+
+const entityRelatedPaths = [
+  "/branches",
+  "/inventory-management",
+  "/restaurant-management",
+];
+
+const normalizePath = (rawPath: string) => rawPath.split("?")[0].split("#")[0];
+
+const isWithinPath = (currentPath: string, basePath: string) =>
+  currentPath === basePath || currentPath.startsWith(`${basePath}/`);
+
+export const isNavigationItemActive = (currentPath: string, itemHref: string) => {
+  const normalizedPath = normalizePath(currentPath);
+
+  if (normalizedPath === itemHref) {
+    return true;
+  }
+
+  if (normalizedPath === "/" && itemHref === "/dashboard") {
+    return true;
+  }
+
+  if (
+    itemHref === "/entities" &&
+    entityRelatedPaths.some((path) => isWithinPath(normalizedPath, path))
+  ) {
+    return true;
+  }
+
+  return false;
+};
