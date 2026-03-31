@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { PhoneNumberInput } from "@/components/ui/phone-number-input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { insertBranchSchema, type InsertBranch, type Branch } from "@/types/schema";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -380,30 +380,32 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                       <PopoverContent className="w-full p-0">
                         <Command>
                           <CommandInput placeholder="Search timezone..." />
-                          <CommandList className="max-h-56 overflow-y-auto">
+                          <CommandList>
                             <CommandEmpty>No timezone found.</CommandEmpty>
-                            <CommandGroup>
-                              {Array.isArray(timezones) && timezones.map((timezone: any) => (
-                                <CommandItem
-                                  key={timezone.timeZoneValue}
-                                  value={timezone.timeZoneName}
-                                  onSelect={() => {
-                                    field.onChange(timezone.timeZoneValue);
-                                    setTimezoneOpen(false);
-                                  }}
-                                  data-testid={`option-timezone-${timezone.timeZoneValue}`}
-                                >
-                                  <Check
-                                    className={
-                                      field.value === timezone.timeZoneValue
-                                        ? "mr-2 h-4 w-4 opacity-100"
-                                        : "mr-2 h-4 w-4 opacity-0"
-                                    }
-                                  />
-                                  {timezone.timeZoneName}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
+                            <ScrollArea className="h-56" onWheelCapture={(e) => e.stopPropagation()}>
+                              <CommandGroup>
+                                {Array.isArray(timezones) && timezones.map((timezone: any) => (
+                                  <CommandItem
+                                    key={timezone.timeZoneValue}
+                                    value={timezone.timeZoneName}
+                                    onSelect={() => {
+                                      field.onChange(timezone.timeZoneValue);
+                                      setTimezoneOpen(false);
+                                    }}
+                                    data-testid={`option-timezone-${timezone.timeZoneValue}`}
+                                  >
+                                    <Check
+                                      className={
+                                        field.value === timezone.timeZoneValue
+                                          ? "mr-2 h-4 w-4 opacity-100"
+                                          : "mr-2 h-4 w-4 opacity-0"
+                                      }
+                                    />
+                                    {timezone.timeZoneName}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </ScrollArea>
                           </CommandList>
                         </Command>
                       </PopoverContent>
@@ -439,30 +441,32 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                       <PopoverContent className="w-full p-0">
                         <Command>
                           <CommandInput placeholder="Search currency..." />
-                          <CommandList className="max-h-56 overflow-y-auto">
+                          <CommandList>
                             <CommandEmpty>No currency found.</CommandEmpty>
-                            <CommandGroup>
-                              {Array.isArray(currencies) && currencies.map((currency: any) => (
-                                <CommandItem
-                                  key={currency.currencyValue}
-                                  value={`${currency.currencyName} ${currency.currencyValue}`}
-                                  onSelect={() => {
-                                    field.onChange(currency.currencyValue);
-                                    setCurrencyOpen(false);
-                                  }}
-                                  data-testid={`option-currency-${currency.currencyValue}`}
-                                >
-                                  <Check
-                                    className={
-                                      field.value === currency.currencyValue
-                                        ? "mr-2 h-4 w-4 opacity-100"
-                                        : "mr-2 h-4 w-4 opacity-0"
-                                    }
-                                  />
-                                  {currency.currencyName} ({currency.currencyValue})
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
+                            <ScrollArea className="h-56" onWheelCapture={(e) => e.stopPropagation()}>
+                              <CommandGroup>
+                                {Array.isArray(currencies) && currencies.map((currency: any) => (
+                                  <CommandItem
+                                    key={currency.currencyValue}
+                                    value={`${currency.currencyName} ${currency.currencyValue}`}
+                                    onSelect={() => {
+                                      field.onChange(currency.currencyValue);
+                                      setCurrencyOpen(false);
+                                    }}
+                                    data-testid={`option-currency-${currency.currencyValue}`}
+                                  >
+                                    <Check
+                                      className={
+                                        field.value === currency.currencyValue
+                                          ? "mr-2 h-4 w-4 opacity-100"
+                                          : "mr-2 h-4 w-4 opacity-0"
+                                      }
+                                    />
+                                    {currency.currencyName} ({currency.currencyValue})
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </ScrollArea>
                           </CommandList>
                         </Command>
                       </PopoverContent>
