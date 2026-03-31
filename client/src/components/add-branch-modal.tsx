@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { PhoneNumberInput } from "@/components/ui/phone-number-input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { insertBranchSchema, type InsertBranch, type Branch } from "@/types/schema";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -339,11 +340,12 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Contact Number</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
+                    <PhoneNumberInput
+                      value={field.value}
+                      onChange={field.onChange}
                       placeholder="Enter contact number"
-                      className="w-full"
-                      data-testid="input-contact-number"
+                      selectTestId="select-branch-phone-country"
+                      inputTestId="input-contact-number"
                     />
                   </FormControl>
                   <FormMessage />
@@ -380,28 +382,30 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                           <CommandInput placeholder="Search timezone..." />
                           <CommandList>
                             <CommandEmpty>No timezone found.</CommandEmpty>
-                            <CommandGroup>
-                              {Array.isArray(timezones) && timezones.map((timezone: any) => (
-                                <CommandItem
-                                  key={timezone.timeZoneValue}
-                                  value={timezone.timeZoneName}
-                                  onSelect={() => {
-                                    field.onChange(timezone.timeZoneValue);
-                                    setTimezoneOpen(false);
-                                  }}
-                                  data-testid={`option-timezone-${timezone.timeZoneValue}`}
-                                >
-                                  <Check
-                                    className={
-                                      field.value === timezone.timeZoneValue
-                                        ? "mr-2 h-4 w-4 opacity-100"
-                                        : "mr-2 h-4 w-4 opacity-0"
-                                    }
-                                  />
-                                  {timezone.timeZoneName}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
+                            <ScrollArea className="h-56" onWheelCapture={(e) => e.stopPropagation()}>
+                              <CommandGroup>
+                                {Array.isArray(timezones) && timezones.map((timezone: any) => (
+                                  <CommandItem
+                                    key={timezone.timeZoneValue}
+                                    value={timezone.timeZoneName}
+                                    onSelect={() => {
+                                      field.onChange(timezone.timeZoneValue);
+                                      setTimezoneOpen(false);
+                                    }}
+                                    data-testid={`option-timezone-${timezone.timeZoneValue}`}
+                                  >
+                                    <Check
+                                      className={
+                                        field.value === timezone.timeZoneValue
+                                          ? "mr-2 h-4 w-4 opacity-100"
+                                          : "mr-2 h-4 w-4 opacity-0"
+                                      }
+                                    />
+                                    {timezone.timeZoneName}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </ScrollArea>
                           </CommandList>
                         </Command>
                       </PopoverContent>
@@ -439,28 +443,30 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                           <CommandInput placeholder="Search currency..." />
                           <CommandList>
                             <CommandEmpty>No currency found.</CommandEmpty>
-                            <CommandGroup>
-                              {Array.isArray(currencies) && currencies.map((currency: any) => (
-                                <CommandItem
-                                  key={currency.currencyValue}
-                                  value={`${currency.currencyName} ${currency.currencyValue}`}
-                                  onSelect={() => {
-                                    field.onChange(currency.currencyValue);
-                                    setCurrencyOpen(false);
-                                  }}
-                                  data-testid={`option-currency-${currency.currencyValue}`}
-                                >
-                                  <Check
-                                    className={
-                                      field.value === currency.currencyValue
-                                        ? "mr-2 h-4 w-4 opacity-100"
-                                        : "mr-2 h-4 w-4 opacity-0"
-                                    }
-                                  />
-                                  {currency.currencyName} ({currency.currencyValue})
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
+                            <ScrollArea className="h-56" onWheelCapture={(e) => e.stopPropagation()}>
+                              <CommandGroup>
+                                {Array.isArray(currencies) && currencies.map((currency: any) => (
+                                  <CommandItem
+                                    key={currency.currencyValue}
+                                    value={`${currency.currencyName} ${currency.currencyValue}`}
+                                    onSelect={() => {
+                                      field.onChange(currency.currencyValue);
+                                      setCurrencyOpen(false);
+                                    }}
+                                    data-testid={`option-currency-${currency.currencyValue}`}
+                                  >
+                                    <Check
+                                      className={
+                                        field.value === currency.currencyValue
+                                          ? "mr-2 h-4 w-4 opacity-100"
+                                          : "mr-2 h-4 w-4 opacity-0"
+                                      }
+                                    />
+                                    {currency.currencyName} ({currency.currencyValue})
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </ScrollArea>
                           </CommandList>
                         </Command>
                       </PopoverContent>
@@ -575,7 +581,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
 
             {/* Social Links */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Social Links (Optional)</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Social Links</h3>
               
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -583,7 +589,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                   name="InstagramLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Instagram</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Instagram *</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -602,7 +608,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                   name="WhatsappLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">WhatsApp</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">WhatsApp *</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -621,7 +627,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                   name="FacebookLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Facebook</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Facebook *</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -640,7 +646,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
                   name="GoogleMapsLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Google Maps</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-900 dark:text-white">Google Maps *</FormLabel>
                       <FormControl>
                         <Input
                           {...field}

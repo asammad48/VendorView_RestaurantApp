@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { navigationItems } from "./nav-items";
+import { navigationItems, isNavigationItemActive } from "./nav-items";
 import scannifyLogoFull from "@assets/New Banner - Scannify_1761489778431.png";
 import scannifyLogoCollapsed from "@assets/New Banner - Scannify_1761489778431.png";
 
@@ -84,7 +84,7 @@ export default function CollapsibleSidebar({
           <div className="space-y-1">
             {navigationItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location === item.href || (location === "/" && item.href === "/dashboard");
+              const isActive = isNavigationItemActive(location, item.href);
               
               return (
                 <Link

@@ -1,21 +1,20 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { useAuthState } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import scannifyLogo from "@assets/New Banner - Scannify_1761489778431.png";
 
 export default function Login() {
-  const [, setLocation] = useLocation();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuthState();
+  const { login } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,7 +27,7 @@ export default function Login() {
         title: "Success",
         description: "Successfully logged in!",
       });
-      setLocation("/dashboard");
+      window.location.href = "/dashboard";
     } catch (error: any) {
       toast({
         title: "Error",

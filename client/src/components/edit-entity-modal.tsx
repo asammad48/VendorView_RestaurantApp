@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { PhoneNumberInput } from "@/components/ui/phone-number-input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -203,7 +204,7 @@ export default function EditEntityModal({ open, onOpenChange, entity }: EditEnti
 
   const ProfileFileUpload = () => (
     <div className="space-y-2">
-      <Label>Profile Picture (Optional)</Label>
+      <Label>Profile Picture *</Label>
       <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
         {profilePicture ? (
           <div className="relative">
@@ -243,7 +244,7 @@ export default function EditEntityModal({ open, onOpenChange, entity }: EditEnti
 
   const CertificateFileUpload = () => (
     <div className="space-y-2">
-      <Label>Certificate Picture (Optional)</Label>
+      <Label>Certificate Picture *</Label>
       <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
         {certificatePicture ? (
           <div className="relative">
@@ -319,10 +320,12 @@ export default function EditEntityModal({ open, onOpenChange, entity }: EditEnti
                   <FormItem>
                     <FormLabel>Phone Number *</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="+1234567890" 
-                        {...field} 
-                        data-testid="input-edit-entity-phone"
+                      <PhoneNumberInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Enter phone number"
+                        selectTestId="select-edit-entity-phone-country"
+                        inputTestId="input-edit-entity-phone"
                       />
                     </FormControl>
                     <FormMessage />
