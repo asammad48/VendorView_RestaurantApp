@@ -39,3 +39,24 @@ export const navigationItems = [
     icon: FileText,
   },
 ];
+
+const entityRelatedPaths = ["/branches", "/inventory-management"];
+
+export const isNavigationItemActive = (currentPath: string, itemHref: string) => {
+  if (currentPath === itemHref) {
+    return true;
+  }
+
+  if (currentPath === "/" && itemHref === "/dashboard") {
+    return true;
+  }
+
+  if (
+    itemHref === "/entities" &&
+    entityRelatedPaths.some((path) => currentPath.startsWith(path))
+  ) {
+    return true;
+  }
+
+  return false;
+};

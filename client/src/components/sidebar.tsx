@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { navigationItems } from "./nav-items";
+import { navigationItems, isNavigationItemActive } from "./nav-items";
 import scannifyLogo from "@assets/New Banner - Scannify_1761489778431.png";
 
 export default function Sidebar() {
@@ -27,16 +27,7 @@ export default function Sidebar() {
           <div className="space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
-              
-              // Define branch-related pages that should keep Entities selected
-              const branchRelatedPages = ["/branches", "/inventory-management"];
-              
-              // Check if current page is branch-related and item is Entities
-              const isBranchPageAndEntities = branchRelatedPages.some((path) => location.startsWith(path)) && item.href === "/entities";
-              
-              const isActive = location === item.href || 
-                             (location === "/" && item.href === "/dashboard") ||
-                             isBranchPageAndEntities;
+              const isActive = isNavigationItemActive(location, item.href);
               
               return (
                 <Link
