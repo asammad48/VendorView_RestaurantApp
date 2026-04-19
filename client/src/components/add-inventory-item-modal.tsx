@@ -51,6 +51,7 @@ const itemSchema = z.object({
   name: z.string().min(1, "Item name is required"),
   categoryId: z.number().min(1, "Category is required"),
   unit: z.string().min(1, "Unit is required"),
+  price: z.number().min(0, "Price must be at least 0"),
   reorderLevel: z.number().min(0, "Reorder level must be at least 0").multipleOf(0.001, "Reorder level can have up to 3 decimal places"),
   defaultSupplierId: z.number().optional(),
 });
@@ -63,6 +64,7 @@ interface InventoryItem {
   name: string;
   categoryName: string;
   unit: string;
+  price: number;
   reorderLevel: number;
   defaultSupplierName: string | null;
 }
@@ -112,6 +114,7 @@ export default function AddInventoryItemModal({
       name: "",
       categoryId: 0,
       unit: "",
+      price: 0,
       reorderLevel: 0,
       defaultSupplierId: undefined,
     },
@@ -141,6 +144,7 @@ export default function AddInventoryItemModal({
         name: item.name,
         categoryId: item.categoryId || 0,
         unit: item.unit,
+        price: item.price,
         reorderLevel: item.reorderLevel,
         defaultSupplierId: item.defaultSupplierId,
       });
@@ -149,6 +153,7 @@ export default function AddInventoryItemModal({
         name: "",
         categoryId: 0,
         unit: "",
+        price: 0,
         reorderLevel: 0,
         defaultSupplierId: undefined,
       });
@@ -156,7 +161,7 @@ export default function AddInventoryItemModal({
   }, [item, open, form]);
 
   const createItemMutation = useMutation({
-    mutationFn: (data: { name: string; categoryId: number; branchId: number; unit: string; reorderLevel: number; defaultSupplierId?: number }) => 
+    mutationFn: (data: { name: string; categoryId: number; branchId: number; unit: string; price: number; reorderLevel: number; defaultSupplierId?: number }) => 
       inventoryApi.createInventoryItem(data),
     onSuccess: () => {
       toast({
@@ -180,7 +185,7 @@ export default function AddInventoryItemModal({
   });
 
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { name: string; categoryId: number; unit: string; reorderLevel: number; defaultSupplierId?: number } }) => 
+    mutationFn: ({ id, data }: { id: number; data: { name: string; categoryId: number; unit: string; price: number; reorderLevel: number; defaultSupplierId?: number } }) => 
       inventoryApi.updateInventoryItem(id, data),
     onSuccess: () => {
       toast({
@@ -211,6 +216,7 @@ export default function AddInventoryItemModal({
           name: data.name,
           categoryId: data.categoryId,
           unit: data.unit,
+          price: data.price,
           reorderLevel: data.reorderLevel,
           defaultSupplierId: data.defaultSupplierId || undefined,
         },
@@ -221,6 +227,7 @@ export default function AddInventoryItemModal({
         categoryId: data.categoryId,
         branchId,
         unit: data.unit,
+        price: data.price,
         reorderLevel: data.reorderLevel,
         defaultSupplierId: data.defaultSupplierId || undefined,
       });
@@ -336,6 +343,22 @@ export default function AddInventoryItemModal({
             </Popover>
             {form.formState.errors.unit && (
               <p className="text-sm text-red-600 mt-1">{form.formState.errors.unit.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="price">Price</Label>
+            <Input
+              id="price"
+              type="number"
+              min="0"
+              step="0.01"
+              {...form.register("price", { valueAsNumber: true })}
+              placeholder="Enter price"
+              data-testid="input-price"
+            />
+            {form.formState.errors.price && (
+              <p className="text-sm text-red-600 mt-1">{form.formState.errors.price.message}</p>
             )}
           </div>
 
