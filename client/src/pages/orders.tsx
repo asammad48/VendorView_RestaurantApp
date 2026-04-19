@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -14,6 +14,7 @@ import {
   Printer,
   Check,
   Bluetooth,
+  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,8 +37,11 @@ import {
 } from "@/components/ui/select";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -223,14 +227,16 @@ export default function Orders() {
     useBranchCurrency(branchId);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [orderFilter, setOrderFilter] = useState("All Orders");
+  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<string[]>(
+    [],
+  );
   const [itemsPerPage, setItemsPerPage] = useState(6);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, orderFilter, itemsPerPage]);
+  }, [searchTerm, selectedOrderStatuses, itemsPerPage]);
 
   // Pagination states for different tables
   const [menuCurrentPage, setMenuCurrentPage] = useState(1);
@@ -436,24 +442,17 @@ export default function Orders() {
       currentPage,
       itemsPerPage,
       searchTerm,
-      orderFilter,
+      selectedOrderStatuses,
     ],
     queryFn: async (): Promise<PaginationResponse<DetailedOrder>> => {
-      // Build search term that includes status filter
-      const effectiveSearchTerm =
-        orderFilter === "All Orders"
-          ? searchTerm
-          : searchTerm
-            ? `${searchTerm} ${orderFilter}`
-            : orderFilter;
-
       const result = await ordersApi.getOrdersByBranch(
         branchId,
         currentPage,
         itemsPerPage,
         "createdAt", // Sort by creation date
         false, // Descending order (newest first)
-        effectiveSearchTerm,
+        searchTerm,
+        selectedOrderStatuses,
       );
 
       if (!result) {
@@ -594,6 +593,24 @@ export default function Orders() {
       <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200">
         Unpaid
       </Badge>
+    );
+  };
+
+  const orderStatusFilterOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        orderStatusTypes
+          .map((status) => status.name?.trim())
+          .filter((statusName): statusName is string => Boolean(statusName)),
+      ),
+    );
+  }, [orderStatusTypes]);
+
+  const toggleOrderStatusFilter = (statusName: string) => {
+    setSelectedOrderStatuses((previous) =>
+      previous.includes(statusName)
+        ? previous.filter((status) => status !== statusName)
+        : [...previous, statusName],
     );
   };
 
@@ -1386,16 +1403,13 @@ export default function Orders() {
         </TabsList>
 
         <TabsContent value="orders" className="space-y-6">
-          {/* Orders Filter Tabs */}
-          <div className="flex items-center justify-between">
-            <Tabs value={orderFilter} onValueChange={setOrderFilter}>
-              <TabsList data-testid="order-filter-tabs">
-                <TabsTrigger value="All Orders">All Orders</TabsTrigger>
-                <TabsTrigger value="Preparing">Preparing</TabsTrigger>
-                <TabsTrigger value="Delivered">Delivered</TabsTrigger>
-                <TabsTrigger value="Cancelled">Cancelled</TabsTrigger>
-              </TabsList>
-            </Tabs>
+          {/* Orders Header Filters */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-primary/10 text-primary hover:bg-primary/15 border border-primary/20">
+                All Orders
+              </Badge>
+            </div>
             <Button
               className="bg-green-500 hover:bg-green-600 text-white"
               onClick={() => setShowCreateOrderModal(true)}
@@ -1429,7 +1443,61 @@ export default function Orders() {
                     Payment <ChevronDown className="w-4 h-4 inline ml-1" />
                   </TableHead>
                   <TableHead>
-                    Status <ChevronDown className="w-4 h-4 inline ml-1" />
+                    <div className="flex items-center gap-2">
+                      <span>Status</span>
+                      <ChevronDown className="w-4 h-4" />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-primary hover:bg-primary/10 hover:text-primary"
+                            data-testid="button-order-status-filter"
+                          >
+                            <Filter className="w-3.5 h-3.5" />
+                            {selectedOrderStatuses.length > 0 && (
+                              <Badge className="ml-1 h-5 min-w-5 px-1 bg-primary text-primary-foreground">
+                                {selectedOrderStatuses.length}
+                              </Badge>
+                            )}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-56">
+                          <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {orderStatusFilterOptions.length === 0 ? (
+                            <DropdownMenuItem disabled>
+                              {isLoadingStatusTypes
+                                ? "Loading statuses..."
+                                : "No status types available"}
+                            </DropdownMenuItem>
+                          ) : (
+                            orderStatusFilterOptions.map((statusName) => (
+                              <DropdownMenuCheckboxItem
+                                key={statusName}
+                                checked={selectedOrderStatuses.includes(statusName)}
+                                onCheckedChange={() =>
+                                  toggleOrderStatusFilter(statusName)
+                                }
+                              >
+                                {statusName}
+                              </DropdownMenuCheckboxItem>
+                            ))
+                          )}
+                          {selectedOrderStatuses.length > 0 && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onSelect={() => setSelectedOrderStatuses([])}
+                                className="text-red-600 focus:text-red-600"
+                              >
+                                Clear filters
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableHead>
                   <TableHead>
                     Price <ChevronDown className="w-4 h-4 inline ml-1" />
