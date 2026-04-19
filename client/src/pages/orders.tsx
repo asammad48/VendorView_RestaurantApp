@@ -1409,57 +1409,6 @@ export default function Orders() {
               <Badge className="bg-primary/10 text-primary hover:bg-primary/15 border border-primary/20">
                 All Orders
               </Badge>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                    data-testid="button-order-status-filter"
-                  >
-                    <Filter className="w-4 h-4 mr-2" />
-                    Status
-                    {selectedOrderStatuses.length > 0 && (
-                      <Badge className="ml-2 h-5 min-w-5 px-1 bg-primary text-primary-foreground">
-                        {selectedOrderStatuses.length}
-                      </Badge>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56">
-                  <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {orderStatusFilterOptions.length === 0 ? (
-                    <DropdownMenuItem disabled>
-                      {isLoadingStatusTypes
-                        ? "Loading statuses..."
-                        : "No status types available"}
-                    </DropdownMenuItem>
-                  ) : (
-                    orderStatusFilterOptions.map((statusName) => (
-                      <DropdownMenuCheckboxItem
-                        key={statusName}
-                        checked={selectedOrderStatuses.includes(statusName)}
-                        onCheckedChange={() =>
-                          toggleOrderStatusFilter(statusName)
-                        }
-                      >
-                        {statusName}
-                      </DropdownMenuCheckboxItem>
-                    ))
-                  )}
-                  {selectedOrderStatuses.length > 0 && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onSelect={() => setSelectedOrderStatuses([])}
-                        className="text-red-600 focus:text-red-600"
-                      >
-                        Clear filters
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
             <Button
               className="bg-green-500 hover:bg-green-600 text-white"
@@ -1494,7 +1443,61 @@ export default function Orders() {
                     Payment <ChevronDown className="w-4 h-4 inline ml-1" />
                   </TableHead>
                   <TableHead>
-                    Status <ChevronDown className="w-4 h-4 inline ml-1" />
+                    <div className="flex items-center gap-2">
+                      <span>Status</span>
+                      <ChevronDown className="w-4 h-4" />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-primary hover:bg-primary/10 hover:text-primary"
+                            data-testid="button-order-status-filter"
+                          >
+                            <Filter className="w-3.5 h-3.5" />
+                            {selectedOrderStatuses.length > 0 && (
+                              <Badge className="ml-1 h-5 min-w-5 px-1 bg-primary text-primary-foreground">
+                                {selectedOrderStatuses.length}
+                              </Badge>
+                            )}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-56">
+                          <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {orderStatusFilterOptions.length === 0 ? (
+                            <DropdownMenuItem disabled>
+                              {isLoadingStatusTypes
+                                ? "Loading statuses..."
+                                : "No status types available"}
+                            </DropdownMenuItem>
+                          ) : (
+                            orderStatusFilterOptions.map((statusName) => (
+                              <DropdownMenuCheckboxItem
+                                key={statusName}
+                                checked={selectedOrderStatuses.includes(statusName)}
+                                onCheckedChange={() =>
+                                  toggleOrderStatusFilter(statusName)
+                                }
+                              >
+                                {statusName}
+                              </DropdownMenuCheckboxItem>
+                            ))
+                          )}
+                          {selectedOrderStatuses.length > 0 && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onSelect={() => setSelectedOrderStatuses([])}
+                                className="text-red-600 focus:text-red-600"
+                              >
+                                Clear filters
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableHead>
                   <TableHead>
                     Price <ChevronDown className="w-4 h-4 inline ml-1" />
