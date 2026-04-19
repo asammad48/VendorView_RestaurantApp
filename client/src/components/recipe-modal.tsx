@@ -21,11 +21,13 @@ const recipeSchema = z.object({
   menuItemId: z.coerce.number().optional(),
   variantId: z.coerce.number().optional(),
   subMenuItemId: z.coerce.number().optional(),
+  recipePrice: z.coerce.number().min(0, "Recipe price must be 0 or greater"),
   items: z.array(z.object({
     id: z.number().optional(),
     inventoryItemId: z.coerce.number().min(1, "Item is required"),
     quantity: z.coerce.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
     unit: z.string().optional(),
+    price: z.coerce.number().min(0, "Price must be 0 or greater"),
   })).min(1, "At least one ingredient is required"),
 }).refine((data) => {
   if (data.recipeType === "menuItem") {
@@ -94,7 +96,8 @@ export default function RecipeModal({
       menuItemId: 0,
       variantId: 0,
       subMenuItemId: 0,
-      items: [{ inventoryItemId: 0, quantity: 1 }],
+      recipePrice: 0,
+      items: [{ inventoryItemId: 0, quantity: 1, price: 0 }],
     },
   });
 
@@ -107,6 +110,17 @@ export default function RecipeModal({
   const selectedMenuItemId = form.watch("menuItemId");
   const selectedVariantId = form.watch("variantId");
   const selectedSubMenuItemId = form.watch("subMenuItemId");
+  const recipeItems = form.watch("items");
+
+  useEffect(() => {
+    const totalPrice = (recipeItems || []).reduce(
+      (total, item) => total + (Number(item.quantity) || 0) * (Number(item.price) || 0),
+      0,
+    );
+    form.setValue("recipePrice", Number(totalPrice.toFixed(2)), {
+      shouldDirty: true,
+    });
+  }, [recipeItems, form]);
 
   const selectedMenuItemVariants: MenuItemSearchVariant[] = (menuData as MenuItemSearchData)?.variants?.filter(
     (v: MenuItemSearchVariant) => v.menuItemId === selectedMenuItemId
@@ -131,12 +145,14 @@ export default function RecipeModal({
         menuItemId: recipe.menuItemId || 0,
         variantId: recipe.variantId || 0,
         subMenuItemId: recipe.subMenuItemId || 0,
+        recipePrice: recipe.recipePrice || 0,
         items: recipe.items?.map((item) => ({
           id: item.id,
           inventoryItemId: item.inventoryItemId,
           quantity: item.quantity,
           unit: item.unit,
-        })) || [{ inventoryItemId: 0, quantity: 1, unit: "" }],
+          price: item.price ?? 0,
+        })) || [{ inventoryItemId: 0, quantity: 1, unit: "", price: 0 }],
       });
     } else if (open && !recipe) {
       form.reset({
@@ -144,7 +160,8 @@ export default function RecipeModal({
         menuItemId: 0,
         variantId: 0,
         subMenuItemId: 0,
-        items: [{ inventoryItemId: 0, quantity: 1, unit: "" }],
+        recipePrice: 0,
+        items: [{ inventoryItemId: 0, quantity: 1, unit: "", price: 0 }],
       });
     }
   }, [recipe, open, form]);
@@ -216,11 +233,13 @@ export default function RecipeModal({
         variantId: data.recipeType === "menuItem" ? data.variantId : undefined,
         subMenuItemId: data.recipeType === "subMenuItem" ? data.subMenuItemId : undefined,
         branchId: branchId,
+        recipePrice: data.recipePrice,
         items: data.items.map((item) => ({
           id: item.id,
           inventoryItemId: item.inventoryItemId,
           quantity: item.quantity,
           unit: item.unit,
+          price: item.price,
         })),
       };
 
@@ -426,6 +445,20 @@ export default function RecipeModal({
                 )}
 
                 <div className="space-y-2">
+                  <FormField
+                    control={form.control}
+                    name="recipePrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Recipe Price</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" min="0" {...field} readOnly data-testid="input-recipe-price" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="flex justify-between items-center mb-3">
                     <FormLabel>Ingredients</FormLabel>
                     <Button
@@ -433,7 +466,7 @@ export default function RecipeModal({
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        append({ inventoryItemId: 0, quantity: 1 });
+                        append({ inventoryItemId: 0, quantity: 1, price: 0 });
                         setSelectedIngredientIndex(fields.length);
                         setNumberOfOrders("");
                       }}
@@ -450,6 +483,9 @@ export default function RecipeModal({
                     </div>
                     <div className="w-32">
                       <p className="text-sm font-medium text-gray-700">Quantity</p>
+                    </div>
+                    <div className="w-28">
+                      <p className="text-sm font-medium text-gray-700">Price</p>
                     </div>
                     <div className="w-16">
                       <p className="text-sm font-medium text-gray-700">Unit</p>
@@ -488,6 +524,7 @@ export default function RecipeModal({
                                 field.onChange(parseInt(value));
                                 if (selectedItem) {
                                   form.setValue(`items.${index}.unit`, selectedItem.unit, { shouldDirty: true });
+                                  form.setValue(`items.${index}.price`, selectedItem.price ?? 0, { shouldDirty: true });
                                 }
                               }}
                               value={field.value?.toString()}
@@ -527,6 +564,26 @@ export default function RecipeModal({
                                 placeholder="Quantity"
                                 {...field}
                                 data-testid={`input-quantity-${index}`}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.price`}
+                        render={({ field }) => (
+                          <FormItem className="w-28">
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="Price"
+                                {...field}
+                                data-testid={`input-price-${index}`}
                               />
                             </FormControl>
                             <FormMessage />

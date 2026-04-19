@@ -95,10 +95,12 @@ export default function PurchaseOrderViewModal({
         queryClient.invalidateQueries({ queryKey: ["purchase-orders", orderDetails.branchId] });
         queryClient.invalidateQueries({ queryKey: ["inventory-stock", orderDetails.branchId] });
         queryClient.invalidateQueries({ queryKey: ["inventory-low-stock", orderDetails.branchId] });
+        queryClient.invalidateQueries({ queryKey: ["recipes", orderDetails.branchId] });
       } else {
         queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
         queryClient.invalidateQueries({ queryKey: ["inventory-stock"] });
         queryClient.invalidateQueries({ queryKey: ["inventory-low-stock"] });
+        queryClient.invalidateQueries({ queryKey: ["recipes"] });
       }
       onSuccess();
       setShowReceiveForm(false);
