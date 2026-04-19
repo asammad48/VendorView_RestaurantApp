@@ -1859,6 +1859,7 @@ export const ordersApi = {
     sortBy: string = "createdAt",
     isAscending: boolean = false,
     searchTerm: string = "",
+    statuses: string[] = [],
   ) => {
     const params = new URLSearchParams({
       BranchId: branchId.toString(),
@@ -1870,6 +1871,10 @@ export const ordersApi = {
 
     if (searchTerm) {
       params.append("SearchTerm", searchTerm);
+    }
+
+    if (statuses.length > 0) {
+      params.append("Status", statuses.join(","));
     }
 
     // For query parameters, modify the endpoint temporarily
