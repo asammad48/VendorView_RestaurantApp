@@ -74,6 +74,7 @@ interface InventoryItem {
   name: string;
   categoryName: string;
   unit: string;
+  price: number;
   reorderLevel: number;
   defaultSupplierName: string | null;
 }
@@ -1245,6 +1246,7 @@ export default function InventoryManagement() {
                   </TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Unit</TableHead>
+                  <TableHead>Price</TableHead>
                   <TableHead>Reorder Level</TableHead>
                   <TableHead>Default Supplier</TableHead>
                   <TableHead className="w-[120px]">Actions</TableHead>
@@ -1272,12 +1274,15 @@ export default function InventoryManagement() {
                       <TableCell>
                         <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
                       </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : items.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={7}
                       className="text-center py-8 text-gray-500"
                     >
                       No items found
@@ -1297,6 +1302,9 @@ export default function InventoryManagement() {
                       </TableCell>
                       <TableCell data-testid={`item-unit-${item.id}`}>
                         {item.unit}
+                      </TableCell>
+                      <TableCell data-testid={`item-price-${item.id}`}>
+                        {item.price?.toFixed(2) ?? "0.00"}
                       </TableCell>
                       <TableCell data-testid={`item-reorder-${item.id}`}>
                         {item.reorderLevel}
@@ -2506,6 +2514,7 @@ export default function InventoryManagement() {
                     </div>
                   </TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Recipe Price</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -2522,12 +2531,15 @@ export default function InventoryManagement() {
                       <TableCell>
                         <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
                       </TableCell>
+                      <TableCell>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : recipes.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={3}
+                      colSpan={4}
                       className="text-center text-gray-500"
                     >
                       <div>
@@ -2559,6 +2571,9 @@ export default function InventoryManagement() {
                       </TableCell>
                       <TableCell data-testid={`recipe-type-${recipe.id}`}>
                         {recipe.description}
+                      </TableCell>
+                      <TableCell data-testid={`recipe-price-${recipe.id}`}>
+                        {(recipe.recipePrice ?? 0).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

@@ -2609,6 +2609,7 @@ export const inventoryApi = {
     categoryId: number;
     branchId: number;
     unit: string;
+    price: number;
     reorderLevel: number;
     defaultSupplierId?: number;
   }) => {
@@ -2630,6 +2631,7 @@ export const inventoryApi = {
       name: string;
       categoryId: number;
       unit: string;
+      price: number;
       reorderLevel: number;
       defaultSupplierId?: number;
     },
