@@ -796,6 +796,7 @@ export interface RecipeItem {
   inventoryItemName?: string;
   quantity: number;
   unit: string;
+  price: number;
 }
 
 export interface Recipe {
@@ -803,6 +804,7 @@ export interface Recipe {
   name: string;
   type: string;
   branchId: number;
+  recipePrice?: number;
 }
 
 export interface RecipeDetail {
@@ -814,6 +816,7 @@ export interface RecipeDetail {
   subMenuItemId?: number;
   subMenuItemName?: string;
   branchId: number;
+  recipePrice: number;
   items: RecipeItem[];
 }
 
@@ -823,6 +826,7 @@ export const insertRecipeItemSchema = z.object({
   inventoryItemId: z.number().min(1, "Inventory item is required"),
   quantity: z.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
   unit: z.string().optional(), // Unit is auto-populated from inventory item
+  price: z.number().min(0, "Price must be 0 or greater"),
 });
 
 export const insertRecipeSchema = z.object({
@@ -830,6 +834,7 @@ export const insertRecipeSchema = z.object({
   variantId: z.number().optional(),
   subMenuItemId: z.number().optional(),
   branchId: z.number().min(1, "Branch is required"),
+  recipePrice: z.number().min(0, "Recipe price must be 0 or greater"),
   items: z.array(insertRecipeItemSchema).min(1, "At least one item is required"),
 });
 
@@ -843,6 +848,7 @@ export interface InventoryItemSimple {
   name: string;
   categoryName: string;
   unit: string;
+  price: number;
   reorderLevel: number;
   defaultSupplierName: string | null;
 }
