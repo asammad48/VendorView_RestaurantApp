@@ -315,7 +315,7 @@ export class ApiRepository {
     localStorage.removeItem("restaurant_current_user");
     localStorage.removeItem("current_user");
     if (typeof window !== "undefined" && window.location.pathname !== "/login") {
-      window.location.href = "/login";
+      window.dispatchEvent(new CustomEvent("auth:session-expired"));
     }
     console.log("Authentication failed. Tokens cleared.");
   }

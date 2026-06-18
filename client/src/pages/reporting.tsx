@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, MoreHorizontal, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Search, Plus, MoreHorizontal, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -206,7 +206,7 @@ export default function Reporting() {
               </TableHeader>
               <TableBody>
                 {issues.map((issue: IssueReporting) => (
-                  <TableRow key={issue.id}>
+                  <TableRow key={issue.id} className="hover:bg-gray-50">
                     <TableCell className="text-left" data-testid={`issue-id-${issue.id}`}>
                       #{issue.id}
                     </TableCell>
@@ -286,57 +286,56 @@ export default function Reporting() {
         </div>
         <div className="flex items-center space-x-2">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={!issuesResponse?.hasPrevious}
             data-testid="button-prev"
           >
-            <ChevronLeft className="h-4 w-4" />
+            Previous
           </Button>
-          
+
           {/* Page numbers */}
           {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
             const pageNum = Math.max(1, currentPage - 2) + i;
             if (pageNum > totalPages) return null;
-            
+
             return (
               <Button
                 key={pageNum}
-                variant="ghost"
+                variant={currentPage === pageNum ? "default" : "outline"}
                 size="sm"
                 onClick={() => handlePageChange(pageNum)}
-                className={currentPage === pageNum ? "bg-green-500 text-white hover:bg-green-600" : "text-gray-600"}
+                className={currentPage === pageNum ? "bg-green-500 hover:bg-green-600" : ""}
                 data-testid={`button-page-${pageNum}`}
               >
                 {pageNum}
               </Button>
             );
           })}
-          
+
           {totalPages > 5 && currentPage < totalPages - 2 && (
             <>
               <span className="text-gray-400">...</span>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(totalPages)}
-                className="text-gray-600"
                 data-testid={`button-page-${totalPages}`}
               >
                 {totalPages}
               </Button>
             </>
           )}
-          
+
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={!issuesResponse?.hasNext}
             data-testid="button-next"
           >
-            <ChevronRight className="h-4 w-4" />
+            Next
           </Button>
         </div>
       </div>

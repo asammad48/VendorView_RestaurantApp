@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,7 @@ export default function Login() {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [, navigate] = useLocation();
   const { login } = useAuth();
   const { toast } = useToast();
 
@@ -27,7 +28,7 @@ export default function Login() {
         title: "Success",
         description: "Successfully logged in!",
       });
-      window.location.href = "/dashboard";
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error",

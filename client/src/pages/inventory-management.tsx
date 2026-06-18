@@ -1520,15 +1520,15 @@ export default function InventoryManagement() {
                             <p>No stock found</p>
                             <p className="text-xs mt-2">
                               No inventory items available.{" "}
-                              <Link
-                                href="#"
+                              <button
+                                type="button"
                                 onClick={() => setActiveTab("items")}
                                 className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
                                 data-testid="link-inventory-items-stock"
                               >
                                 Go to Inventory Items{" "}
                                 <ExternalLink className="w-3 h-3" />
-                              </Link>
+                              </button>
                             </p>
                           </div>
                         </TableCell>
@@ -2547,7 +2547,7 @@ export default function InventoryManagement() {
                         <p className="text-xs mt-2">
                           No menu items or sub-menu items available.{" "}
                           <Link
-                            href="/branch-management"
+                            href="/restaurant-management"
                             className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
                             data-testid="link-branch-management-recipes"
                           >

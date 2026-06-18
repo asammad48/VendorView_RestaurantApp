@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Star, ChevronLeft, ChevronRight, Hash, DollarSign } from "lucide-react";
+import { Star, Hash, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -290,21 +290,20 @@ export default function Feedbacks() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="text-sm text-gray-500">
                 Show result: {feedbacks.length}
               </div>
-              
-              <div className="flex items-center gap-2">
+
+              <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={goToPrevious}
                   disabled={currentPage === 1}
-                  className="p-2"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  Previous
                 </Button>
-                
+
                 {[...Array(Math.min(totalPages, 5))].map((_, i) => {
                   const pageNumber = i + 1;
                   return (
@@ -313,13 +312,13 @@ export default function Feedbacks() {
                       variant={currentPage === pageNumber ? "default" : "outline"}
                       size="sm"
                       onClick={() => goToPage(pageNumber)}
-                      className="w-8 h-8 p-0"
+                      className={currentPage === pageNumber ? "bg-green-500 hover:bg-green-600" : ""}
                     >
                       {pageNumber}
                     </Button>
                   );
                 })}
-                
+
                 {totalPages > 5 && (
                   <>
                     <span className="text-gray-400">...</span>
@@ -327,21 +326,20 @@ export default function Feedbacks() {
                       variant={currentPage === totalPages ? "default" : "outline"}
                       size="sm"
                       onClick={() => goToPage(totalPages)}
-                      className="w-8 h-8 p-0"
+                      className={currentPage === totalPages ? "bg-green-500 hover:bg-green-600" : ""}
                     >
                       {totalPages}
                     </Button>
                   </>
                 )}
-                
+
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={goToNext}
                   disabled={currentPage === totalPages}
-                  className="p-2"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  Next
                 </Button>
               </div>
             </div>

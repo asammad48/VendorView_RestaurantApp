@@ -70,7 +70,7 @@ const Chef = () => {
   const [reservationToDelete, setReservationToDelete] = useState<any>(null);
 
   // Get branch ID for chef user
-  const { data: chefBranchResponse, isLoading: isLoadingChefBranch, error: chefBranchError } = useQuery({
+  const { data: chefBranchResponse, isLoading: isLoadingChefBranch, error: chefBranchError, refetch: refetchChefBranch } = useQuery({
     queryKey: ['chef-branch'],
     queryFn: async () => {
       try {
@@ -334,8 +334,8 @@ const Chef = () => {
           <div className="text-gray-500">
             {chefBranchError ? 'Failed to fetch branch information.' : 'No branch assigned to your account.'}
           </div>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => refetchChefBranch()}
             className="mt-4"
           >
             <RefreshCw className="w-4 h-4 mr-2" />

@@ -258,7 +258,7 @@ export default function UsersTable({
                       <Button
                         key={i}
                         variant={currentPage === i ? "default" : "outline"}
-                        className={`h-8 w-8 p-0 ${currentPage === i ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}`}
+                        className={`h-8 w-8 p-0 ${currentPage === i ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
                         onClick={() => onPageChange(i)}
                         data-testid={`button-page-${i}`}
                       >
