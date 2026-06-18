@@ -214,7 +214,7 @@ export default function AddServicesModal({ open, onOpenChange, branchId, onServi
             <Button
               onClick={handleSubmit}
               disabled={updateBranchServicesMutation.isPending || selectedServices.length === 0}
-              className="bg-green-500 hover:bg-green-600 text-white px-8 py-2 rounded-md"
+              className="bg-green-700 hover:bg-green-800 text-white px-8 py-2 rounded-md"
             >
               {updateBranchServicesMutation.isPending ? "Adding..." : `Add ${selectedServices.length} Service(s)`}
             </Button>

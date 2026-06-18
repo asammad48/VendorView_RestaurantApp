@@ -190,7 +190,7 @@ export default function StockUpdateModal({
               </Button>
               <Button
                 type="submit"
-                className="bg-green-500 hover:bg-green-600"
+                className="bg-green-700 hover:bg-green-800"
                 disabled={isSubmitting}
                 data-testid="button-submit"
               >

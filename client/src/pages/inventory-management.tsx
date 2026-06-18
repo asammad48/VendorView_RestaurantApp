@@ -780,37 +780,37 @@ export default function InventoryManagement() {
         >
           <TabsTrigger
             value="categories"
-            className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
           >
             Categories
           </TabsTrigger>
           <TabsTrigger
             value="suppliers"
-            className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
           >
             Suppliers
           </TabsTrigger>
           <TabsTrigger
             value="items"
-            className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
           >
             Items
           </TabsTrigger>
           <TabsTrigger
             value="stock"
-            className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
           >
             Stock
           </TabsTrigger>
           <TabsTrigger
             value="expense"
-            className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
           >
             Expense Management
           </TabsTrigger>
           <TabsTrigger
             value="recipes"
-            className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
           >
             Recipes
           </TabsTrigger>
@@ -820,7 +820,7 @@ export default function InventoryManagement() {
         <TabsContent value="categories" className="space-y-6">
           <div className="flex justify-end items-center gap-4">
             <Button
-              className="bg-green-500 hover:bg-green-600 text-white"
+              className="bg-green-700 hover:bg-green-800 text-white"
               onClick={() => setShowAddCategoryModal(true)}
               data-testid="button-add-category"
             >
@@ -961,7 +961,7 @@ export default function InventoryManagement() {
                     onClick={() => setCategoriesPage(page)}
                     className={
                       categoriesPage === page
-                        ? "bg-green-500 hover:bg-green-600"
+                        ? "bg-green-700 hover:bg-green-800"
                         : ""
                     }
                     data-testid={`button-categories-page-${page}`}
@@ -992,7 +992,7 @@ export default function InventoryManagement() {
         <TabsContent value="suppliers" className="space-y-6">
           <div className="flex justify-end items-center gap-4">
             <Button
-              className="bg-green-500 hover:bg-green-600 text-white"
+              className="bg-green-700 hover:bg-green-800 text-white"
               onClick={() => setShowAddSupplierModal(true)}
               data-testid="button-add-supplier"
             >
@@ -1182,7 +1182,7 @@ export default function InventoryManagement() {
                     onClick={() => setSuppliersPage(page)}
                     className={
                       suppliersPage === page
-                        ? "bg-green-500 hover:bg-green-600"
+                        ? "bg-green-700 hover:bg-green-800"
                         : ""
                     }
                     data-testid={`button-suppliers-page-${page}`}
@@ -1213,7 +1213,7 @@ export default function InventoryManagement() {
         <TabsContent value="items" className="space-y-6">
           <div className="flex justify-end items-center gap-4">
             <Button
-              className="bg-green-500 hover:bg-green-600 text-white"
+              className="bg-green-700 hover:bg-green-800 text-white"
               onClick={() => setShowAddItemModal(true)}
               data-testid="button-add-item"
             >
@@ -1401,7 +1401,7 @@ export default function InventoryManagement() {
                       onClick={() => setItemsPage(page)}
                       className={
                         itemsPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                       data-testid={`button-items-page-${page}`}
@@ -1439,25 +1439,25 @@ export default function InventoryManagement() {
             >
               <TabsTrigger
                 value="manage-stock"
-                className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+                className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
               >
                 Manage Stock
               </TabsTrigger>
               <TabsTrigger
                 value="low-stock"
-                className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+                className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
               >
                 Low Stock
               </TabsTrigger>
               <TabsTrigger
                 value="purchase-orders"
-                className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+                className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
               >
                 Purchase Orders
               </TabsTrigger>
               <TabsTrigger
                 value="stock-wastage"
-                className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+                className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
               >
                 Stock Wastage
               </TabsTrigger>
@@ -1625,7 +1625,7 @@ export default function InventoryManagement() {
                         onClick={() => setStockPage(page)}
                         className={
                           stockPage === page
-                            ? "bg-green-500 hover:bg-green-600"
+                            ? "bg-green-700 hover:bg-green-800"
                             : ""
                         }
                         data-testid={`button-stock-page-${page}`}
@@ -1792,7 +1792,7 @@ export default function InventoryManagement() {
                         onClick={() => setLowStockPage(page)}
                         className={
                           lowStockPage === page
-                            ? "bg-green-500 hover:bg-green-600"
+                            ? "bg-green-700 hover:bg-green-800"
                             : ""
                         }
                         data-testid={`button-low-stock-page-${page}`}
@@ -1822,7 +1822,7 @@ export default function InventoryManagement() {
             <TabsContent value="purchase-orders" className="space-y-6">
               <div className="flex justify-end items-center gap-4">
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-green-700 hover:bg-green-800 text-white"
                   onClick={() => setShowPurchaseOrderModal(true)}
                   data-testid="button-add-purchase-order"
                 >
@@ -2008,7 +2008,7 @@ export default function InventoryManagement() {
                         onClick={() => setPurchaseOrdersPage(page)}
                         className={
                           purchaseOrdersPage === page
-                            ? "bg-green-500 hover:bg-green-600"
+                            ? "bg-green-700 hover:bg-green-800"
                             : ""
                         }
                         data-testid={`button-purchase-orders-page-${page}`}
@@ -2211,7 +2211,7 @@ export default function InventoryManagement() {
                         onClick={() => setWastageItemsPage(page)}
                         className={
                           wastageItemsPage === page
-                            ? "bg-green-500 hover:bg-green-600"
+                            ? "bg-green-700 hover:bg-green-800"
                             : ""
                         }
                         data-testid={`button-wastage-page-${page}`}
@@ -2452,7 +2452,7 @@ export default function InventoryManagement() {
                     onClick={() => setExpensesPage(page)}
                     className={
                       expensesPage === page
-                        ? "bg-green-500 hover:bg-green-600"
+                        ? "bg-green-700 hover:bg-green-800"
                         : ""
                     }
                     data-testid={`button-expenses-page-${page}`}
@@ -2658,7 +2658,7 @@ export default function InventoryManagement() {
                       onClick={() => setRecipesPage(page)}
                       className={
                         recipesPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                       data-testid={`button-recipes-page-${page}`}

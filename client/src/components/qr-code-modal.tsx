@@ -359,7 +359,7 @@ export default function QRCodeModal({ open, onOpenChange, tableNumber, branchNam
           <div className="flex space-x-3 w-full">
             <Button
               onClick={handleDownload}
-              className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+              className="flex-1 bg-green-700 hover:bg-green-800 text-white"
               data-testid="button-download-qr"
             >
               <Download className="w-4 h-4 mr-2" />

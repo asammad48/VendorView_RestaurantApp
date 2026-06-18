@@ -100,7 +100,7 @@ export function ColumnSearchPopover({
             <Button
               size="sm"
               onClick={handleApply}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-700 hover:bg-green-800 text-white"
               data-testid={`button-apply-search-${tableName}`}
             >
               <Search className="w-3 h-3 mr-1" />

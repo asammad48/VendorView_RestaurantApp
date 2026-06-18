@@ -312,7 +312,7 @@ export default function Feedbacks() {
                       variant={currentPage === pageNumber ? "default" : "outline"}
                       size="sm"
                       onClick={() => goToPage(pageNumber)}
-                      className={currentPage === pageNumber ? "bg-green-500 hover:bg-green-600" : ""}
+                      className={currentPage === pageNumber ? "bg-green-700 hover:bg-green-800" : ""}
                     >
                       {pageNumber}
                     </Button>
@@ -326,7 +326,7 @@ export default function Feedbacks() {
                       variant={currentPage === totalPages ? "default" : "outline"}
                       size="sm"
                       onClick={() => goToPage(totalPages)}
-                      className={currentPage === totalPages ? "bg-green-500 hover:bg-green-600" : ""}
+                      className={currentPage === totalPages ? "bg-green-700 hover:bg-green-800" : ""}
                     >
                       {totalPages}
                     </Button>

@@ -372,7 +372,7 @@ export default function AddEntityModal({ open, onOpenChange }: AddEntityModalPro
               <Button
                 type="submit"
                 disabled={isLoading || createMutation.isPending}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-700 hover:bg-green-800"
                 data-testid="button-create-entity"
               >
                 {isLoading || createMutation.isPending ? "Creating..." : "Create Entity"}

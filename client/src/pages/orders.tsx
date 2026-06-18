@@ -1206,7 +1206,15 @@ export default function Orders() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation("/branches")}
+            onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+              const entityId = params.get("entityId");
+              const entityType = params.get("entityType");
+              const backParams = new URLSearchParams();
+              if (entityId) backParams.set("entityId", entityId);
+              if (entityType) backParams.set("entityType", entityType);
+              setLocation(`/branches?${backParams.toString()}`);
+            }}
             data-testid="button-back"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -1221,7 +1229,7 @@ export default function Orders() {
         <Button
           onClick={() => setShowPrinterModal(true)}
           variant={isPrinterConnected ? "default" : "outline"}
-          className={isPrinterConnected ? "bg-green-500 hover:bg-green-600 text-white" : "border-gray-300"}
+          className={isPrinterConnected ? "bg-green-700 hover:bg-green-800 text-white" : "border-gray-300"}
           data-testid="button-printer-connection"
         >
           <Bluetooth className="w-4 h-4 mr-2" />
@@ -1334,7 +1342,7 @@ export default function Orders() {
               )}
               <Button
                 onClick={() => setShowSubscriptionsModal(true)}
-                className="bg-green-500 hover:bg-green-600 text-white"
+                className="bg-green-700 hover:bg-green-800 text-white"
                 data-testid="button-view-plans"
               >
                 {currentSubscription ? "Change Plan" : "View Plans"}
@@ -1360,43 +1368,43 @@ export default function Orders() {
         >
           <TabsTrigger
             value="orders"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
+            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-700 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
           >
             Orders
           </TabsTrigger>
           <TabsTrigger
             value="menu"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
+            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-700 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
           >
             Menu
           </TabsTrigger>
           <TabsTrigger
             value="tables"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
+            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-700 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
           >
             Tables
           </TabsTrigger>
           <TabsTrigger
             value="reservations"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
+            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-700 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
           >
             Reservations
           </TabsTrigger>
           <TabsTrigger
             value="deals"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
+            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-700 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
           >
             Deals
           </TabsTrigger>
           <TabsTrigger
             value="services"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
+            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-700 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
           >
             Services
           </TabsTrigger>
           <TabsTrigger
             value="discounts"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
+            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-700 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
           >
             Discounts
           </TabsTrigger>
@@ -1406,12 +1414,9 @@ export default function Orders() {
           {/* Orders Header Filters */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Badge className="bg-primary/10 text-primary hover:bg-primary/15 border border-primary/20">
-                All Orders
-              </Badge>
             </div>
             <Button
-              className="bg-green-500 hover:bg-green-600 text-white"
+              className="bg-green-700 hover:bg-green-800 text-white"
               onClick={() => setShowCreateOrderModal(true)}
               data-testid="button-create-order"
             >
@@ -1737,7 +1742,7 @@ export default function Orders() {
                     onClick={() => setCurrentPage(page)}
                     className={
                       currentPage === page
-                        ? "bg-green-500 hover:bg-green-600"
+                        ? "bg-green-700 hover:bg-green-800"
                         : ""
                     }
                   >
@@ -1800,7 +1805,7 @@ export default function Orders() {
                     Apply Discount
                   </Button>
                   <Button
-                    className="bg-green-500 hover:bg-green-600 text-white"
+                    className="bg-green-700 hover:bg-green-800 text-white"
                     onClick={() => setShowAddMenuModal(true)}
                     data-testid="button-add-item"
                   >
@@ -1810,7 +1815,7 @@ export default function Orders() {
                 </>
               ) : activeMenuTab === "Category" ? (
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-green-700 hover:bg-green-800 text-white"
                   onClick={() => setShowAddCategoryModal(true)}
                   data-testid="button-add-category"
                 >
@@ -1819,7 +1824,7 @@ export default function Orders() {
                 </Button>
               ) : activeMenuTab === "SubMenu" ? (
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-green-700 hover:bg-green-800 text-white"
                   onClick={() => setShowAddSubMenuModal(true)}
                   data-testid="button-add-submenu"
                 >
@@ -2286,7 +2291,7 @@ export default function Orders() {
                       onClick={() => setMenuCurrentPage(page)}
                       className={
                         menuCurrentPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                     >
@@ -2307,7 +2312,7 @@ export default function Orders() {
                       onClick={() => setCategoryCurrentPage(page)}
                       className={
                         categoryCurrentPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                     >
@@ -2328,7 +2333,7 @@ export default function Orders() {
                       onClick={() => setSubMenuCurrentPage(page)}
                       className={
                         subMenuCurrentPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                     >
@@ -2379,7 +2384,7 @@ export default function Orders() {
               )}
             </h2>
             <Button
-              className="bg-green-500 hover:bg-green-600 text-white"
+              className="bg-green-700 hover:bg-green-800 text-white"
               onClick={() => setShowAddTableModal(true)}
               data-testid="button-add-table"
             >
@@ -2434,7 +2439,7 @@ export default function Orders() {
 
                   <div className="flex items-center justify-between">
                     <Button
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm"
+                      className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 text-sm"
                       onClick={() => {
                         setSelectedTable(table);
                         setShowQRModal(true);
@@ -2701,7 +2706,7 @@ export default function Orders() {
                     onClick={() => setReservationsCurrentPage(page)}
                     className={
                       reservationsCurrentPage === page
-                        ? "bg-green-500 hover:bg-green-600"
+                        ? "bg-green-700 hover:bg-green-800"
                         : ""
                     }
                   >
@@ -2741,7 +2746,7 @@ export default function Orders() {
                   Apply Discount
                 </Button>
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-green-700 hover:bg-green-800 text-white"
                   onClick={() => setShowAddDealsModal(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -2949,7 +2954,7 @@ export default function Orders() {
                         onClick={() => setDealsCurrentPage(page)}
                         className={
                           dealsCurrentPage === page
-                            ? "bg-green-500 hover:bg-green-600"
+                            ? "bg-green-700 hover:bg-green-800"
                             : ""
                         }
                       >
@@ -2981,7 +2986,7 @@ export default function Orders() {
           <div className="space-y-4">
             <div className="flex items-center justify-end">
               <Button
-                className="bg-green-500 hover:bg-green-600 text-white"
+                className="bg-green-700 hover:bg-green-800 text-white"
                 onClick={() => setShowAddServicesModal(true)}
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -3043,7 +3048,7 @@ export default function Orders() {
           <div className="space-y-4">
             <div className="flex items-center justify-end">
               <Button
-                className="bg-green-500 hover:bg-green-600 text-white"
+                className="bg-green-700 hover:bg-green-800 text-white"
                 onClick={() => setShowAddDiscountModal(true)}
                 data-testid="button-add-discount"
               >
@@ -3241,7 +3246,7 @@ export default function Orders() {
                       onClick={() => setDiscountsCurrentPage(page)}
                       className={
                         discountsCurrentPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                       data-testid={`button-discounts-page-${page}`}
@@ -3415,7 +3420,7 @@ export default function Orders() {
                 onClick={() => setSelectedBillingCycle(0)}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                   selectedBillingCycle === 0
-                    ? "bg-green-500 text-white"
+                    ? "bg-green-700 text-white"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
                 data-testid="button-billing-monthly"
@@ -3426,7 +3431,7 @@ export default function Orders() {
                 onClick={() => setSelectedBillingCycle(1)}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                   selectedBillingCycle === 1
-                    ? "bg-green-500 text-white"
+                    ? "bg-green-700 text-white"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
                 data-testid="button-billing-yearly"
@@ -3918,7 +3923,7 @@ export default function Orders() {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-green-500 hover:bg-green-600"
+                  className="flex-1 bg-green-700 hover:bg-green-800"
                   disabled={!selectedStatusId || isUpdatingStatus}
                   onClick={async () => {
                     if (!selectedStatusId || !selectedOrder) return;
@@ -4039,7 +4044,7 @@ export default function Orders() {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-green-500 hover:bg-green-600"
+                  className="flex-1 bg-green-700 hover:bg-green-800"
                   disabled={changeSubscriptionMutation.isPending}
                   onClick={() => {
                     if (selectedSubscriptionForChange && branchData) {
@@ -4229,7 +4234,7 @@ export default function Orders() {
                 {branchSubscriptionIdForProof ? "Skip for Now" : "Close"}
               </Button>
               <Button
-                className="flex-1 bg-green-500 hover:bg-green-600"
+                className="flex-1 bg-green-700 hover:bg-green-800"
                 disabled={
                   !paymentProofFile ||
                   !branchSubscriptionIdForProof ||

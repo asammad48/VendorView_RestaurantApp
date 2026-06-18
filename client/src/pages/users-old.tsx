@@ -60,7 +60,7 @@ export default function Users() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-gray-800" data-testid="page-title">Users</h2>
         <Button 
-          className="bg-green-500 hover:bg-green-600" 
+          className="bg-green-700 hover:bg-green-800" 
           onClick={() => {
             setEditingUser(null);
             setIsAddUserModalOpen(true);

@@ -85,7 +85,7 @@ export function SearchTooltip({ placeholder, onSearch, onClear, currentValue = '
               <Button
                 size="sm"
                 onClick={handleApply}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-700 hover:bg-green-800 text-white"
                 data-testid="search-tooltip-apply"
               >
                 <Search className="w-3 h-3 mr-1" />

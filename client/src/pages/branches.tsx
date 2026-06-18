@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Plus, Search, ArrowLeft, Palette, AlertTriangle } from "lucide-react";
+import { Plus, Search, ArrowLeft, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import BranchCard from "../components/branch-card";
 import AddBranchModal from "@/components/add-branch-modal";
@@ -140,76 +138,46 @@ export default function Branches() {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Entities
           </Button>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-              {currentEntity?.name} Branches
+              Branches
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage branches for your {entityType}
+              Manage branches for your restaurant
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button 
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Search branches..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              data-testid="input-search-branches"
+            />
+          </div>
+          <Button
             onClick={() => {
-              // Preserve current URL query parameters when navigating to appearance
               const currentParams = new URLSearchParams(window.location.search);
               const appearanceUrl = currentParams.toString() ? `/appearance?${currentParams.toString()}` : '/appearance';
               navigate(appearanceUrl);
             }}
             variant="outline"
-            className="w-full md:w-auto"
             data-testid="button-appearance"
           >
             <Palette className="w-4 h-4 mr-2" />
             Appearance
           </Button>
-          <Button 
+          <Button
             onClick={handleAddBranch}
-            className="w-full md:w-auto"
             data-testid="button-add-branch"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Branch
           </Button>
-        </div>
-      </div>
-
-      {/* Configuration Alert */}
-      {hasUnconfiguredBranches && (
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            {unconfiguredBranches.length === 1 
-              ? `1 branch needs configuration to continue operating.`
-              : `${unconfiguredBranches.length} branches need configuration to continue operating.`
-            } Please configure them using the Config button on each branch card.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1 group">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400 group-focus-within:text-green-500 transition-colors duration-200" />
-          </div>
-          <Input
-            placeholder="Search branches by name, type, or address..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-3 w-full border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 bg-white shadow-sm group-focus-within:shadow-md"
-            data-testid="input-search-branches"
-          />
-        </div>
-        <div className="flex gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <Badge variant="outline" data-testid="badge-total-branches">
-            Total Branches: {Array.isArray(branches) ? branches.length : 0}
-          </Badge>
-          <Badge variant="outline" data-testid="badge-active-branches">
-            Active: {Array.isArray(branches) ? branches.filter((b: any) => (b.status || "active") === "active").length : 0}
-          </Badge>
         </div>
       </div>
 

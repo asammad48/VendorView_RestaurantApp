@@ -263,7 +263,7 @@
 
 /* General TabsTrigger active state fix */
 .tabs-trigger-active {
-  @apply bg-green-500 text-white hover:bg-green-600;
+  @apply bg-green-700 text-white hover:bg-green-800;
 }
 
 /* Override Radix UI TabsTrigger default styles */
@@ -362,7 +362,7 @@
 }
 
 .form-button {
-  @apply w-full bg-primary text-primary-foreground py-2 text-sm rounded-lg hover:bg-green-600 transition-colors duration-200 font-medium;
+  @apply w-full bg-primary text-primary-foreground py-2 text-sm rounded-lg hover:bg-green-800 transition-colors duration-200 font-medium;
 }
 
 .form-button:disabled {

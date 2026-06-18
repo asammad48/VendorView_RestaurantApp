@@ -88,7 +88,7 @@ export default function PricingPlansModal({ open, onOpenChange, onPlanSelect }: 
               onClick={() => setBillingCycle("monthly")}
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                 billingCycle === "monthly"
-                  ? "bg-green-500 text-white"
+                  ? "bg-green-700 text-white"
                   : "text-gray-600 hover:text-gray-900"
               }`}
               data-testid="button-monthly"
@@ -99,7 +99,7 @@ export default function PricingPlansModal({ open, onOpenChange, onPlanSelect }: 
               onClick={() => setBillingCycle("annual")}
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                 billingCycle === "annual"
-                  ? "bg-green-500 text-white"
+                  ? "bg-green-700 text-white"
                   : "text-gray-600 hover:text-gray-900"
               }`}
               data-testid="button-annual"

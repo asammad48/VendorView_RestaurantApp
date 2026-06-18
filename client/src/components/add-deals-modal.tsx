@@ -730,7 +730,7 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
                   <Button
                     type="button"
                     onClick={() => document.getElementById('deal-image-upload')?.click()}
-                    className="ml-2 bg-green-500 hover:bg-green-600 text-white px-4"
+                    className="ml-2 bg-green-700 hover:bg-green-800 text-white px-4"
                   >
                     Browse
                   </Button>
@@ -747,7 +747,7 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
                   !selectedItems.some(item => item.variants.some(v => v.quantity > 0)) &&
                   !selectedSubMenuItems.some(item => item.quantity > 0)
                 )}
-                className="bg-green-500 hover:bg-green-600 text-white px-8 py-2 rounded-md"
+                className="bg-green-700 hover:bg-green-800 text-white px-8 py-2 rounded-md"
               >
                 {createDealMutation.isPending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Deal" : "Create Deal")}
               </Button>

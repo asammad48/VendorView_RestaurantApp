@@ -344,7 +344,7 @@ export default function UpdateProfileModal({
                   <Button
                     type="button"
                     variant="outline"
-                    className="bg-green-500 text-white hover:bg-green-600 border-green-500"
+                    className="bg-green-700 text-white hover:bg-green-800 border-green-700"
                     onClick={() =>
                       document.getElementById("profilePicture")?.click()
                     }
@@ -386,7 +386,7 @@ export default function UpdateProfileModal({
               <Button
                 type="submit"
                 disabled={updateProfileMutation.isPending}
-                className="w-40 bg-green-500 hover:bg-green-600 text-white"
+                className="w-40 bg-green-700 hover:bg-green-800 text-white"
                 data-testid="button-update-profile"
               >
                 {updateProfileMutation.isPending

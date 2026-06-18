@@ -115,7 +115,7 @@ export default function Users() {
         </div>
         <Button 
           onClick={() => setIsAddUserModalOpen(true)}
-          className="bg-green-500 hover:bg-green-600 text-white"
+          className="bg-green-700 hover:bg-green-800 text-white"
           data-testid="button-add-user"
         >
           <Plus className="w-4 h-4 mr-2" />

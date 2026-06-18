@@ -103,7 +103,7 @@ export default function Entities() {
           </div>
           <Button 
             onClick={() => setShowAddModal(true)}
-            className="bg-green-500 hover:bg-green-600 text-white"
+            className="bg-green-700 hover:bg-green-800 text-white"
             data-testid="button-add-entity"
           >
             <Plus className="w-4 h-4 mr-2" />

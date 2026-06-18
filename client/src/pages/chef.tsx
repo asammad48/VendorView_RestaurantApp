@@ -1005,7 +1005,7 @@ const Chef = () => {
                       Cancel
                     </Button>
                     <Button 
-                      className="flex-1 bg-green-500 hover:bg-green-600"
+                      className="flex-1 bg-green-700 hover:bg-green-800"
                       disabled={!selectedStatusId || isUpdatingStatus}
                       onClick={async () => {
                         if (!selectedStatusId || !selectedOrder) return;
