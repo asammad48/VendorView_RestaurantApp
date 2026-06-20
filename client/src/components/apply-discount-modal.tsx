@@ -282,7 +282,7 @@ export default function ApplyDiscountModal({ isOpen, onClose, mode, branchId }: 
           <div className="flex justify-center pt-4">
             <Button
               type="submit"
-              className="bg-green-600 hover:bg-green-700 text-white px-12 py-2 rounded-lg"
+              className="bg-green-700 hover:bg-green-800 text-white px-12 py-2 rounded-lg"
               disabled={applyDiscountMutation.isPending || selectedItems.length === 0}
               data-testid="button-apply-discount"
             >

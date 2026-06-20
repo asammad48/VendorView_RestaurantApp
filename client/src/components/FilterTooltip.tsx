@@ -131,7 +131,7 @@ export function FilterTooltip({
                       onCheckedChange={(checked) => 
                         handleCheckboxChange(option.value, checked as boolean)
                       }
-                      className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                      className="data-[state=checked]:bg-green-700 data-[state=checked]:border-green-700"
                     />
                     <label
                       htmlFor={option.value}
@@ -158,7 +158,7 @@ export function FilterTooltip({
               <Button
                 size="sm"
                 onClick={handleApply}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-700 hover:bg-green-800 text-white"
                 data-testid="filter-tooltip-apply"
               >
                 <Check className="w-3 h-3 mr-1" />

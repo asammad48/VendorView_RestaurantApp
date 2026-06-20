@@ -97,6 +97,16 @@ function ChefGuard() {
   return <Chef />;
 }
 
+function AuthSessionListener() {
+  const [, navigate] = useLocation();
+  React.useEffect(() => {
+    const handleSessionExpired = () => navigate("/login");
+    window.addEventListener("auth:session-expired", handleSessionExpired);
+    return () => window.removeEventListener("auth:session-expired", handleSessionExpired);
+  }, [navigate]);
+  return null;
+}
+
 function Router() {
   return (
     <Switch>
@@ -175,6 +185,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
+          <AuthSessionListener />
           <Router />
         </TooltipProvider>
       </AuthProvider>

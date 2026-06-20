@@ -197,7 +197,7 @@ export default function AddSubMenuModal({ isOpen, onClose, branchId, editSubMenu
               </Button>
               <Button 
                 type="submit"
-                className="bg-green-500 hover:bg-green-600 text-white"
+                className="bg-green-700 hover:bg-green-800 text-white"
                 disabled={createSubMenuMutation.isPending || updateSubMenuMutation.isPending}
                 data-testid="button-submit-submenu"
               >

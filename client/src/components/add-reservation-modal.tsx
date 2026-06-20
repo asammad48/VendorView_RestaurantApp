@@ -350,7 +350,7 @@ export function AddReservationModal({
               </Button>
               <Button
                 type="submit"
-                className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white"
+                className="px-6 py-2 bg-green-700 hover:bg-green-800 text-white"
                 data-testid="button-submit"
                 disabled={createReservationMutation.isPending}
               >

@@ -303,7 +303,7 @@ export default function Appearance() {
                 <Button 
                   onClick={handleSaveChanges}
                   disabled={isSaving || isLoading}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  className="w-full bg-green-700 hover:bg-green-800 text-white"
                   data-testid="button-save-appearance"
                 >
                   {isSaving ? "Saving..." : "Save Changes"}

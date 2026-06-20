@@ -26,7 +26,7 @@ export default function RestaurantCard({ restaurant, onDelete }: RestaurantCardP
         />
         <div className="absolute top-3 right-3">
           <Badge 
-            className={restaurant.status === 'active' ? 'bg-primary hover:bg-green-600' : 'bg-gray-500 hover:bg-gray-600'}
+            className={restaurant.status === 'active' ? 'bg-primary hover:bg-green-800' : 'bg-gray-500 hover:bg-gray-600'}
             data-testid={`restaurant-status-${restaurant.id}`}
           >
             {restaurant.status === 'active' ? 'Active' : 'Inactive'}

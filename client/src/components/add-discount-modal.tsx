@@ -300,7 +300,7 @@ export default function AddDiscountModal({
               <Button
                 type="submit"
                 disabled={createDiscountMutation.isPending}
-                className="bg-green-500 hover:bg-green-600 text-white px-8 py-2 rounded-md"
+                className="bg-green-700 hover:bg-green-800 text-white px-8 py-2 rounded-md"
                 data-testid="button-save-discount"
               >
                 {createDiscountMutation.isPending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Discount" : "Create Discount")}

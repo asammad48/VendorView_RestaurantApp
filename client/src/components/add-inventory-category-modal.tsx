@@ -87,7 +87,7 @@ export default function AddInventoryCategoryModal({ open, onClose, branchId, onS
             </Button>
             <Button 
               type="submit" 
-              className="bg-green-500 hover:bg-green-600"
+              className="bg-green-700 hover:bg-green-800"
               disabled={createCategoryMutation.isPending}
               data-testid="button-submit"
             >

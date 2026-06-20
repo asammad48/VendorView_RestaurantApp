@@ -994,7 +994,7 @@ export default function BranchConfigModal({ open, onClose, branch }: BranchConfi
               <Button
                 type="submit"
                 disabled={isSaving || isLoading}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-700 hover:bg-green-800"
               >
 {isSaving ? "Saving..." : "Save Configuration"}
               </Button>

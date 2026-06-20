@@ -15,6 +15,10 @@ import {
   Check,
   Bluetooth,
   Filter,
+  Users,
+  QrCode,
+  Sparkles,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,6 +125,8 @@ import {
   PaginationRequest,
   PaginationResponse,
   DEFAULT_PAGINATION_CONFIG,
+  ALL_PAGE_SIZE,
+  formatPageSizeLabel,
   buildPaginationQuery,
 } from "@/types/pagination";
 
@@ -230,7 +236,8 @@ export default function Orders() {
   const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<string[]>(
     [],
   );
-  const [itemsPerPage, setItemsPerPage] = useState(6);
+  // Single shared page size for ALL tables — changing one changes all
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Reset to page 1 when filters change
@@ -244,21 +251,12 @@ export default function Orders() {
   const [subMenuCurrentPage, setSubMenuCurrentPage] = useState(1);
   const [dealsCurrentPage, setDealsCurrentPage] = useState(1);
   const [discountsCurrentPage, setDiscountsCurrentPage] = useState(1);
-  const [menuItemsPerPage, setMenuItemsPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
-  const [categoryItemsPerPage, setCategoryItemsPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
-  const [subMenuItemsPerPage, setSubMenuItemsPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
-  const [dealsItemsPerPage, setDealsItemsPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
-  const [discountsItemsPerPage, setDiscountsItemsPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  // These all share the global itemsPerPage
+  const menuItemsPerPage = itemsPerPage;
+  const categoryItemsPerPage = itemsPerPage;
+  const subMenuItemsPerPage = itemsPerPage;
+  const dealsItemsPerPage = itemsPerPage;
+  const discountsItemsPerPage = itemsPerPage;
   const [discountsSearchTerm, setDiscountsSearchTerm] = useState("");
   const [subMenuSearchTerm, setSubMenuSearchTerm] = useState("");
   const [showQRModal, setShowQRModal] = useState(false);
@@ -297,9 +295,7 @@ export default function Orders() {
 
   // Reservation states
   const [reservationsCurrentPage, setReservationsCurrentPage] = useState(1);
-  const [reservationsItemsPerPage, setReservationsItemsPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  const reservationsItemsPerPage = itemsPerPage;
   const [reservationsSearchTerm, setReservationsSearchTerm] = useState("");
   const [showViewReservationModal, setShowViewReservationModal] =
     useState(false);
@@ -1199,219 +1195,142 @@ export default function Orders() {
   // This local formatPrice function is no longer used - replaced with formatBranchPrice from useBranchCurrency
 
   return (
-    <div className="p-6 space-y-6" data-testid="orders-page">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div data-testid="orders-page">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation("/branches")}
+            onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+              const entityId = params.get("entityId");
+              const entityType = params.get("entityType");
+              const backParams = new URLSearchParams();
+              if (entityId) backParams.set("entityId", entityId);
+              if (entityType) backParams.set("entityType", entityType);
+              setLocation(`/branches?${backParams.toString()}`);
+            }}
             data-testid="button-back"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1
-            className="text-2xl font-semibold text-gray-900"
-            data-testid="page-title"
-          >
-            Restaurants
-          </h1>
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900" data-testid="page-title">
+              Restaurant Management
+            </h1>
+            {branchData?.name && (
+              <p className="text-xs text-gray-500 font-medium">{branchData.name}</p>
+            )}
+          </div>
         </div>
-        <Button
-          onClick={() => setShowPrinterModal(true)}
-          variant={isPrinterConnected ? "default" : "outline"}
-          className={isPrinterConnected ? "bg-green-500 hover:bg-green-600 text-white" : "border-gray-300"}
-          data-testid="button-printer-connection"
-        >
-          <Bluetooth className="w-4 h-4 mr-2" />
-          {isPrinterConnected ? "Printer Connected" : "Connect Printer"}
-        </Button>
+
+        <div className="flex items-center gap-2">
+          {/* Subscription pill */}
+          {!isLoadingCurrentSubscription && (
+            currentSubscription ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 border border-green-200 text-green-800 text-xs font-medium hover:bg-green-100 transition-colors"
+                    data-testid="button-subscription-badge"
+                  >
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                    {currentSubscription.name}
+                    {currentSubscription.paymentStatus === "Pending" && (
+                      <span className="ml-1 bg-yellow-400 text-yellow-900 text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                        Pending
+                      </span>
+                    )}
+                    <ChevronDown className="w-3 h-3 ml-0.5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => setShowSubscriptionsModal(true)}>
+                    Change Plan
+                  </DropdownMenuItem>
+                  {currentSubscription.paymentStatus === "Pending" && (
+                    <DropdownMenuItem onClick={() => {
+                      const subscriptionId = currentSubscription.branchSubscriptionId || branchSubscriptionIdForProof;
+                      if (subscriptionId) setBranchSubscriptionIdForProof(subscriptionId);
+                      setShowUploadProofDialog(true);
+                    }}>
+                      Upload Payment Proof
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600"
+                    onClick={() => setShowCancelSubscriptionDialog(true)}
+                  >
+                    Cancel Subscription
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowSubscriptionsModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium hover:bg-amber-100 transition-colors"
+                data-testid="button-no-subscription"
+              >
+                <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
+                No Active Plan
+              </button>
+            )
+          )}
+
+          <Button
+            onClick={() => setShowPrinterModal(true)}
+            variant={isPrinterConnected ? "default" : "outline"}
+            size="sm"
+            className={isPrinterConnected ? "bg-green-700 hover:bg-green-800 text-white" : "border-gray-300"}
+            data-testid="button-printer-connection"
+          >
+            <Bluetooth className="w-4 h-4 mr-2" />
+            {isPrinterConnected ? "Printer Connected" : "Connect Printer"}
+          </Button>
+        </div>
       </div>
 
-      {/* Subscription Management Section */}
-      <Card
-        className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200"
-        data-testid="subscription-section"
-      >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              {isLoadingCurrentSubscription ? (
-                <div className="animate-pulse">
-                  <div className="h-6 bg-gray-200 rounded w-48 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-64"></div>
-                </div>
-              ) : currentSubscription ? (
-                <div>
-                  <h2
-                    className="text-xl font-semibold text-gray-900 mb-1"
-                    data-testid="current-plan-name"
-                  >
-                    Current Plan: {currentSubscription.name}
-                  </h2>
-                  <p
-                    className="text-sm text-gray-600"
-                    data-testid="current-plan-description"
-                  >
-                    {currentSubscription.description}
-                  </p>
-                  {currentSubscription.endDate && (
-                    <p
-                      className="text-xs text-gray-500 mt-1"
-                      data-testid="plan-end-date"
-                    >
-                      Valid until:{" "}
-                      {new Date(
-                        currentSubscription.endDate,
-                      ).toLocaleDateString()}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-3 mt-2">
-                    {currentSubscription.paymentStatus && (
-                      <Badge
-                        className={`${
-                          currentSubscription.paymentStatus === "Pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : currentSubscription.paymentStatus === "Paid"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                        }`}
-                        data-testid="payment-status-badge"
-                      >
-                        Payment: {currentSubscription.paymentStatus}
-                      </Badge>
-                    )}
-                    {currentSubscription.paymentStatus === "Pending" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          // Use branchSubscriptionId from current subscription if available, otherwise use the stored one
-                          const subscriptionId =
-                            currentSubscription.branchSubscriptionId ||
-                            branchSubscriptionIdForProof;
-                          if (subscriptionId) {
-                            setBranchSubscriptionIdForProof(subscriptionId);
-                          }
-                          setShowUploadProofDialog(true);
-                        }}
-                        className="text-xs"
-                        data-testid="button-upload-proof-pending"
-                      >
-                        Upload Proof
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <h2
-                    className="text-xl font-semibold text-gray-900 mb-1"
-                    data-testid="no-plan-title"
-                  >
-                    No Active Subscription
-                  </h2>
-                  <p
-                    className="text-sm text-gray-600"
-                    data-testid="no-plan-description"
-                  >
-                    Subscribe to a plan to unlock all features
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2">
-              {currentSubscription && (
-                <Button
-                  onClick={() => setShowCancelSubscriptionDialog(true)}
-                  variant="outline"
-                  className="border-red-500 text-red-500 hover:bg-red-50"
-                  data-testid="button-cancel-subscription"
-                >
-                  Cancel Subscription
-                </Button>
-              )}
-              <Button
-                onClick={() => setShowSubscriptionsModal(true)}
-                className="bg-green-500 hover:bg-green-600 text-white"
-                data-testid="button-view-plans"
-              >
-                {currentSubscription ? "Change Plan" : "View Plans"}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Navigation Tabs */}
+      {/* Tabs */}
       <Tabs
         value={activeMainTab}
         onValueChange={(value) => {
           setActiveMainTab(value);
-          // LAZY LOADING: Data will be fetched automatically when tabs become active
-          // No need to manually refetch here - React Query will handle it with enabled conditions
         }}
         className="space-y-6"
       >
         <TabsList
-          className="grid grid-cols-3 sm:grid-cols-4 md:flex md:flex-wrap w-full gap-1 h-auto p-1"
+          className="grid grid-cols-4 sm:grid-cols-7 w-full h-auto p-1 bg-gray-100 rounded-lg"
           data-testid="main-tabs"
         >
-          <TabsTrigger
-            value="orders"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
-          >
-            Orders
-          </TabsTrigger>
-          <TabsTrigger
-            value="menu"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
-          >
-            Menu
-          </TabsTrigger>
-          <TabsTrigger
-            value="tables"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
-          >
-            Tables
-          </TabsTrigger>
-          <TabsTrigger
-            value="reservations"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
-          >
-            Reservations
-          </TabsTrigger>
-          <TabsTrigger
-            value="deals"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
-          >
-            Deals
-          </TabsTrigger>
-          <TabsTrigger
-            value="services"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
-          >
-            Services
-          </TabsTrigger>
-          <TabsTrigger
-            value="discounts"
-            className="min-w-[80px] bg-gray-100 text-gray-700 data-[state=active]:bg-green-500 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4"
-          >
-            Discounts
-          </TabsTrigger>
+          {[
+            { value: "orders", label: "Orders" },
+            { value: "menu", label: "Menu" },
+            { value: "tables", label: "Tables" },
+            { value: "reservations", label: "Reservations" },
+            { value: "deals", label: "Deals" },
+            { value: "services", label: "Services" },
+            { value: "discounts", label: "Discounts" },
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="text-xs sm:text-sm font-medium py-2 rounded-md data-[state=active]:bg-[#15803d] data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 transition-all"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="orders" className="space-y-6">
           {/* Orders Header Filters */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Badge className="bg-primary/10 text-primary hover:bg-primary/15 border border-primary/20">
-                All Orders
-              </Badge>
             </div>
             <Button
-              className="bg-green-500 hover:bg-green-600 text-white"
+              className="bg-green-700 hover:bg-green-800 text-white"
               onClick={() => setShowCreateOrderModal(true)}
               data-testid="button-create-order"
             >
@@ -1507,7 +1426,7 @@ export default function Orders() {
               </TableHeader>
               <TableBody>
                 {isLoadingOrders ? (
-                  Array.from({ length: itemsPerPage }, (_, i) => (
+                  Array.from({ length: Math.min(itemsPerPage, 10) }, (_, i) => (
                     <TableRow key={`loading-${i}`}>
                       <TableCell>
                         <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
@@ -1711,7 +1630,7 @@ export default function Orders() {
                 <SelectContent>
                   {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
                     <SelectItem key={pageSize} value={pageSize.toString()}>
-                      {pageSize}
+                      {formatPageSizeLabel(pageSize)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1737,7 +1656,7 @@ export default function Orders() {
                     onClick={() => setCurrentPage(page)}
                     className={
                       currentPage === page
-                        ? "bg-green-500 hover:bg-green-600"
+                        ? "bg-green-700 hover:bg-green-800"
                         : ""
                     }
                   >
@@ -1800,7 +1719,7 @@ export default function Orders() {
                     Apply Discount
                   </Button>
                   <Button
-                    className="bg-green-500 hover:bg-green-600 text-white"
+                    className="bg-green-700 hover:bg-green-800 text-white"
                     onClick={() => setShowAddMenuModal(true)}
                     data-testid="button-add-item"
                   >
@@ -1810,7 +1729,7 @@ export default function Orders() {
                 </>
               ) : activeMenuTab === "Category" ? (
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-green-700 hover:bg-green-800 text-white"
                   onClick={() => setShowAddCategoryModal(true)}
                   data-testid="button-add-category"
                 >
@@ -1819,7 +1738,7 @@ export default function Orders() {
                 </Button>
               ) : activeMenuTab === "SubMenu" ? (
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-green-700 hover:bg-green-800 text-white"
                   onClick={() => setShowAddSubMenuModal(true)}
                   data-testid="button-add-submenu"
                 >
@@ -2225,16 +2144,10 @@ export default function Orders() {
                 }
                 onValueChange={(value) => {
                   const newSize = Number(value);
-                  if (activeMenuTab === "Menu") {
-                    setMenuItemsPerPage(newSize);
-                    setMenuCurrentPage(1);
-                  } else if (activeMenuTab === "Category") {
-                    setCategoryItemsPerPage(newSize);
-                    setCategoryCurrentPage(1);
-                  } else if (activeMenuTab === "SubMenu") {
-                    setSubMenuItemsPerPage(newSize);
-                    setSubMenuCurrentPage(1);
-                  }
+                  setItemsPerPage(newSize);
+                  setMenuCurrentPage(1);
+                  setCategoryCurrentPage(1);
+                  setSubMenuCurrentPage(1);
                 }}
               >
                 <SelectTrigger className="w-20">
@@ -2243,7 +2156,7 @@ export default function Orders() {
                 <SelectContent>
                   {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((pageSize) => (
                     <SelectItem key={pageSize} value={pageSize.toString()}>
-                      {pageSize}
+                      {formatPageSizeLabel(pageSize)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -2286,7 +2199,7 @@ export default function Orders() {
                       onClick={() => setMenuCurrentPage(page)}
                       className={
                         menuCurrentPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                     >
@@ -2307,7 +2220,7 @@ export default function Orders() {
                       onClick={() => setCategoryCurrentPage(page)}
                       className={
                         categoryCurrentPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                     >
@@ -2328,7 +2241,7 @@ export default function Orders() {
                       onClick={() => setSubMenuCurrentPage(page)}
                       className={
                         subMenuCurrentPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                     >
@@ -2369,17 +2282,13 @@ export default function Orders() {
           </div>
         </TabsContent>
 
-        <TabsContent value="tables" className="space-y-6">
-          {/* Tables Header */}
+        <TabsContent value="tables" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Tables
-              {isLoadingTables && (
-                <span className="text-sm text-gray-500 ml-2">(Loading...)</span>
-              )}
-            </h2>
+            <p className="text-sm text-gray-500">
+              {isLoadingTables ? "Loading..." : `${tables.length} table${tables.length !== 1 ? "s" : ""}`}
+            </p>
             <Button
-              className="bg-green-500 hover:bg-green-600 text-white"
+              className="bg-green-700 hover:bg-green-800 text-white"
               onClick={() => setShowAddTableModal(true)}
               data-testid="button-add-table"
             >
@@ -2388,88 +2297,88 @@ export default function Orders() {
             </Button>
           </div>
 
-          {/* Tables Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {tables.map((table) => (
-              <Card
+              <div
                 key={table.id}
-                className="bg-white border border-gray-200 shadow-sm"
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                 data-testid={`table-card-${table.id}`}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-lg font-semibold text-gray-900 mb-1"
+                {/* Body */}
+                <div className="p-4">
+                  {/* Header row */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[#15803d]/10 rounded-xl flex items-center justify-center">
+                        <span className="text-[#15803d] font-bold text-lg">#</span>
+                      </div>
+                      <span
+                        className="text-gray-900 font-bold text-lg"
                         data-testid={`table-name-${table.id}`}
                       >
                         {table.tableNumber}
-                      </h3>
-                      <p
-                        className="text-sm text-gray-600"
-                        data-testid={`table-branch-${table.id}`}
-                      >
-                        {table.branch}
-                      </p>
+                      </span>
                     </div>
-                    <Badge
-                      className="bg-green-100 text-green-800 hover:bg-green-200"
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                        table.status?.toLowerCase() === "available"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
                       data-testid={`table-status-${table.id}`}
                     >
-                      {table.status}
-                    </Badge>
+                      {table.status || "Available"}
+                    </span>
                   </div>
 
-                  <div className="space-y-2 mb-6">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Capacity:</span>
-                      <span
-                        className="font-medium text-red-500"
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <Users className="w-3.5 h-3.5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Capacity</p>
+                      <p
+                        className="text-sm font-semibold text-gray-800"
                         data-testid={`table-capacity-${table.id}`}
                       >
                         {table.seats} {table.seats === 1 ? "person" : "people"}
-                      </span>
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <Button
+                    className="w-full bg-[#15803d] hover:bg-[#166534] text-white text-sm h-9 mb-2"
+                    onClick={() => { setSelectedTable(table); setShowQRModal(true); }}
+                    data-testid={`button-view-qr-${table.id}`}
+                  >
+                    <QrCode className="w-3.5 h-3.5 mr-1.5" />
+                    View QR Code
+                  </Button>
+
+                  <div className="grid grid-cols-2 gap-2">
                     <Button
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm"
-                      onClick={() => {
-                        setSelectedTable(table);
-                        setShowQRModal(true);
-                      }}
-                      data-testid={`button-view-qr-${table.id}`}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs border-gray-200 text-gray-600 hover:bg-gray-50"
+                      onClick={() => { setSelectedTable(table); setShowEditTableModal(true); }}
+                      data-testid={`button-edit-table-${table.id}`}
                     >
-                      View QR Code
+                      <Edit className="w-3 h-3 mr-1" />
+                      Edit
                     </Button>
-
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-600 hover:text-gray-800"
-                        onClick={() => {
-                          setSelectedTable(table);
-                          setShowEditTableModal(true);
-                        }}
-                        data-testid={`button-edit-table-${table.id}`}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => handleDeleteTable(table)}
-                        data-testid={`button-delete-table-${table.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs border-gray-200 text-red-500 hover:bg-red-50 hover:border-red-200"
+                      onClick={() => handleDeleteTable(table)}
+                      data-testid={`button-delete-table-${table.id}`}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Delete
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </TabsContent>
@@ -2655,7 +2564,7 @@ export default function Orders() {
                 <Select
                   value={reservationsItemsPerPage.toString()}
                   onValueChange={(value) => {
-                    setReservationsItemsPerPage(Number(value));
+                    setItemsPerPage(Number(value));
                     setReservationsCurrentPage(1);
                   }}
                 >
@@ -2666,7 +2575,7 @@ export default function Orders() {
                     {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map(
                       (pageSize) => (
                         <SelectItem key={pageSize} value={pageSize.toString()}>
-                          {pageSize}
+                          {formatPageSizeLabel(pageSize)}
                         </SelectItem>
                       ),
                     )}
@@ -2701,7 +2610,7 @@ export default function Orders() {
                     onClick={() => setReservationsCurrentPage(page)}
                     className={
                       reservationsCurrentPage === page
-                        ? "bg-green-500 hover:bg-green-600"
+                        ? "bg-green-700 hover:bg-green-800"
                         : ""
                     }
                   >
@@ -2741,7 +2650,7 @@ export default function Orders() {
                   Apply Discount
                 </Button>
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-green-700 hover:bg-green-800 text-white"
                   onClick={() => setShowAddDealsModal(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -2904,7 +2813,7 @@ export default function Orders() {
                   <Select
                     value={dealsItemsPerPage.toString()}
                     onValueChange={(value) => {
-                      setDealsItemsPerPage(Number(value));
+                      setItemsPerPage(Number(value));
                       setDealsCurrentPage(1);
                     }}
                   >
@@ -2918,7 +2827,7 @@ export default function Orders() {
                             key={pageSize}
                             value={pageSize.toString()}
                           >
-                            {pageSize}
+                            {formatPageSizeLabel(pageSize)}
                           </SelectItem>
                         ),
                       )}
@@ -2949,7 +2858,7 @@ export default function Orders() {
                         onClick={() => setDealsCurrentPage(page)}
                         className={
                           dealsCurrentPage === page
-                            ? "bg-green-500 hover:bg-green-600"
+                            ? "bg-green-700 hover:bg-green-800"
                             : ""
                         }
                       >
@@ -2977,11 +2886,13 @@ export default function Orders() {
         </TabsContent>
 
         <TabsContent value="services">
-          {/* Services Tab Content */}
           <div className="space-y-4">
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">
+                {isLoadingBranchServices ? "Loading..." : `${branchServices.length} service${branchServices.length !== 1 ? "s" : ""}`}
+              </p>
               <Button
-                className="bg-green-500 hover:bg-green-600 text-white"
+                className="bg-green-700 hover:bg-green-800 text-white"
                 onClick={() => setShowAddServicesModal(true)}
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -2989,52 +2900,59 @@ export default function Orders() {
               </Button>
             </div>
 
-            {/* Branch Services Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {isLoadingBranchServices ? (
-                <div className="col-span-3 text-center py-8 text-gray-500">
-                  Loading services...
+            {isLoadingBranchServices ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-gray-100 h-36 animate-pulse" />
+                ))}
+              </div>
+            ) : branchServices.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-3">
+                  <Sparkles className="w-6 h-6 text-gray-400" />
                 </div>
-              ) : branchServices.length === 0 ? (
-                <div className="col-span-3 text-center py-8 text-gray-500">
-                  No services added yet. Click "Add Services" to get started.
-                </div>
-              ) : (
-                branchServices.map((service) => (
-                  <Card
+                <p className="text-sm font-medium text-gray-600">No services yet</p>
+                <p className="text-xs text-gray-400 mt-1">Click "Add Services" to get started</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {branchServices.map((service) => (
+                  <div
                     key={service.serviceId}
-                    className="bg-white border border-gray-100 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                   >
-                    <CardContent className="p-4">
+                    <div className="p-4">
                       <div className="flex items-start justify-between mb-3">
-                        <h4
-                          className="font-medium text-gray-900"
-                          data-testid={`service-name-${service.serviceId}`}
-                        >
-                          {service.serviceName}
-                        </h4>
-                        <Badge
-                          className={
-                            service.price === 0
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
-                          }
-                        >
-                          {service.price === 0
-                            ? "Free"
-                            : formatBranchPrice(service.price)}
-                        </Badge>
-                      </div>
-                      {service.picture && (
-                        <div className="text-sm text-gray-500">
-                          📷 Image Available
+                        <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <Sparkles className="w-4 h-4 text-[#15803d]" />
                         </div>
+                        <span
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                            service.price === 0
+                              ? "bg-green-100 text-green-700"
+                              : "bg-blue-100 text-blue-700"
+                          }`}
+                        >
+                          {service.price === 0 ? "Free" : formatBranchPrice(service.price)}
+                        </span>
+                      </div>
+                      <h4
+                        className="text-sm font-semibold text-gray-900 leading-tight"
+                        data-testid={`service-name-${service.serviceId}`}
+                      >
+                        {service.serviceName}
+                      </h4>
+                      {service.picture && (
+                        <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
+                          <ImageIcon className="w-3 h-3" />
+                          Image attached
+                        </p>
                       )}
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </TabsContent>
 
@@ -3043,7 +2961,7 @@ export default function Orders() {
           <div className="space-y-4">
             <div className="flex items-center justify-end">
               <Button
-                className="bg-green-500 hover:bg-green-600 text-white"
+                className="bg-green-700 hover:bg-green-800 text-white"
                 onClick={() => setShowAddDiscountModal(true)}
                 data-testid="button-add-discount"
               >
@@ -3191,7 +3109,7 @@ export default function Orders() {
                   <Select
                     value={discountsItemsPerPage.toString()}
                     onValueChange={(value) => {
-                      setDiscountsItemsPerPage(Number(value));
+                      setItemsPerPage(Number(value));
                       setDiscountsCurrentPage(1);
                     }}
                   >
@@ -3205,7 +3123,7 @@ export default function Orders() {
                             key={pageSize}
                             value={pageSize.toString()}
                           >
-                            {pageSize}
+                            {formatPageSizeLabel(pageSize)}
                           </SelectItem>
                         ),
                       )}
@@ -3241,7 +3159,7 @@ export default function Orders() {
                       onClick={() => setDiscountsCurrentPage(page)}
                       className={
                         discountsCurrentPage === page
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-700 hover:bg-green-800"
                           : ""
                       }
                       data-testid={`button-discounts-page-${page}`}
@@ -3381,231 +3299,229 @@ export default function Orders() {
       />
 
       {/* Subscriptions Modal */}
-      <Dialog
-        open={showSubscriptionsModal}
-        onOpenChange={setShowSubscriptionsModal}
-      >
+      <Dialog open={showSubscriptionsModal} onOpenChange={setShowSubscriptionsModal}>
         <DialogContent
-          className="w-[95vw] max-w-[1600px] max-h-[calc(100svh-2rem)] overflow-y-auto p-4 sm:p-6"
+          className="p-0 overflow-hidden border-0 shadow-2xl w-[95vw] max-w-3xl max-h-[92vh] overflow-y-auto"
           data-testid="subscriptions-modal"
         >
-          <DialogHeader className="text-center pb-6">
+          {/* Dark Header */}
+          <div className="relative bg-[#0f2417] px-8 pt-7 pb-9 text-center flex-shrink-0">
+            <div
+              className="absolute bottom-0 left-0 right-0 h-[3px]"
+              style={{ background: "linear-gradient(90deg, transparent, #15803d, #22c55e, #15803d, transparent)" }}
+            />
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-[#22c55e]" />
+              <span className="text-[#22c55e] text-xs font-semibold tracking-widest uppercase">Choose Your Plan</span>
+            </div>
             <DialogTitle
-              className="text-4xl font-bold text-gray-900 mb-4"
+              className="text-2xl font-black text-white tracking-wide mb-2"
               data-testid="subscriptions-modal-title"
             >
               Subscription Plans
             </DialogTitle>
             <DialogDescription
-              className="text-gray-600 text-lg max-w-2xl mx-auto"
+              className="text-gray-400 text-sm max-w-md mx-auto"
               data-testid="subscriptions-modal-description"
             >
-              Choose the plan that fits your needs. All plans include essential
-              features to get you started.
+              All plans include essential features. No hidden fees — flexibility to change anytime.
             </DialogDescription>
-          </DialogHeader>
 
-          {/* Billing Cycle Toggle */}
-          <div className="flex justify-center mb-8">
-            <div
-              className="flex bg-gray-100 rounded-full p-1"
-              data-testid="billing-cycle-toggle"
-            >
-              <button
-                onClick={() => setSelectedBillingCycle(0)}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedBillingCycle === 0
-                    ? "bg-green-500 text-white"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-                data-testid="button-billing-monthly"
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setSelectedBillingCycle(1)}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedBillingCycle === 1
-                    ? "bg-green-500 text-white"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-                data-testid="button-billing-yearly"
-              >
-                Yearly
-              </button>
+            {/* Billing Cycle Toggle */}
+            <div className="flex justify-center mt-5" data-testid="billing-cycle-toggle">
+              <div className="flex bg-[#1a3020] rounded-full p-1 gap-1">
+                <button
+                  onClick={() => setSelectedBillingCycle(0)}
+                  className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                    selectedBillingCycle === 0 ? "bg-[#15803d] text-white shadow" : "text-gray-400 hover:text-white"
+                  }`}
+                  data-testid="button-billing-monthly"
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setSelectedBillingCycle(1)}
+                  className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                    selectedBillingCycle === 1 ? "bg-[#15803d] text-white shadow" : "text-gray-400 hover:text-white"
+                  }`}
+                  data-testid="button-billing-yearly"
+                >
+                  Yearly
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Loading State */}
-          {isLoadingSubscriptions && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-              <p className="text-gray-600 mt-4">
-                Loading subscription plans...
-              </p>
-            </div>
-          )}
-
-          {/* Error State */}
-          {isSubscriptionsError && (
-            <div className="text-center py-8">
-              <div className="text-red-500 mb-4">
-                <svg
-                  className="w-16 h-16 mx-auto"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+          {/* Body */}
+          <div className="bg-[#f8f5f0] p-6">
+            {/* Loading */}
+            {isLoadingSubscriptions && (
+              <div className="text-center py-10">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#15803d] mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">Loading subscription plans...</p>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Failed to Load Subscription Plans
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {subscriptionsError instanceof Error
-                  ? subscriptionsError.message
-                  : "An error occurred while fetching subscription plans."}
-              </p>
-              <Button
-                onClick={() => setShowSubscriptionsModal(false)}
-                variant="outline"
-                data-testid="button-close-error"
-              >
-                Close
-              </Button>
-            </div>
-          )}
+            )}
 
-          {/* Subscription Plans */}
-          {!isLoadingSubscriptions &&
-            !isSubscriptionsError &&
-            availableSubscriptions.length > 0 && (
-              <div className="grid md:grid-cols-3 gap-6">
-                {availableSubscriptions.map((subscription) => {
+            {/* Error */}
+            {isSubscriptionsError && (
+              <div className="text-center py-10">
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-red-500 text-xl font-bold">!</span>
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">Failed to Load Plans</h3>
+                <p className="text-xs text-gray-500 mb-4">
+                  {subscriptionsError instanceof Error ? subscriptionsError.message : "An error occurred."}
+                </p>
+                <Button variant="outline" size="sm" onClick={() => setShowSubscriptionsModal(false)} data-testid="button-close-error">
+                  Close
+                </Button>
+              </div>
+            )}
+
+            {/* Empty */}
+            {!isLoadingSubscriptions && !isSubscriptionsError && availableSubscriptions.length === 0 && (
+              <div className="text-center py-10">
+                <p className="text-gray-500 text-sm">No subscription plans available at the moment.</p>
+              </div>
+            )}
+
+            {/* Plan Cards */}
+            {!isLoadingSubscriptions && !isSubscriptionsError && availableSubscriptions.length > 0 && (
+              <div className="grid sm:grid-cols-3 gap-4 pt-4 overflow-visible">
+                {availableSubscriptions.map((subscription, idx) => {
                   const priceInfo = subscription.prices.find(
-                    (p) =>
-                      p.billingCycle === selectedBillingCycle &&
-                      p.currencyCode === (branchData?.currency || "PKR"),
+                    (p) => p.billingCycle === selectedBillingCycle && p.currencyCode === (branchData?.currency || "PKR"),
                   );
-                  const discount = subscription.discounts.find(
-                    (d) => d.billingCycle === selectedBillingCycle,
-                  );
+                  const discount = subscription.discounts.find((d) => d.billingCycle === selectedBillingCycle);
                   const discountedPrice =
                     priceInfo && discount?.discountPercentage
-                      ? priceInfo.price *
-                        (1 - discount.discountPercentage / 100)
+                      ? priceInfo.price * (1 - discount.discountPercentage / 100)
                       : priceInfo?.price;
+                  const isHighlight = idx === 1; // middle plan highlighted
 
                   return (
                     <div
                       key={subscription.id}
-                      className="relative bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-8"
+                      className={`relative rounded-2xl flex flex-col ${
+                        isHighlight
+                          ? "bg-[#0f2417] shadow-xl ring-2 ring-[#15803d]"
+                          : "bg-white border border-gray-200 shadow-sm"
+                      }`}
                       data-testid={`subscription-card-${subscription.id}`}
                     >
-                      <div className="text-center mb-6">
-                        <h3
-                          className="text-2xl font-bold text-gray-900 mb-2"
-                          data-testid={`subscription-name-${subscription.id}`}
-                        >
-                          {subscription.name}
-                        </h3>
-                        <p
-                          className="text-gray-600 text-sm"
-                          data-testid={`subscription-description-${subscription.id}`}
-                        >
-                          {subscription.description}
-                        </p>
-                      </div>
-
-                      <div className="text-center mb-8">
-                        <div className="flex items-baseline justify-center">
-                          {discount?.discountPercentage && priceInfo && (
-                            <span className="text-2xl font-semibold text-gray-400 line-through mr-2">
-                              {getCurrencySymbol()}
-                              {priceInfo.price}
-                            </span>
-                          )}
-                          <span
-                            className="text-5xl font-bold text-gray-900"
-                            data-testid={`subscription-price-${subscription.id}`}
-                          >
-                            {getCurrencySymbol()}
-                            {discountedPrice || 0}
-                          </span>
-                          <span className="text-gray-600 text-lg ml-2">
-                            /{selectedBillingCycle === 0 ? "month" : "year"}
+                      {isHighlight && (
+                        <div className="absolute -top-3.5 left-0 right-0 flex justify-center z-10">
+                          <span className="bg-[#15803d] text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase shadow-lg whitespace-nowrap">
+                            Most Popular
                           </span>
                         </div>
-                        {discount?.discountPercentage && (
-                          <Badge className="bg-green-100 text-green-800 mt-2">
-                            Save {discount.discountPercentage}%
-                          </Badge>
-                        )}
-                      </div>
+                      )}
 
-                      <div className="space-y-4 mb-8">
-                        {subscription.details.map((detail, index) => (
-                          <div key={index} className="flex items-start">
-                            <Check className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                      <div className={`p-5 flex flex-col flex-1 ${isHighlight ? "pt-7" : ""}`}>
+                        {/* Name & description */}
+                        <div className="text-center mb-3">
+                          <h3
+                            className={`text-base font-black mb-1 ${isHighlight ? "text-white" : "text-[#0f2417]"}`}
+                            data-testid={`subscription-name-${subscription.id}`}
+                          >
+                            {subscription.name}
+                          </h3>
+                          <p className={`text-xs ${isHighlight ? "text-gray-400" : "text-gray-500"}`} data-testid={`subscription-description-${subscription.id}`}>
+                            {subscription.description}
+                          </p>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className={`h-px flex-1 ${isHighlight ? "bg-[#15803d40]" : "bg-gray-100"}`} />
+                          <div className={`w-1.5 h-1.5 rotate-45 ${isHighlight ? "bg-[#15803d]" : "bg-gray-300"}`} />
+                          <div className={`h-px flex-1 ${isHighlight ? "bg-[#15803d40]" : "bg-gray-100"}`} />
+                        </div>
+
+                        {/* Price */}
+                        <div className="text-center mb-4">
+                          {discount?.discountPercentage && priceInfo && (
+                            <div className={`text-xs line-through mb-0.5 ${isHighlight ? "text-gray-500" : "text-gray-400"}`}>
+                              {getCurrencySymbol()}{priceInfo.price}
+                            </div>
+                          )}
+                          <div className="flex items-baseline justify-center gap-1">
                             <span
-                              className="text-gray-700 text-sm"
-                              data-testid={`subscription-feature-${subscription.id}-${index}`}
+                              className={`text-3xl font-black ${isHighlight ? "text-white" : "text-[#0f2417]"}`}
+                              data-testid={`subscription-price-${subscription.id}`}
                             >
-                              {detail.feature}
+                              {getCurrencySymbol()}{discountedPrice ?? 0}
+                            </span>
+                            <span className={`text-xs ${isHighlight ? "text-gray-400" : "text-gray-400"}`}>
+                              /{selectedBillingCycle === 0 ? "mo" : "yr"}
                             </span>
                           </div>
-                        ))}
-                      </div>
+                          {discount?.discountPercentage && (
+                            <span className="inline-block mt-1 text-[10px] bg-[#15803d] text-white px-2 py-0.5 rounded-full font-semibold">
+                              Save {discount.discountPercentage}%
+                            </span>
+                          )}
+                        </div>
 
-                      <Button
-                        onClick={() => {
-                          if (priceInfo) {
-                            if (currentSubscription) {
-                              // If there's an existing subscription, use change plan flow
-                              handleSelectSubscriptionForChange(subscription);
-                            } else {
-                              // If no existing subscription, use apply subscription flow
-                              applySubscriptionMutation.mutate({
-                                branchId: branchId,
-                                subscriptionId: subscription.id,
-                                billingCycle: selectedBillingCycle,
-                                currencyCode: priceInfo.currencyCode,
-                                paymentMethodId: "Online",
-                              });
+                        {/* Features */}
+                        <ul className="space-y-2 mb-5 flex-1">
+                          {subscription.details.map((detail, index) => (
+                            <li key={index} className="flex items-start gap-2" data-testid={`subscription-feature-${subscription.id}-${index}`}>
+                              <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${isHighlight ? "bg-[#15803d]" : "bg-[#15803d]/10"}`}>
+                                <Check className={`w-2.5 h-2.5 ${isHighlight ? "text-white" : "text-[#15803d]"}`} />
+                              </div>
+                              <span className={`text-xs leading-relaxed ${isHighlight ? "text-gray-300" : "text-gray-600"}`}>
+                                {detail.feature}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {/* CTA */}
+                        <Button
+                          onClick={() => {
+                            if (priceInfo) {
+                              if (currentSubscription) {
+                                handleSelectSubscriptionForChange(subscription);
+                              } else {
+                                applySubscriptionMutation.mutate({
+                                  branchId,
+                                  subscriptionId: subscription.id,
+                                  billingCycle: selectedBillingCycle,
+                                  currencyCode: priceInfo.currencyCode,
+                                  paymentMethodId: "Online",
+                                });
+                              }
                             }
-                          }
-                        }}
-                        disabled={applySubscriptionMutation.isPending}
-                        className="w-full py-3 text-sm font-medium rounded-lg transition-all bg-gray-900 hover:bg-gray-800 text-white"
-                        data-testid={`button-apply-subscription-${subscription.id}`}
-                      >
-                        {applySubscriptionMutation.isPending
-                          ? "Applying..."
-                          : currentSubscription
-                            ? "Change to This Plan"
-                            : "Select Plan"}
-                      </Button>
+                          }}
+                          disabled={applySubscriptionMutation.isPending}
+                          className={`w-full font-semibold text-sm rounded-xl py-5 transition-all ${
+                            isHighlight
+                              ? "bg-[#15803d] hover:bg-[#166534] text-white"
+                              : "bg-[#0f2417] hover:bg-[#1a3020] text-white"
+                          }`}
+                          data-testid={`button-apply-subscription-${subscription.id}`}
+                        >
+                          {applySubscriptionMutation.isPending
+                            ? "Applying..."
+                            : currentSubscription
+                              ? "Change to This Plan"
+                              : "Select Plan"}
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             )}
 
-          {!isLoadingSubscriptions &&
-            !isSubscriptionsError &&
-            availableSubscriptions.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-600">
-                  No subscription plans available at the moment.
-                </p>
-              </div>
-            )}
+            <p className="text-center text-xs text-gray-400 mt-5">
+              Need a custom plan?{" "}
+              <button className="text-[#15803d] font-semibold underline underline-offset-2 hover:text-[#166534]">
+                Contact sales
+              </button>
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -3918,7 +3834,7 @@ export default function Orders() {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-green-500 hover:bg-green-600"
+                  className="flex-1 bg-green-700 hover:bg-green-800"
                   disabled={!selectedStatusId || isUpdatingStatus}
                   onClick={async () => {
                     if (!selectedStatusId || !selectedOrder) return;
@@ -4039,7 +3955,7 @@ export default function Orders() {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-green-500 hover:bg-green-600"
+                  className="flex-1 bg-green-700 hover:bg-green-800"
                   disabled={changeSubscriptionMutation.isPending}
                   onClick={() => {
                     if (selectedSubscriptionForChange && branchData) {
@@ -4229,7 +4145,7 @@ export default function Orders() {
                 {branchSubscriptionIdForProof ? "Skip for Now" : "Close"}
               </Button>
               <Button
-                className="flex-1 bg-green-500 hover:bg-green-600"
+                className="flex-1 bg-green-700 hover:bg-green-800"
                 disabled={
                   !paymentProofFile ||
                   !branchSubscriptionIdForProof ||

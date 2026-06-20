@@ -1093,7 +1093,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
           <div className="flex justify-center pt-4">
             <Button
               type="submit"
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-2 rounded-lg"
+              className="bg-green-700 hover:bg-green-800 text-white px-8 py-2 rounded-lg"
               disabled={createMenuItemMutation.isPending || updateMenuItemMutation.isPending || (isEditMode && isLoadingMenuItem) || allergensLoading || (allergensError && selectedAllergens.length > 0)}
               data-testid="button-add-menu-item"
             >

@@ -1,9 +1,15 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, MoreHorizontal, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Search, Plus, MoreHorizontal, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -23,7 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AddTicketModal from "@/components/add-ticket-modal";
 import { IssueReporting, IssueReportingDetail } from "@/types/schema";
-import { PaginationRequest, PaginationResponse, createPaginationRequest, buildPaginationQuery, DEFAULT_PAGINATION_CONFIG } from "@/types/pagination";
+import { PaginationRequest, PaginationResponse, createPaginationRequest, buildPaginationQuery, DEFAULT_PAGINATION_CONFIG, formatPageSizeLabel } from "@/types/pagination";
 import { apiRepository } from "@/lib/apiRepository";
 
 export default function Reporting() {
@@ -154,82 +160,78 @@ export default function Reporting() {
   return (
     <div className="p-6" data-testid="reporting-page">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4 flex-1">
-          <h1 className="text-2xl font-semibold" data-testid="page-title">Reporting</h1>
-          <div className="relative flex-1 max-w-md">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-lg font-semibold text-gray-900" data-testid="page-title">Reporting</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Track and manage issue tickets</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-56"
               data-testid="input-search"
             />
           </div>
+          <Button
+            onClick={() => setIsAddTicketModalOpen(true)}
+            className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+            data-testid="button-add-ticket"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Ticket
+          </Button>
         </div>
-        <Button
-          onClick={() => setIsAddTicketModalOpen(true)}
-          className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-          data-testid="button-add-ticket"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Ticket
-        </Button>
       </div>
 
       {/* Tickets Table */}
-      <Card>
-        <div className="p-6">
-          {isLoading ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4">
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-6 w-24" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
+      <div className="bg-white rounded-lg border" data-testid="reporting-table-card">
+        {isLoading ? (
+          <div className="p-6 space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-4">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-6 w-24" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Table data-testid="reporting-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-left">Ticket ID</TableHead>
+                <TableHead className="text-left">Date & Time</TableHead>
+                <TableHead className="text-left">Subject</TableHead>
+                <TableHead className="text-left">Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {issues.length === 0 ? (
                 <TableRow>
-                  <TableHead className="text-left">Ticket ID</TableHead>
-                  <TableHead className="text-left">Date & Time</TableHead>
-                  <TableHead className="text-left">Subject</TableHead>
-                  <TableHead className="text-left">Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500" data-testid="no-issues-message">
+                    No issues found.
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {issues.map((issue: IssueReporting) => (
-                  <TableRow key={issue.id}>
-                    <TableCell className="text-left" data-testid={`issue-id-${issue.id}`}>
-                      #{issue.id}
+              ) : (
+                issues.map((issue: IssueReporting) => (
+                  <TableRow key={issue.id} className="hover:bg-gray-50">
+                    <TableCell data-testid={`issue-id-${issue.id}`}>#{issue.id}</TableCell>
+                    <TableCell data-testid={`issue-date-${issue.id}`}>{formatDate(issue.createdOn)}</TableCell>
+                    <TableCell data-testid={`issue-subject-${issue.id}`}>
+                      <div className="font-medium text-gray-900">{issue.title}</div>
+                      <div className="text-xs text-gray-400">{getCategoryName(issue.category)}</div>
                     </TableCell>
-                    <TableCell className="text-left" data-testid={`issue-date-${issue.id}`}>
-                      {formatDate(issue.createdOn)}
-                    </TableCell>
-                    <TableCell className="text-left" data-testid={`issue-subject-${issue.id}`}>
-                      <div>
-                        <div className="font-medium">{issue.title}</div>
-                        <div className="text-sm text-gray-500">{getCategoryName(issue.category)}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-left">
-                      {getStatusBadge(issue.status)}
-                    </TableCell>
+                    <TableCell>{getStatusBadge(issue.status)}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewIssue(issue)}
-                          data-testid={`button-view-${issue.id}`}
-                        >
+                      <div className="flex items-center justify-end space-x-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewIssue(issue)} data-testid={`button-view-${issue.id}`}>
                           <Eye className="h-4 w-4" />
                         </Button>
                         <DropdownMenu>
@@ -239,9 +241,7 @@ export default function Reporting() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewIssue(issue)} data-testid={`button-view-details-${issue.id}`}>
-                              View Details
-                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewIssue(issue)} data-testid={`button-view-details-${issue.id}`}>View Details</DropdownMenuItem>
                             <DropdownMenuItem data-testid={`button-edit-${issue.id}`}>Edit</DropdownMenuItem>
                             <DropdownMenuItem data-testid={`button-close-${issue.id}`}>Close Issue</DropdownMenuItem>
                           </DropdownMenuContent>
@@ -249,95 +249,79 @@ export default function Reporting() {
                       </div>
                     </TableCell>
                   </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
+
+        {error && (
+          <div className="text-center py-8 border-t">
+            <p className="text-red-500 text-sm mb-3" data-testid="error-message">Error loading issues: {error.message}</p>
+            <Button onClick={() => refetch()} variant="outline" size="sm" data-testid="button-retry">Try Again</Button>
+          </div>
+        )}
+
+        {/* Pagination footer — same style as users table */}
+        <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">Show result:</span>
+            <Select
+              value={pageSize.toString()}
+              onValueChange={(value) => { setPageSize(Number(value)); setCurrentPage(1); }}
+            >
+              <SelectTrigger className="w-20" data-testid="select-items-per-page">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {formatPageSizeLabel(size)}
+                  </SelectItem>
                 ))}
-              </TableBody>
-            </Table>
-          )}
+              </SelectContent>
+            </Select>
+          </div>
 
-          {issues.length === 0 && !isLoading && (
-            <div className="text-center py-8">
-              <p className="text-gray-500" data-testid="no-issues-message">No issues found.</p>
-            </div>
-          )}
-          
-          {error && (
-            <div className="text-center py-8">
-              <div className="space-y-4">
-                <p className="text-red-500" data-testid="error-message">
-                  Error loading issues: {error.message}
-                </p>
-                <Button 
-                  onClick={() => refetch()}
-                  variant="outline"
-                  data-testid="button-retry"
-                >
-                  Try Again
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </Card>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!issuesResponse?.hasPrevious}
+              data-testid="button-prev"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between mt-6">
-        <div className="text-sm text-gray-600" data-testid="pagination-info">
-          Showing {issues.length} of {totalCount} results
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={!issuesResponse?.hasPrevious}
-            data-testid="button-prev"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          
-          {/* Page numbers */}
-          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-            const pageNum = Math.max(1, currentPage - 2) + i;
-            if (pageNum > totalPages) return null;
-            
-            return (
+            {totalPages > 0 && Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+              return start + i;
+            }).filter(p => p <= totalPages).map((page) => (
               <Button
-                key={pageNum}
-                variant="ghost"
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
                 size="sm"
-                onClick={() => handlePageChange(pageNum)}
-                className={currentPage === pageNum ? "bg-green-500 text-white hover:bg-green-600" : "text-gray-600"}
-                data-testid={`button-page-${pageNum}`}
+                onClick={() => handlePageChange(page)}
+                className={currentPage === page ? "bg-green-700 hover:bg-green-800 text-white" : ""}
+                data-testid={`button-page-${page}`}
               >
-                {pageNum}
+                {page}
               </Button>
-            );
-          })}
-          
-          {totalPages > 5 && currentPage < totalPages - 2 && (
-            <>
-              <span className="text-gray-400">...</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handlePageChange(totalPages)}
-                className="text-gray-600"
-                data-testid={`button-page-${totalPages}`}
-              >
-                {totalPages}
-              </Button>
-            </>
-          )}
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={!issuesResponse?.hasNext}
-            data-testid="button-next"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+            ))}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!issuesResponse?.hasNext}
+              data-testid="button-next"
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </div>
       </div>
 

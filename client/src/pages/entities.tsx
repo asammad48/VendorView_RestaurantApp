@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { transformEntityForUI } from "@/types/schema";
 import type { Entity } from "@/types/schema";
 
 export default function Entities() {
+  const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -52,8 +54,7 @@ export default function Entities() {
   };
 
   const handleManage = (entity: Entity) => {
-    // Navigate to branches page for this entity
-    window.location.href = `/branches?entityId=${entity.id}&entityType=${entity.entityType}`;
+    navigate(`/branches?entityId=${entity.id}&entityType=${entity.entityType}`);
   };
 
   if (isLoading) {
@@ -83,12 +84,8 @@ export default function Entities() {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            Entities
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage your hotels and restaurants
-          </p>
+          <h1 className="text-lg font-semibold text-gray-900">Entities</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Manage your hotels and restaurants</p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="relative">
@@ -102,7 +99,7 @@ export default function Entities() {
           </div>
           <Button 
             onClick={() => setShowAddModal(true)}
-            className="bg-green-500 hover:bg-green-600 text-white"
+            className="bg-green-700 hover:bg-green-800 text-white"
             data-testid="button-add-entity"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -135,7 +132,7 @@ export default function Entities() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredEntities.map((entity) => (
             <EntityCard
               key={entity.id}

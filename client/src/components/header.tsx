@@ -18,6 +18,12 @@ const pageNames: Record<string, string> = {
   "/users": "Users",
   "/feedbacks": "Feedbacks",
   "/reporting": "Reporting",
+  "/restaurant-management": "Restaurant Management",
+  "/hotel-management": "Hotel Management",
+  "/branches": "Branches",
+  "/entities": "Entities",
+  "/inventory-management": "Inventory Management",
+  "/appearance": "Appearance",
 };
 
 interface HeaderProps {
@@ -45,10 +51,6 @@ export default function Header({ onMobileMenuToggle }: HeaderProps) {
           >
             <Menu className="h-5 w-5 text-gray-600" />
           </Button>
-          
-          <h1 className="text-xl md:text-2xl font-semibold text-gray-800" data-testid="page-title">
-            {pageName}
-          </h1>
         </div>
         
         <div className="flex items-center space-x-2 md:space-x-4">

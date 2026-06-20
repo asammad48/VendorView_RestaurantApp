@@ -137,7 +137,7 @@ export default function AddCategoryModal({ isOpen, onClose, branchId, editCatego
           <div className="flex justify-center pt-4">
             <Button
               type="submit"
-              className="bg-green-600 hover:bg-green-700 text-white px-12 py-2 rounded-lg"
+              className="bg-green-700 hover:bg-green-800 text-white px-12 py-2 rounded-lg"
               disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
               data-testid="button-add-category"
             >

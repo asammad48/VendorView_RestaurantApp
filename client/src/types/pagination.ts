@@ -23,10 +23,15 @@ export interface PaginationConfig {
 }
 
 // Generic pagination configuration
+export const ALL_PAGE_SIZE = 10000; // sentinel for "Show All"
+
 export const DEFAULT_PAGINATION_CONFIG: PaginationConfig = {
-  defaultPageSize: 10,
-  pageSizeOptions: [5, 10, 20, 50, 100],
+  defaultPageSize: 20,
+  pageSizeOptions: [5, 10, 20, 50, 100, ALL_PAGE_SIZE],
 };
+
+export const formatPageSizeLabel = (size: number) =>
+  size === ALL_PAGE_SIZE ? "All" : size.toString();
 
 // Helper function to create pagination request
 export const createPaginationRequest = (

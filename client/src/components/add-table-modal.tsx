@@ -139,7 +139,7 @@ export default function AddTableModal({ open, onOpenChange, branchId }: AddTable
             <div className="flex justify-center pt-4">
               <Button
                 type="submit"
-                className="bg-green-500 hover:bg-green-600 text-white px-12 py-2 rounded-lg"
+                className="bg-green-700 hover:bg-green-800 text-white px-12 py-2 rounded-lg"
                 disabled={createTableMutation.isPending}
                 data-testid="button-submit"
               >
