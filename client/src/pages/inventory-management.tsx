@@ -48,6 +48,8 @@ import { Input } from "@/components/ui/input";
 import { format, subMonths, addDays } from "date-fns";
 import {
   DEFAULT_PAGINATION_CONFIG,
+  ALL_PAGE_SIZE,
+  formatPageSizeLabel,
   PaginationResponse,
 } from "@/types/pagination";
 import { ColumnSearchPopover } from "@/components/ColumnSearchPopover";
@@ -194,46 +196,33 @@ export default function InventoryManagement() {
   const [selectedUtilityExpense, setSelectedUtilityExpense] =
     useState<UtilityExpense | null>(null);
 
-  // Pagination states for all tabs
+  // Single shared page size for ALL inventory tables
+  const [sharedPerPage, setSharedPerPage] = useState(20);
+
+  // Pagination page states per tab (page number only; size is shared)
   const [categoriesPage, setCategoriesPage] = useState(1);
-  const [categoriesPerPage, setCategoriesPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  const categoriesPerPage = sharedPerPage;
 
   const [suppliersPage, setSuppliersPage] = useState(1);
-  const [suppliersPerPage, setSuppliersPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  const suppliersPerPage = sharedPerPage;
 
   const [itemsPage, setItemsPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  const itemsPerPage = sharedPerPage;
 
   const [stockPage, setStockPage] = useState(1);
-  const [stockPerPage, setStockPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  const stockPerPage = sharedPerPage;
 
   const [lowStockPage, setLowStockPage] = useState(1);
-  const [lowStockPerPage, setLowStockPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  const lowStockPerPage = sharedPerPage;
 
   const [purchaseOrdersPage, setPurchaseOrdersPage] = useState(1);
-  const [purchaseOrdersPerPage, setPurchaseOrdersPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  const purchaseOrdersPerPage = sharedPerPage;
 
   const [wastageItemsPage, setWastageItemsPage] = useState(1);
-  const [wastageItemsPerPage, setWastageItemsPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  const wastageItemsPerPage = sharedPerPage;
 
   const [expensesPage, setExpensesPage] = useState(1);
-  const [expensesPerPage, setExpensesPerPage] = useState(
-    DEFAULT_PAGINATION_CONFIG.defaultPageSize,
-  );
+  const expensesPerPage = sharedPerPage;
 
   const [recipesPage, setRecipesPage] = useState(1);
   const [recipesPerPage, setRecipesPerPage] = useState(
@@ -742,27 +731,32 @@ export default function InventoryManagement() {
   };
 
   return (
-    <div className="p-6 space-y-6" data-testid="inventory-page">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div data-testid="inventory-page">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/branches")}
+            onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+              const entityId = params.get("entityId");
+              const entityType = params.get("entityType");
+              const backParams = new URLSearchParams();
+              if (entityId) backParams.set("entityId", entityId);
+              if (entityType) backParams.set("entityType", entityType);
+              navigate(`/branches?${backParams.toString()}`);
+            }}
             data-testid="button-back"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h1
-              className="text-2xl font-semibold text-gray-900"
-              data-testid="page-title"
-            >
+            <h1 className="text-lg font-semibold text-gray-900" data-testid="page-title">
               Inventory Management
             </h1>
             {branchData && (
-              <p className="text-sm text-gray-600">{branchData.name}</p>
+              <p className="text-xs text-gray-500 font-medium">{branchData.name}</p>
             )}
           </div>
         </div>
@@ -775,45 +769,25 @@ export default function InventoryManagement() {
         className="space-y-6"
       >
         <TabsList
-          className="grid grid-cols-6 w-full"
+          className="grid grid-cols-3 sm:grid-cols-6 w-full h-auto p-1 bg-gray-100 rounded-lg"
           data-testid="inventory-tabs"
         >
-          <TabsTrigger
-            value="categories"
-            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-          >
-            Categories
-          </TabsTrigger>
-          <TabsTrigger
-            value="suppliers"
-            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-          >
-            Suppliers
-          </TabsTrigger>
-          <TabsTrigger
-            value="items"
-            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-          >
-            Items
-          </TabsTrigger>
-          <TabsTrigger
-            value="stock"
-            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-          >
-            Stock
-          </TabsTrigger>
-          <TabsTrigger
-            value="expense"
-            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-          >
-            Expense Management
-          </TabsTrigger>
-          <TabsTrigger
-            value="recipes"
-            className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-          >
-            Recipes
-          </TabsTrigger>
+          {[
+            { value: "categories", label: "Categories" },
+            { value: "suppliers", label: "Suppliers" },
+            { value: "items", label: "Items" },
+            { value: "stock", label: "Stock" },
+            { value: "expense", label: "Expense" },
+            { value: "recipes", label: "Recipes" },
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="text-xs sm:text-sm font-medium py-2 rounded-md data-[state=active]:bg-[#15803d] data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 transition-all"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         {/* Categories Tab */}
@@ -917,7 +891,7 @@ export default function InventoryManagement() {
                 <Select
                   value={categoriesPerPage.toString()}
                   onValueChange={(value) => {
-                    setCategoriesPerPage(Number(value));
+                    setSharedPerPage(Number(value));
                     setCategoriesPage(1);
                   }}
                   data-testid="select-categories-per-page"
@@ -929,7 +903,7 @@ export default function InventoryManagement() {
                     {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map(
                       (pageSize) => (
                         <SelectItem key={pageSize} value={pageSize.toString()}>
-                          {pageSize}
+                          {formatPageSizeLabel(pageSize)}
                         </SelectItem>
                       ),
                     )}
@@ -1138,7 +1112,7 @@ export default function InventoryManagement() {
                 <Select
                   value={suppliersPerPage.toString()}
                   onValueChange={(value) => {
-                    setSuppliersPerPage(Number(value));
+                    setSharedPerPage(Number(value));
                     setSuppliersPage(1);
                   }}
                   data-testid="select-suppliers-per-page"
@@ -1150,7 +1124,7 @@ export default function InventoryManagement() {
                     {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map(
                       (pageSize) => (
                         <SelectItem key={pageSize} value={pageSize.toString()}>
-                          {pageSize}
+                          {formatPageSizeLabel(pageSize)}
                         </SelectItem>
                       ),
                     )}
@@ -1254,7 +1228,7 @@ export default function InventoryManagement() {
               </TableHeader>
               <TableBody>
                 {isLoadingItems ? (
-                  Array.from({ length: itemsPerPage }, (_, i) => (
+                  Array.from({ length: Math.min(itemsPerPage, 10) }, (_, i) => (
                     <TableRow key={`loading-${i}`}>
                       <TableCell>
                         <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
@@ -1362,7 +1336,7 @@ export default function InventoryManagement() {
                 <Select
                   value={itemsPerPage.toString()}
                   onValueChange={(value) => {
-                    setItemsPerPage(Number(value));
+                    setSharedPerPage(Number(value));
                     setItemsPage(1);
                   }}
                   data-testid="select-items-per-page"
@@ -1374,7 +1348,7 @@ export default function InventoryManagement() {
                     {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map(
                       (pageSize) => (
                         <SelectItem key={pageSize} value={pageSize.toString()}>
-                          {pageSize}
+                          {formatPageSizeLabel(pageSize)}
                         </SelectItem>
                       ),
                     )}
@@ -1434,33 +1408,23 @@ export default function InventoryManagement() {
             className="space-y-6"
           >
             <TabsList
-              className="grid grid-cols-4 w-full"
+              className="grid grid-cols-2 sm:grid-cols-4 w-full h-auto p-1 bg-gray-100 rounded-lg"
               data-testid="stock-sub-tabs"
             >
-              <TabsTrigger
-                value="manage-stock"
-                className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-              >
-                Manage Stock
-              </TabsTrigger>
-              <TabsTrigger
-                value="low-stock"
-                className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-              >
-                Low Stock
-              </TabsTrigger>
-              <TabsTrigger
-                value="purchase-orders"
-                className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-              >
-                Purchase Orders
-              </TabsTrigger>
-              <TabsTrigger
-                value="stock-wastage"
-                className="data-[state=active]:bg-green-700 data-[state=active]:text-white"
-              >
-                Stock Wastage
-              </TabsTrigger>
+              {[
+                { value: "manage-stock", label: "Manage Stock" },
+                { value: "low-stock", label: "Low Stock" },
+                { value: "purchase-orders", label: "Purchase Orders" },
+                { value: "stock-wastage", label: "Stock Wastage" },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="text-xs sm:text-sm font-medium py-2 rounded-md data-[state=active]:bg-[#15803d] data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 transition-all"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             {/* Manage Stock Sub-tab */}
@@ -1582,7 +1546,7 @@ export default function InventoryManagement() {
                     <Select
                       value={stockPerPage.toString()}
                       onValueChange={(value) => {
-                        setStockPerPage(Number(value));
+                        setSharedPerPage(Number(value));
                         setStockPage(1);
                       }}
                       data-testid="select-stock-per-page"
@@ -1597,7 +1561,7 @@ export default function InventoryManagement() {
                               key={pageSize}
                               value={pageSize.toString()}
                             >
-                              {pageSize}
+                              {formatPageSizeLabel(pageSize)}
                             </SelectItem>
                           ),
                         )}
@@ -1747,7 +1711,7 @@ export default function InventoryManagement() {
                     <Select
                       value={lowStockPerPage.toString()}
                       onValueChange={(value) => {
-                        setLowStockPerPage(Number(value));
+                        setSharedPerPage(Number(value));
                         setLowStockPage(1);
                       }}
                       data-testid="select-low-stock-per-page"
@@ -1762,7 +1726,7 @@ export default function InventoryManagement() {
                               key={pageSize}
                               value={pageSize.toString()}
                             >
-                              {pageSize}
+                              {formatPageSizeLabel(pageSize)}
                             </SelectItem>
                           ),
                         )}
@@ -1959,7 +1923,7 @@ export default function InventoryManagement() {
                     <Select
                       value={purchaseOrdersPerPage.toString()}
                       onValueChange={(value) => {
-                        setPurchaseOrdersPerPage(Number(value));
+                        setSharedPerPage(Number(value));
                         setPurchaseOrdersPage(1);
                       }}
                       data-testid="select-purchase-orders-per-page"
@@ -1974,7 +1938,7 @@ export default function InventoryManagement() {
                               key={pageSize}
                               value={pageSize.toString()}
                             >
-                              {pageSize}
+                              {formatPageSizeLabel(pageSize)}
                             </SelectItem>
                           ),
                         )}
@@ -2164,7 +2128,7 @@ export default function InventoryManagement() {
                     <Select
                       value={wastageItemsPerPage.toString()}
                       onValueChange={(value) => {
-                        setWastageItemsPerPage(Number(value));
+                        setSharedPerPage(Number(value));
                         setWastageItemsPage(1);
                       }}
                       data-testid="select-wastage-per-page"
@@ -2179,7 +2143,7 @@ export default function InventoryManagement() {
                               key={pageSize}
                               value={pageSize.toString()}
                             >
-                              {pageSize}
+                              {formatPageSizeLabel(pageSize)}
                             </SelectItem>
                           ),
                         )}
@@ -2412,7 +2376,7 @@ export default function InventoryManagement() {
                 <Select
                   value={expensesPerPage.toString()}
                   onValueChange={(value) => {
-                    setExpensesPerPage(Number(value));
+                    setSharedPerPage(Number(value));
                     setExpensesPage(1);
                   }}
                   data-testid="select-expenses-per-page"
@@ -2424,7 +2388,7 @@ export default function InventoryManagement() {
                     {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map(
                       (pageSize) => (
                         <SelectItem key={pageSize} value={pageSize.toString()}>
-                          {pageSize}
+                          {formatPageSizeLabel(pageSize)}
                         </SelectItem>
                       ),
                     )}
@@ -2632,7 +2596,7 @@ export default function InventoryManagement() {
                     {DEFAULT_PAGINATION_CONFIG.pageSizeOptions.map(
                       (pageSize) => (
                         <SelectItem key={pageSize} value={pageSize.toString()}>
-                          {pageSize}
+                          {formatPageSizeLabel(pageSize)}
                         </SelectItem>
                       ),
                     )}

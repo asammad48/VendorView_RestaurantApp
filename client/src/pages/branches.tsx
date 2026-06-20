@@ -113,7 +113,8 @@ export default function Branches() {
   const handleInventory = (branch: Branch) => {
     const queryParams = new URLSearchParams({
       branchId: branch.id.toString(),
-      entityType: entityType || "restaurant"
+      entityType: entityType || "restaurant",
+      entityId: rawEntityId || ""
     });
     navigate(`/inventory-management?${queryParams.toString()}`);
   };
@@ -140,12 +141,8 @@ export default function Branches() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-              Branches
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage branches for your restaurant
-            </p>
+            <h1 className="text-lg font-semibold text-gray-900">Branches</h1>
+            <p className="text-xs text-gray-500 mt-0.5">Manage branches for your restaurant</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -203,7 +200,7 @@ export default function Branches() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredBranches.map((branch: any) => (
             <BranchCard
               key={branch.id}

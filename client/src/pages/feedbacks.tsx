@@ -218,10 +218,13 @@ export default function Feedbacks() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-        Feedbacks
-      </h1>
-      
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-lg font-semibold text-gray-900">Feedbacks</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Customer reviews and ratings</p>
+        </div>
+      </div>
+
       {/* Filter Controls */}
       <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

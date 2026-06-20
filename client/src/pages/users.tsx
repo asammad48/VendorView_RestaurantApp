@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import UsersTable from "@/components/users-table";
 import AddUserModal from "@/components/add-user-modal";
 import DeleteUserModal from "@/components/delete-user-modal";
-import { PaginationRequest, PaginationResponse, DEFAULT_PAGINATION_CONFIG, buildPaginationQuery } from "@/types/pagination";
+import { PaginationRequest, PaginationResponse, DEFAULT_PAGINATION_CONFIG, ALL_PAGE_SIZE, buildPaginationQuery } from "@/types/pagination";
 import { UserListItem } from "@/types/user";
 import { userApi } from "@/lib/apiRepository";
 import { createApiQuery, formatApiError } from "@/lib/errorHandling";
@@ -15,7 +15,7 @@ export default function Users() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGINATION_CONFIG.defaultPageSize);
+  const [pageSize, setPageSize] = useState(20);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserListItem | null>(null);
   const [nameSearchTerm, setNameSearchTerm] = useState("");
@@ -108,10 +108,10 @@ export default function Users() {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900" data-testid="page-title">User Management</h1>
-          <p className="text-gray-600 mt-1">Manage your restaurant users</p>
+          <h1 className="text-lg font-semibold text-gray-900" data-testid="page-title">Users</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Manage your restaurant users</p>
         </div>
         <Button 
           onClick={() => setIsAddUserModalOpen(true)}
