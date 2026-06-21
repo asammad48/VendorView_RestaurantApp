@@ -39,7 +39,7 @@ import type {
 } from "@/types/schema";
 
 interface LocationData {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -47,7 +47,7 @@ interface OrderItemSelection {
   type: 'menuItem' | 'deal';
   item: CustomerMenuItem | CustomerDeal;
   quantity: number;
-  selectedVariation?: number;
+  selectedVariation?: string;
   selectedModifiers: CreateOrderItemModifier[];
   selectedCustomizations: CreateOrderItemCustomization[];
   price: number;
@@ -56,7 +56,7 @@ interface OrderItemSelection {
 interface CreateOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  branchId: number;
+  branchId?: string;
   onOrderCreated?: (order: CreateOrderResponse) => void;
 }
 
@@ -68,7 +68,7 @@ export default function CreateOrderModal({
 }: CreateOrderModalProps) {
   const { toast } = useToast();
   const [orderItems, setOrderItems] = useState<OrderItemSelection[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [tipAmount, setTipAmount] = useState(0);
   const [selectedAllergens, setSelectedAllergens] = useState<number[]>([]);
@@ -117,7 +117,7 @@ export default function CreateOrderModal({
         undefined,
         {},
         true,
-        { id: branchId }
+        { id: branchId || "" }
       );
       if (response.error) throw new Error(response.error);
       return response.data;
@@ -135,7 +135,7 @@ export default function CreateOrderModal({
         undefined,
         {},
         true,
-        { id: branchId }
+        { id: branchId || "" }
       );
       if (response.error) throw new Error(response.error);
       return response.data;
@@ -153,7 +153,7 @@ export default function CreateOrderModal({
         undefined,
         {},
         true,
-        { branchId }
+        { branchId: branchId || "" }
       );
       if (response.error) throw new Error(response.error);
       return response.data || [];
@@ -171,7 +171,7 @@ export default function CreateOrderModal({
         undefined,
         {},
         true,
-        { branchId }
+        { branchId: branchId || "" }
       );
       if (response.error) throw new Error(response.error);
       return response.data;
@@ -204,7 +204,7 @@ export default function CreateOrderModal({
   const calculateItemPrice = (
     item: CustomerMenuItem | CustomerDeal,
     type: 'menuItem' | 'deal',
-    selectedVariation?: number,
+    selectedVariation?: string,
     selectedModifiers: CreateOrderItemModifier[] = [],
     selectedCustomizations: CreateOrderItemCustomization[] = []
   ): number => {
@@ -266,7 +266,7 @@ export default function CreateOrderModal({
   // Add customized menu item to order
   const addCustomizedMenuItem = (
     item: CustomerMenuItem,
-    selectedVariation: number,
+    selectedVariation: string,
     selectedModifiers: CreateOrderItemModifier[],
     selectedCustomizations: CreateOrderItemCustomization[]
   ) => {
@@ -405,7 +405,7 @@ export default function CreateOrderModal({
       }
 
       const request: CreateOrderRequest = {
-        branchId,
+        branchId: branchId || "",
         locationId: selectedLocation,
         deviceInfo: "POS-Web",
         tipAmount,
@@ -528,7 +528,7 @@ export default function CreateOrderModal({
               {orderType === 3 && (
                 <div>
                   <label className="text-sm font-medium mb-2 block">Table/Location</label>
-                  <Select value={selectedLocation?.toString()} onValueChange={(val) => setSelectedLocation(parseInt(val))}>
+                  <Select value={selectedLocation || ""} onValueChange={(val) => setSelectedLocation(val)}>
                     <SelectTrigger data-testid="select-location">
                       <SelectValue placeholder="Select Table/Location" />
                     </SelectTrigger>
@@ -1028,7 +1028,7 @@ interface MenuItemCustomizationModalProps {
   menuItem: CustomerMenuItem;
   onAdd: (
     item: CustomerMenuItem,
-    selectedVariation: number,
+    selectedVariation: string,
     selectedModifiers: CreateOrderItemModifier[],
     selectedCustomizations: CreateOrderItemCustomization[]
   ) => void;
@@ -1042,7 +1042,7 @@ function MenuItemCustomizationModal({
   onAdd,
   currency,
 }: MenuItemCustomizationModalProps) {
-  const [selectedVariation, setSelectedVariation] = useState<number>(menuItem.variations[0]?.id || 0);
+  const [selectedVariation, setSelectedVariation] = useState<string>(menuItem.variations[0]?.id || "");
   const [selectedModifiers, setSelectedModifiers] = useState<Map<number, number>>(new Map());
   const [selectedCustomizations, setSelectedCustomizations] = useState<Map<number, number[]>>(new Map());
 
@@ -1107,8 +1107,8 @@ function MenuItemCustomizationModal({
             <div>
               <label className="text-sm font-medium mb-2 block">Select Variation</label>
               <Select 
-                value={selectedVariation.toString()} 
-                onValueChange={(val) => setSelectedVariation(parseInt(val))}
+                value={selectedVariation}
+                onValueChange={(val) => setSelectedVariation(val)}
               >
                 <SelectTrigger data-testid="select-variation">
                   <SelectValue />

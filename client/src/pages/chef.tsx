@@ -37,7 +37,7 @@ const Chef = () => {
   const queryClient = useQueryClient();
 
   // State for branch ID - will be fetched from API
-  const [branchId, setBranchId] = useState<number | null>(null);
+  const [branchId, setBranchId] = useState<string | null>(null);
   
   // Tab management
   const [activeMainTab, setActiveMainTab] = useState("orders");
@@ -91,7 +91,7 @@ const Chef = () => {
   }, [chefBranchResponse]);
 
   // Branch currency hook
-  const { formatPrice } = useBranchCurrency(branchId || 0);
+  const { formatPrice } = useBranchCurrency(branchId || "");
 
   // Query for orders using real API with pagination
   const { data: ordersResponse, isLoading: isLoadingOrders, refetch: refetchOrders } = useQuery({

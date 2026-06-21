@@ -35,7 +35,7 @@ type StockUpdateFormData = z.infer<typeof stockUpdateSchema>;
 interface StockUpdateModalProps {
   open: boolean;
   onClose: () => void;
-  branchId: number;
+  branchId?: string;
   stockItem: {
     itemId: number;
     itemName: string;
@@ -78,7 +78,7 @@ export default function StockUpdateModal({
   const onSubmit = async (data: StockUpdateFormData) => {
     setIsSubmitting(true);
     try {
-      await inventoryApi.updateInventoryStock(branchId, {
+      await inventoryApi.updateInventoryStock(branchId || "", {
         inventoryItemId: stockItem.itemId,
         newStock: data.newStock,
         reason: data.reason,

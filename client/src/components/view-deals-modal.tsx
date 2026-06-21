@@ -12,8 +12,8 @@ import type { Deal } from "@/types/schema";
 interface ViewDealsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  dealId?: number;
-  branchId: number;
+  dealId?: string;
+  branchId?: string;
 }
 
 export default function ViewDealsModal({ isOpen, onClose, dealId, branchId }: ViewDealsModalProps) {

@@ -15,7 +15,7 @@ import { useBranchCurrency } from "@/hooks/useBranchCurrency";
 interface AddServicesModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  branchId?: number;
+  branchId?: string;
   onServicesUpdated?: () => void;
 }
 

@@ -14,7 +14,7 @@ interface ViewMenuModalProps {
   isOpen: boolean;
   onClose: () => void;
   menuItemId?: number;
-  branchId?: number;
+  branchId?: string;
 }
 
 export default function ViewMenuModal({ isOpen, onClose, menuItemId, branchId }: ViewMenuModalProps) {

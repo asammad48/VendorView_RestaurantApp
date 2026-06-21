@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 interface AddDiscountModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  branchId?: number;
+  branchId?: string;
   editDiscountId?: number;
 }
 

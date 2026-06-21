@@ -15,27 +15,25 @@ import { inventoryApi } from "@/lib/apiRepository";
 import { Badge } from "@/components/ui/badge";
 
 const expenseSchema = z.object({
-  utilityType: z.string().min(1, "Utility type is required"),
-  usageUnit: z.coerce.number().min(0.01, "Usage unit must be greater than 0"),
-  unitCost: z.coerce.number().min(0.01, "Unit cost must be greater than 0"),
-  billingPeriodStart: z.string().min(1, "Billing period start is required"),
-  billingPeriodEnd: z.string().min(1, "Billing period end is required"),
-  billNumber: z.string().min(1, "Bill number is required"),
+  type: z.string().min(1, "Utility type is required"),
+  unitConsumed: z.coerce.number().min(0.01, "Units consumed must be greater than 0"),
+  costPerUnit: z.coerce.number().min(0.01, "Cost per unit must be greater than 0"),
+  readingDate: z.string().min(1, "Reading date is required"),
+  remarks: z.string().optional(),
   isActive: z.boolean(),
 });
 
 type ExpenseFormData = z.infer<typeof expenseSchema>;
 
 interface UtilityExpense {
-  id: number;
-  branchId: number;
-  utilityType: string;
-  usageUnit: number;
-  unitCost: number;
+  id: string;
+  branchId?: string;
+  type: string;
+  unitConsumed: number;
+  costPerUnit: number;
   totalCost: number;
-  billingPeriodStart: string;
-  billingPeriodEnd: string;
-  billNumber: string;
+  readingDate: string;
+  remarks?: string;
   isActive: boolean;
 }
 
@@ -46,11 +44,11 @@ interface ViewUtilityExpenseModalProps {
   onSuccess: () => void;
 }
 
-export default function ViewUtilityExpenseModal({ 
-  open, 
-  onClose, 
+export default function ViewUtilityExpenseModal({
+  open,
+  onClose,
   expense,
-  onSuccess 
+  onSuccess
 }: ViewUtilityExpenseModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -61,12 +59,11 @@ export default function ViewUtilityExpenseModal({
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
-      utilityType: "",
-      usageUnit: 0,
-      unitCost: 0,
-      billingPeriodStart: "",
-      billingPeriodEnd: "",
-      billNumber: "",
+      type: "",
+      unitConsumed: 0,
+      costPerUnit: 0,
+      readingDate: "",
+      remarks: "",
       isActive: true,
     },
   });
@@ -74,16 +71,12 @@ export default function ViewUtilityExpenseModal({
   // Load expense data when modal opens
   useEffect(() => {
     if (open && expense) {
-      const startDate = expense.billingPeriodStart.split('T')[0];
-      const endDate = expense.billingPeriodEnd.split('T')[0];
-      
       form.reset({
-        utilityType: expense.utilityType,
-        usageUnit: expense.usageUnit,
-        unitCost: expense.unitCost,
-        billingPeriodStart: startDate,
-        billingPeriodEnd: endDate,
-        billNumber: expense.billNumber,
+        type: expense.type,
+        unitConsumed: expense.unitConsumed,
+        costPerUnit: expense.costPerUnit,
+        readingDate: expense.readingDate ? expense.readingDate.split('T')[0] : "",
+        remarks: expense.remarks || "",
         isActive: expense.isActive,
       });
       setTotalCost(expense.totalCost);
@@ -94,8 +87,8 @@ export default function ViewUtilityExpenseModal({
   // Calculate total cost
   useEffect(() => {
     const subscription = form.watch((value) => {
-      const usage = parseFloat(value.usageUnit as any) || 0;
-      const cost = parseFloat(value.unitCost as any) || 0;
+      const usage = parseFloat(value.unitConsumed as any) || 0;
+      const cost = parseFloat(value.costPerUnit as any) || 0;
       setTotalCost(usage * cost);
     });
     return () => subscription.unsubscribe();
@@ -103,16 +96,15 @@ export default function ViewUtilityExpenseModal({
 
   const onSubmit = async (data: ExpenseFormData) => {
     if (!expense) return;
-    
+
     setIsSubmitting(true);
     try {
       await inventoryApi.updateUtilityExpense(expense.id, {
-        utilityType: data.utilityType,
-        usageUnit: data.usageUnit,
-        unitCost: data.unitCost,
-        billingPeriodStart: new Date(data.billingPeriodStart).toISOString(),
-        billingPeriodEnd: new Date(data.billingPeriodEnd).toISOString(),
-        billNumber: data.billNumber,
+        type: data.type,
+        unitConsumed: data.unitConsumed,
+        costPerUnit: data.costPerUnit,
+        readingDate: new Date(data.readingDate).toISOString(),
+        remarks: data.remarks || "",
         isActive: data.isActive,
       });
 
@@ -180,12 +172,12 @@ export default function ViewUtilityExpenseModal({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="utilityType"
+                name="type"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Utility Type</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       value={field.value}
                       disabled={!isEditing}
                     >
@@ -210,16 +202,16 @@ export default function ViewUtilityExpenseModal({
 
               <FormField
                 control={form.control}
-                name="billNumber"
+                name="remarks"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bill Number</FormLabel>
+                    <FormLabel>Remarks (optional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder="Enter bill number" 
+                      <Input
+                        {...field}
+                        placeholder="Enter remarks"
                         disabled={!isEditing}
-                        data-testid="input-bill-number"
+                        data-testid="input-remarks"
                       />
                     </FormControl>
                     <FormMessage />
@@ -231,18 +223,18 @@ export default function ViewUtilityExpenseModal({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="usageUnit"
+                name="unitConsumed"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Usage Unit</FormLabel>
+                    <FormLabel>Units Consumed</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        type="number" 
+                      <Input
+                        {...field}
+                        type="number"
                         step="0.01"
-                        placeholder="Enter usage unit" 
+                        placeholder="Enter units consumed"
                         disabled={!isEditing}
-                        data-testid="input-usage-unit"
+                        data-testid="input-units-consumed"
                       />
                     </FormControl>
                     <FormMessage />
@@ -252,18 +244,18 @@ export default function ViewUtilityExpenseModal({
 
               <FormField
                 control={form.control}
-                name="unitCost"
+                name="costPerUnit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit Cost ($)</FormLabel>
+                    <FormLabel>Cost Per Unit ($)</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        type="number" 
+                      <Input
+                        {...field}
+                        type="number"
                         step="0.01"
-                        placeholder="Enter unit cost" 
+                        placeholder="Enter cost per unit"
                         disabled={!isEditing}
-                        data-testid="input-unit-cost"
+                        data-testid="input-cost-per-unit"
                       />
                     </FormControl>
                     <FormMessage />
@@ -275,35 +267,16 @@ export default function ViewUtilityExpenseModal({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="billingPeriodStart"
+                name="readingDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Billing Period Start</FormLabel>
+                    <FormLabel>Reading Date</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        type="date" 
+                      <Input
+                        {...field}
+                        type="date"
                         disabled={!isEditing}
-                        data-testid="input-period-start"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="billingPeriodEnd"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Billing Period End</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="date" 
-                        disabled={!isEditing}
-                        data-testid="input-period-end"
+                        data-testid="input-reading-date"
                       />
                     </FormControl>
                     <FormMessage />
@@ -357,15 +330,12 @@ export default function ViewUtilityExpenseModal({
                     setIsEditing(false);
                     // Reset form to original values
                     if (expense) {
-                      const startDate = expense.billingPeriodStart.split('T')[0];
-                      const endDate = expense.billingPeriodEnd.split('T')[0];
                       form.reset({
-                        utilityType: expense.utilityType,
-                        usageUnit: expense.usageUnit,
-                        unitCost: expense.unitCost,
-                        billingPeriodStart: startDate,
-                        billingPeriodEnd: endDate,
-                        billNumber: expense.billNumber,
+                        type: expense.type,
+                        unitConsumed: expense.unitConsumed,
+                        costPerUnit: expense.costPerUnit,
+                        readingDate: expense.readingDate ? expense.readingDate.split('T')[0] : "",
+                        remarks: expense.remarks || "",
                         isActive: expense.isActive,
                       });
                     }

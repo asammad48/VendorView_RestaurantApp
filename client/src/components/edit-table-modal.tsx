@@ -23,7 +23,7 @@ type EditTableFormData = z.infer<typeof editTableSchema>;
 // API response interface for location details
 interface LocationDetails {
   id: number;
-  branchId: number;
+  branchId?: string;
   locationType: number;
   name: string;
   capacity: number;

@@ -25,15 +25,15 @@ interface AddDealsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   restaurantId?: string;
-  branchId?: number;
-  editDealId?: number; // Changed from editDeal to editDealId
+  branchId?: string;
+  editDealId?: string; // Changed from editDeal to editDealId
 }
 
 interface DealItem {
-  menuItemId: number;
+  menuItemId: string;
   menuItemName: string;
   variants: Array<{
-    variantId: number;
+    variantId: string;
     name: string;
     price: number;
     quantity: number;
@@ -41,7 +41,7 @@ interface DealItem {
 }
 
 interface DealSubMenuItem {
-  subMenuItemId: number;
+  subMenuItemId: string;
   name: string;
   price: number;
   quantity: number;
@@ -153,7 +153,7 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
       // Set selected items (convert to local format for UI with variants)
       if (dealData.menuItems && dealData.menuItems.length > 0) {
         // For backward compatibility, convert old format to new variant-based format
-        const selectedItemsMap = new Map<number, DealItem>();
+        const selectedItemsMap = new Map<string, DealItem>();
         
         dealData.menuItems.forEach(item => {
           if (!selectedItemsMap.has(item.menuItemId)) {
@@ -323,7 +323,7 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
     });
   };
 
-  const handleSubMenuItemQuantityChange = (subMenuItemId: number, quantity: number) => {
+  const handleSubMenuItemQuantityChange = (subMenuItemId: string, quantity: number) => {
     setSelectedSubMenuItems(prev => {
       const newItems = prev.map(item =>
         item.subMenuItemId === subMenuItemId ? { ...item, quantity } : item
@@ -343,7 +343,7 @@ export default function AddDealsModal({ open, onOpenChange, restaurantId, branch
     });
   };
 
-  const handleVariantQuantityChange = (menuItemId: number, variantId: number, quantity: number) => {
+  const handleVariantQuantityChange = (menuItemId: string, variantId: string, quantity: number) => {
     setSelectedItems(prev => {
       const newItems = prev.map(item => {
         if (item.menuItemId === menuItemId) {

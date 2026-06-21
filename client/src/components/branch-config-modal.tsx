@@ -50,7 +50,7 @@ type BranchConfigData = z.infer<typeof branchConfigSchema>;
 
 // Type for API response
 interface BranchConfigResponse {
-  branchId: number;
+  branchId?: string;
   isTakeaway: boolean;
   isReservation: boolean;
   isDelivery: boolean;

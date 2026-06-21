@@ -8,7 +8,7 @@ export interface EnvironmentConfig {
 }
 
 // Development URLs
-const DEVELOPMENT_API_URL = 'https://dashboard.scannify.net';
+const DEVELOPMENT_API_URL = 'https://localhost:44336';
 const QA_API_URL = 'https://restaurant-app-web-qa-001-eecdfsadcfgxevc9.centralindia-01.azurewebsites.net';
 
 // Get API base URL from environment variables or fallback logic

@@ -32,10 +32,9 @@ export default function Branches() {
   // Extract entity ID from URL query params
   const rawEntityId = new URLSearchParams(window.location.search).get('entityId');
   const entityType = new URLSearchParams(window.location.search).get('entityType');
-  
-  // Convert frontend entityId format (entity-X) to backend format (X)
-  const entityIdStr = rawEntityId?.startsWith('entity-') ? rawEntityId.replace('entity-', '') : rawEntityId;
-  const entityId = entityIdStr ? parseInt(entityIdStr, 10) : null;
+
+  // Use the entity GUID directly — do not parseInt (backend expects Guid)
+  const entityId = rawEntityId ?? null;
 
   const { data: entity } = useQuery<Entity>({
     queryKey: ["entities", entityId],
@@ -231,7 +230,7 @@ export default function Branches() {
             setShowEditModal(false);
             setSelectedBranch(null);
           }}
-          entityId={currentEntity?.id || entityId || 0}
+          entityId={currentEntity?.id || entityId || ""}
           branchToEdit={selectedBranch}
           isEdit={true}
         />

@@ -86,7 +86,7 @@ import ViewDealsModal from "@/components/view-deals-modal";
 import { SearchTooltip } from "@/components/SearchTooltip";
 import PrinterModal from "@/components/printer-modal";
 import CreateOrderModal from "@/components/create-order-modal";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import {
   locationApi,
   branchApi,
@@ -226,7 +226,7 @@ export default function Orders() {
 
   // Extract branchId from URL query parameters
   const urlParams = new URLSearchParams(window.location.search);
-  const branchId = parseInt(urlParams.get("branchId") || "1", 10); // Get branchId from URL, no hardcoded default
+  const branchId = urlParams.get("branchId") || "";
 
   // Use branch currency for proper formatting
   const { formatPrice: formatBranchPrice, getCurrencySymbol } =
@@ -397,6 +397,30 @@ export default function Orders() {
   const [categorySearchTerm, setCategorySearchTerm] = useState("");
   const [dealsSearchTerm, setDealsSearchTerm] = useState("");
   const [activeMenuTab, setActiveMenuTab] = useState("Menu");
+
+  // React to ?tab=... requests (e.g. "Go to SubMenu/Category/Menu Tab" links from modals).
+  // Maps the requested tab onto the correct main tab + nested menu sub-tab.
+  const searchString = useSearch();
+  useEffect(() => {
+    const requestedTab = new URLSearchParams(searchString).get("tab");
+    if (!requestedTab) return;
+
+    switch (requestedTab) {
+      case "Menu":
+      case "Category":
+      case "SubMenu":
+        setActiveMainTab("menu");
+        setActiveMenuTab(requestedTab);
+        break;
+      case "Deals":
+        setActiveMainTab("deals");
+        break;
+      default:
+        setActiveMainTab(requestedTab);
+        break;
+    }
+  }, [searchString]);
+
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(
     null,
   );
@@ -410,7 +434,7 @@ export default function Orders() {
     null,
   );
   const [showViewDealsModal, setShowViewDealsModal] = useState(false);
-  const [selectedDealId, setSelectedDealId] = useState<number | null>(null);
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
   const [showEditSubMenuModal, setShowEditSubMenuModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -1065,7 +1089,7 @@ export default function Orders() {
   // Mutation for calculating prorated amount
   const calculateProratedMutation = useMutation({
     mutationFn: async (data: {
-      branchId: number;
+      branchId: string;
       newSubscriptionId: number;
       billingCycle: BillingCycle;
     }) => {
@@ -1087,7 +1111,7 @@ export default function Orders() {
   // Mutation for changing subscription
   const changeSubscriptionMutation = useMutation({
     mutationFn: async (data: {
-      branchId: number;
+      branchId: string;
       newSubscriptionId: number;
       billingCycle: BillingCycle;
       currencyCode: string;
@@ -1125,7 +1149,7 @@ export default function Orders() {
   // Mutation for canceling subscription
   const cancelSubscriptionMutation = useMutation({
     mutationFn: async (data: {
-      branchId: number;
+      branchId: string;
       cancelImmediately: boolean;
     }) => {
       return await subscriptionsApi.cancelSubscription(data);

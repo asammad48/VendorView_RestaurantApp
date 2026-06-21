@@ -76,7 +76,7 @@ export function AddReservationModal({
     queryKey: ['tables', branchId],
     queryFn: async () => {
       try {
-        const response = await locationApi.getLocationsByBranch(Number(branchId));
+        const response = await locationApi.getLocationsByBranch(branchId);
         return response.data || [];
       } catch (error) {
         console.error('Error fetching tables:', error);

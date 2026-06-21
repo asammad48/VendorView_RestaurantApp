@@ -55,24 +55,24 @@ import {
 import { ColumnSearchPopover } from "@/components/ColumnSearchPopover";
 
 interface InventoryCategory {
-  id: number;
+  id: string;
   name: string;
   branchId: number;
 }
 
 interface InventorySupplier {
-  id: number;
+  id: string;
   name: string;
   contactPerson: string;
   phone: string;
   email: string;
   address: string;
-  branchId: number;
+  branchId: string;
 }
 
 interface InventoryItem {
-  id: number;
-  branchId: number;
+  id: string;
+  branchId: string;
   name: string;
   categoryName: string;
   unit: string;
@@ -82,14 +82,14 @@ interface InventoryItem {
 }
 
 interface StockItem {
-  inventoryItemId: number;
+  inventoryItemId: string;
   itemName: string;
   currentStock: number;
   unit: string;
 }
 
 interface LowStockItem {
-  inventoryItemId: number;
+  inventoryItemId: string;
   itemName: string;
   currentStock: number;
   reorderLevel: number;
@@ -97,7 +97,7 @@ interface LowStockItem {
 }
 
 interface PurchaseOrder {
-  id: number;
+  id: string;
   supplierName: string;
   branchName: string;
   orderDate: string;
@@ -106,7 +106,7 @@ interface PurchaseOrder {
 }
 
 interface WastageItem {
-  id: number;
+  id: string;
   branchName: string;
   itemName: string;
   quantity: number;
@@ -116,15 +116,14 @@ interface WastageItem {
 }
 
 interface UtilityExpense {
-  id: number;
-  branchId: number;
-  utilityType: string;
-  usageUnit: number;
-  unitCost: number;
+  id: string;
+  branchId: string;
+  type: string;
+  unitConsumed: number;
+  costPerUnit: number;
   totalCost: number;
-  billingPeriodStart: string;
-  billingPeriodEnd: string;
-  billNumber: string;
+  readingDate: string;
+  remarks?: string;
   isActive: boolean;
 }
 
@@ -177,7 +176,7 @@ export default function InventoryManagement() {
   const [selectedSupplier, setSelectedSupplier] =
     useState<InventorySupplier | null>(null);
   const [selectedItem, setSelectedItem] = useState<
-    (InventoryItem & { categoryId?: number; defaultSupplierId?: number }) | null
+    (InventoryItem & { categoryId?: string; defaultSupplierId?: string }) | null
   >(null);
   const [deleteItem, setDeleteItem] = useState<{
     type: string;
@@ -241,7 +240,7 @@ export default function InventoryManagement() {
   const [recipesSearch, setRecipesSearch] = useState("");
 
   const searchParams = new URLSearchParams(window.location.search);
-  const branchId = parseInt(searchParams.get("branchId") || "0");
+  const branchId = searchParams.get("branchId") || "";
 
   // Fetch branch information
   const { data: branchData } = useQuery({
@@ -492,7 +491,7 @@ export default function InventoryManagement() {
       return await inventoryApi.getUtilityExpensesByBranch(branchId, {
         PageNumber: expensesPage,
         PageSize: expensesPerPage,
-        SortBy: "utilityType",
+        SortBy: "type",
         IsAscending: true,
         SearchTerm: expensesSearch,
       });
@@ -614,7 +613,7 @@ export default function InventoryManagement() {
 
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
-    mutationFn: (categoryId: number) =>
+    mutationFn: (categoryId: string) =>
       inventoryApi.deleteInventoryCategory(categoryId),
     onSuccess: () => {
       toast({ title: "Success", description: "Category deleted successfully" });
@@ -634,7 +633,7 @@ export default function InventoryManagement() {
 
   // Delete supplier mutation
   const deleteSupplierMutation = useMutation({
-    mutationFn: (supplierId: number) =>
+    mutationFn: (supplierId: string) =>
       inventoryApi.deleteInventorySupplier(supplierId),
     onSuccess: () => {
       toast({ title: "Success", description: "Supplier deleted successfully" });
@@ -654,7 +653,7 @@ export default function InventoryManagement() {
 
   // Delete item mutation
   const deleteItemMutation = useMutation({
-    mutationFn: (itemId: number) => inventoryApi.deleteInventoryItem(itemId),
+    mutationFn: (itemId: string) => inventoryApi.deleteInventoryItem(itemId),
     onSuccess: () => {
       toast({ title: "Success", description: "Item deleted successfully" });
       queryClient.invalidateQueries({
@@ -673,7 +672,7 @@ export default function InventoryManagement() {
 
   // Delete recipe mutation
   const deleteRecipeMutation = useMutation({
-    mutationFn: (recipeId: number) => inventoryApi.deleteRecipe(recipeId),
+    mutationFn: (recipeId: string) => inventoryApi.deleteRecipe(recipeId),
     onSuccess: () => {
       toast({ title: "Success", description: "Recipe deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ["recipes", branchId] });
@@ -690,7 +689,7 @@ export default function InventoryManagement() {
 
   // Delete utility expense mutation
   const deleteUtilityExpenseMutation = useMutation({
-    mutationFn: (expenseId: number) =>
+    mutationFn: (expenseId: string) =>
       inventoryApi.deleteUtilityExpense(expenseId),
     onSuccess: () => {
       toast({
@@ -715,15 +714,15 @@ export default function InventoryManagement() {
     if (!deleteItem) return;
 
     if (deleteItem.type === "category") {
-      deleteCategoryMutation.mutate(parseInt(deleteItem.id));
+      deleteCategoryMutation.mutate(deleteItem.id);
     } else if (deleteItem.type === "supplier") {
-      deleteSupplierMutation.mutate(parseInt(deleteItem.id));
+      deleteSupplierMutation.mutate(deleteItem.id);
     } else if (deleteItem.type === "item") {
-      deleteItemMutation.mutate(parseInt(deleteItem.id));
+      deleteItemMutation.mutate(deleteItem.id);
     } else if (deleteItem.type === "recipe") {
-      deleteRecipeMutation.mutate(parseInt(deleteItem.id));
+      deleteRecipeMutation.mutate(deleteItem.id);
     } else if (deleteItem.type === "utility-expense") {
-      deleteUtilityExpenseMutation.mutate(parseInt(deleteItem.id));
+      deleteUtilityExpenseMutation.mutate(deleteItem.id);
     }
 
     setShowDeleteModal(false);
@@ -1296,8 +1295,8 @@ export default function InventoryManagement() {
                                 (await inventoryApi.getInventoryItemById(
                                   item.id,
                                 )) as InventoryItem & {
-                                  categoryId?: number;
-                                  defaultSupplierId?: number;
+                                  categoryId?: string;
+                                  defaultSupplierId?: string;
                                 };
                               setSelectedItem(itemDetails);
                               setShowEditItemModal(true);
@@ -2241,11 +2240,11 @@ export default function InventoryManagement() {
                       />
                     </div>
                   </TableHead>
-                  <TableHead>Usage Unit</TableHead>
-                  <TableHead>Unit Cost</TableHead>
+                  <TableHead>Units Consumed</TableHead>
+                  <TableHead>Cost Per Unit</TableHead>
                   <TableHead>Total Cost</TableHead>
-                  <TableHead>Bill Number</TableHead>
-                  <TableHead>Billing Period</TableHead>
+                  <TableHead>Remarks</TableHead>
+                  <TableHead>Reading Date</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
@@ -2299,13 +2298,13 @@ export default function InventoryManagement() {
                         className="font-medium"
                         data-testid={`expense-type-${expense.id}`}
                       >
-                        {expense.utilityType}
+                        {expense.type}
                       </TableCell>
                       <TableCell data-testid={`expense-usage-${expense.id}`}>
-                        {expense.usageUnit}
+                        {expense.unitConsumed}
                       </TableCell>
                       <TableCell data-testid={`expense-unitcost-${expense.id}`}>
-                        ${expense.unitCost.toFixed(2)}
+                        ${expense.costPerUnit.toFixed(2)}
                       </TableCell>
                       <TableCell
                         data-testid={`expense-totalcost-${expense.id}`}
@@ -2313,17 +2312,13 @@ export default function InventoryManagement() {
                         ${expense.totalCost.toFixed(2)}
                       </TableCell>
                       <TableCell
-                        data-testid={`expense-billnumber-${expense.id}`}
+                        data-testid={`expense-remarks-${expense.id}`}
                       >
-                        {expense.billNumber}
+                        {expense.remarks || "-"}
                       </TableCell>
                       <TableCell data-testid={`expense-period-${expense.id}`}>
                         {new Date(
-                          expense.billingPeriodStart,
-                        ).toLocaleDateString()}{" "}
-                        -{" "}
-                        {new Date(
-                          expense.billingPeriodEnd,
+                          expense.readingDate,
                         ).toLocaleDateString()}
                       </TableCell>
                       <TableCell data-testid={`expense-status-${expense.id}`}>
@@ -2353,7 +2348,7 @@ export default function InventoryManagement() {
                               setDeleteItem({
                                 type: "utility-expense",
                                 id: expense.id.toString(),
-                                name: expense.utilityType,
+                                name: expense.type,
                               });
                               setShowDeleteModal(true);
                             }}
@@ -2783,6 +2778,8 @@ export default function InventoryManagement() {
               queryKey: ["purchase-orders", branchId],
             });
           }}
+          onNavigateToSuppliers={() => setActiveTab("suppliers")}
+          onNavigateToItems={() => setActiveTab("items")}
         />
       )}
 
@@ -2845,7 +2842,6 @@ export default function InventoryManagement() {
           open={showStockWastageModal}
           onClose={() => setShowStockWastageModal(false)}
           branchId={branchId}
-          inventoryItems={stock}
           onSuccess={() => {
             refetchWastage();
             refetchStock();

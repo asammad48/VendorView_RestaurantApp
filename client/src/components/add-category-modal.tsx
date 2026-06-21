@@ -15,7 +15,7 @@ import type { MenuCategory, InsertMenuCategory } from "@/types/schema";
 
 const addCategorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
-  branchId: z.number().min(1, "Branch ID is required"),
+  branchId: z.string(),
 });
 
 type AddCategoryFormData = z.infer<typeof addCategorySchema>;
@@ -23,7 +23,7 @@ type AddCategoryFormData = z.infer<typeof addCategorySchema>;
 interface AddCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  branchId: number;
+  branchId?: string;
   editCategory?: MenuCategory;
 }
 

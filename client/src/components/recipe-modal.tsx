@@ -18,22 +18,22 @@ import { RecipeDetail, MenuItemSearchData, InventoryItemSimple, MenuItemSearchVa
 
 const recipeSchema = z.object({
   recipeType: z.enum(["menuItem", "subMenuItem"]),
-  menuItemId: z.coerce.number().optional(),
-  variantId: z.coerce.number().optional(),
-  subMenuItemId: z.coerce.number().optional(),
+  menuItemId: z.string().optional(),
+  variantId: z.string().optional(),
+  subMenuItemId: z.string().optional(),
   recipePrice: z.coerce.number().min(0, "Recipe price must be 0 or greater"),
   items: z.array(z.object({
-    id: z.number().optional(),
-    inventoryItemId: z.coerce.number().min(1, "Item is required"),
+    id: z.string().optional(),
+    inventoryItemId: z.string().min(1, "Item is required"),
     quantity: z.coerce.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
     unit: z.string().optional(),
     price: z.coerce.number().min(0, "Price must be 0 or greater"),
   })).min(1, "At least one ingredient is required"),
 }).refine((data) => {
   if (data.recipeType === "menuItem") {
-    return data.menuItemId && data.menuItemId > 0 && data.variantId && data.variantId > 0;
+    return !!data.menuItemId && !!data.variantId;
   } else {
-    return data.subMenuItemId && data.subMenuItemId > 0;
+    return !!data.subMenuItemId;
   }
 }, {
   message: "Please select all required fields",
@@ -45,7 +45,7 @@ type RecipeFormData = z.infer<typeof recipeSchema>;
 interface RecipeModalProps {
   open: boolean;
   onClose: () => void;
-  branchId: number;
+  branchId?: string;
   recipe?: RecipeDetail;
   onSuccess: () => void;
   onNavigateToItems?: () => void;
@@ -69,19 +69,19 @@ export default function RecipeModal({
 
   const { data: branchData } = useQuery({
     queryKey: ['branch', branchId],
-    queryFn: async () => await branchApi.getBranchById(branchId) as Branch,
+    queryFn: async () => await branchApi.getBranchById(branchId || "") as Branch,
     enabled: !!branchId && open,
   });
 
   const { data: menuData } = useQuery({
     queryKey: ["menu-items-search", branchId],
-    queryFn: async () => await inventoryApi.getMenuItemsSearch(branchId),
+    queryFn: async () => await inventoryApi.getMenuItemsSearch(branchId || ""),
     enabled: !!branchId && open,
   });
 
   const { data: inventoryItemsData } = useQuery({
     queryKey: ["inventory-items-simple", branchId],
-    queryFn: async () => await inventoryApi.getInventoryItemsSimpleByBranch(branchId),
+    queryFn: async () => await inventoryApi.getInventoryItemsSimpleByBranch(branchId || ""),
     enabled: !!branchId && open,
   });
 
@@ -93,11 +93,11 @@ export default function RecipeModal({
     resolver: zodResolver(recipeSchema),
     defaultValues: {
       recipeType: "menuItem",
-      menuItemId: 0,
-      variantId: 0,
-      subMenuItemId: 0,
+      menuItemId: "",
+      variantId: "",
+      subMenuItemId: "",
       recipePrice: 0,
-      items: [{ inventoryItemId: 0, quantity: 1, price: 0 }],
+      items: [{ inventoryItemId: "", quantity: 1, price: 0 }],
     },
   });
 
@@ -128,7 +128,7 @@ export default function RecipeModal({
 
   useEffect(() => {
     if (recipeType === "menuItem" && !isEdit) {
-      form.setValue("variantId", 0);
+      form.setValue("variantId", "");
     }
   }, [selectedMenuItemId, recipeType, form, isEdit]);
 
@@ -142,9 +142,9 @@ export default function RecipeModal({
     if (open && recipe) {
       form.reset({
         recipeType: recipe.subMenuItemId ? "subMenuItem" : "menuItem",
-        menuItemId: recipe.menuItemId || 0,
-        variantId: recipe.variantId || 0,
-        subMenuItemId: recipe.subMenuItemId || 0,
+        menuItemId: recipe.menuItemId || "",
+        variantId: recipe.variantId || "",
+        subMenuItemId: recipe.subMenuItemId || "",
         recipePrice: recipe.recipePrice || 0,
         items: recipe.items?.map((item) => ({
           id: item.id,
@@ -152,16 +152,16 @@ export default function RecipeModal({
           quantity: item.quantity,
           unit: item.unit,
           price: item.price ?? 0,
-        })) || [{ inventoryItemId: 0, quantity: 1, unit: "", price: 0 }],
+        })) || [{ inventoryItemId: "", quantity: 1, unit: "", price: 0 }],
       });
     } else if (open && !recipe) {
       form.reset({
         recipeType: "menuItem",
-        menuItemId: 0,
-        variantId: 0,
-        subMenuItemId: 0,
+        menuItemId: "",
+        variantId: "",
+        subMenuItemId: "",
         recipePrice: 0,
-        items: [{ inventoryItemId: 0, quantity: 1, unit: "", price: 0 }],
+        items: [{ inventoryItemId: "", quantity: 1, unit: "", price: 0 }],
       });
     }
   }, [recipe, open, form]);
@@ -177,12 +177,12 @@ export default function RecipeModal({
   };
 
   const isCalculatorDisabled = () => {
-    const hasMenuSelection = recipeType === "menuItem" 
-      ? (selectedMenuItemId ?? 0) > 0 && (selectedVariantId ?? 0) > 0
-      : (selectedSubMenuItemId ?? 0) > 0;
-    
-    const hasInventorySelection = selectedIngredientIndex !== null && 
-      form.watch(`items.${selectedIngredientIndex}.inventoryItemId`) > 0;
+    const hasMenuSelection = recipeType === "menuItem"
+      ? !!selectedMenuItemId && !!selectedVariantId
+      : !!selectedSubMenuItemId;
+
+    const hasInventorySelection = selectedIngredientIndex !== null &&
+      !!form.watch(`items.${selectedIngredientIndex}.inventoryItemId`);
     
     return !hasMenuSelection || !hasInventorySelection;
   };
@@ -232,7 +232,7 @@ export default function RecipeModal({
         menuItemId: data.recipeType === "menuItem" ? data.menuItemId : undefined,
         variantId: data.recipeType === "menuItem" ? data.variantId : undefined,
         subMenuItemId: data.recipeType === "subMenuItem" ? data.subMenuItemId : undefined,
-        branchId: branchId,
+        branchId: branchId || "",
         recipePrice: data.recipePrice,
         items: data.items.map((item) => ({
           id: item.id,
@@ -336,8 +336,8 @@ export default function RecipeModal({
                         <FormItem>
                           <FormLabel>Menu Item</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(parseInt(value))}
-                            value={field.value?.toString()}
+                            onValueChange={(value) => field.onChange(value)}
+                            value={field.value || ""}
                             disabled={isEdit}
                           >
                             <FormControl>
@@ -378,8 +378,8 @@ export default function RecipeModal({
                         <FormItem>
                           <FormLabel>Variant</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(parseInt(value))}
-                            value={field.value?.toString()}
+                            onValueChange={(value) => field.onChange(value)}
+                            value={field.value || ""}
                             disabled={isEdit || !selectedMenuItemId || selectedMenuItemVariants.length === 0}
                           >
                             <FormControl>
@@ -408,8 +408,8 @@ export default function RecipeModal({
                       <FormItem>
                         <FormLabel>Sub Menu Item</FormLabel>
                         <Select
-                          onValueChange={(value) => field.onChange(parseInt(value))}
-                          value={field.value?.toString()}
+                          onValueChange={(value) => field.onChange(value)}
+                          value={field.value || ""}
                           disabled={isEdit}
                         >
                           <FormControl>
@@ -466,7 +466,7 @@ export default function RecipeModal({
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        append({ inventoryItemId: 0, quantity: 1, price: 0 });
+                        append({ inventoryItemId: "", quantity: 1, price: 0 });
                         setSelectedIngredientIndex(fields.length);
                         setNumberOfOrders("");
                       }}
@@ -520,14 +520,14 @@ export default function RecipeModal({
                           <FormItem className="flex-1">
                             <Select
                               onValueChange={(value) => {
-                                const selectedItem = inventoryItems.find((item) => item.id === parseInt(value));
-                                field.onChange(parseInt(value));
+                                const selectedItem = inventoryItems.find((item) => item.id === value);
+                                field.onChange(value);
                                 if (selectedItem) {
                                   form.setValue(`items.${index}.unit`, selectedItem.unit, { shouldDirty: true });
                                   form.setValue(`items.${index}.price`, selectedItem.price ?? 0, { shouldDirty: true });
                                 }
                               }}
-                              value={field.value?.toString()}
+                              value={field.value || ""}
                             >
                               <FormControl>
                                 <SelectTrigger data-testid={`select-inventory-item-${index}`}>

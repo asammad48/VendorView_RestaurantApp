@@ -22,21 +22,21 @@ interface ApplyDiscountModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'menu' | 'deals';
-  branchId: number;
+  branchId?: string;
 }
 
 interface SimpleMenuItem {
-  menuItemId: number;
+  menuItemId: string;
   menuItemName: string;
 }
 
 interface SimpleDeal {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface SimpleDiscount {
-  id: number;
+  id: string;
   name: string;
   discountValue: number;
 }
@@ -50,7 +50,7 @@ export default function ApplyDiscountModal({ isOpen, onClose, mode, branchId }: 
   const { data: menuItems = [], isLoading: isLoadingMenuItems } = useQuery<SimpleMenuItem[]>({
     queryKey: ['menu-items-simple', branchId],
     queryFn: async (): Promise<SimpleMenuItem[]> => {
-      const response = await discountsApi.getMenuItemsSimpleByBranch(branchId);
+      const response = await discountsApi.getMenuItemsSimpleByBranch(branchId || "");
       return Array.isArray(response) ? response : [];
     },
     enabled: isOpen && mode === 'menu',
@@ -60,7 +60,7 @@ export default function ApplyDiscountModal({ isOpen, onClose, mode, branchId }: 
   const { data: deals = [], isLoading: isLoadingDeals } = useQuery<SimpleDeal[]>({
     queryKey: ['deals-simple', branchId],
     queryFn: async (): Promise<SimpleDeal[]> => {
-      const response = await discountsApi.getDealsSimpleByBranch(branchId);
+      const response = await discountsApi.getDealsSimpleByBranch(branchId || "");
       return Array.isArray(response) ? response : [];
     },
     enabled: isOpen && mode === 'deals',
@@ -70,7 +70,7 @@ export default function ApplyDiscountModal({ isOpen, onClose, mode, branchId }: 
   const { data: discounts = [], isLoading: isLoadingDiscounts } = useQuery<SimpleDiscount[]>({
     queryKey: ['discounts-simple', branchId],
     queryFn: async (): Promise<SimpleDiscount[]> => {
-      const response = await discountsApi.getDiscountsSimpleByBranch(branchId);
+      const response = await discountsApi.getDiscountsSimpleByBranch(branchId || "");
       return Array.isArray(response) ? response : [];
     },
     enabled: isOpen,
@@ -94,9 +94,9 @@ export default function ApplyDiscountModal({ isOpen, onClose, mode, branchId }: 
 
   const applyDiscountMutation = useMutation({
     mutationFn: async (data: ApplyDiscountFormData) => {
-      const itemIds = selectedItems.map(id => parseInt(id));
-      const discountId = parseInt(data.discountId);
-      
+      const itemIds = selectedItems;
+      const discountId = data.discountId;
+
       if (mode === 'deals') {
         return await discountsApi.applyBulkDiscountToDeals(itemIds, discountId);
       } else {

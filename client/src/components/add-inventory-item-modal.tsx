@@ -49,18 +49,18 @@ const units = [
 
 const itemSchema = z.object({
   name: z.string().min(1, "Item name is required"),
-  categoryId: z.number().min(1, "Category is required"),
+  categoryId: z.string().min(1, "Category is required"),
   unit: z.string().min(1, "Unit is required"),
   price: z.number().min(0, "Price must be at least 0"),
   reorderLevel: z.number().min(0, "Reorder level must be at least 0").multipleOf(0.001, "Reorder level can have up to 3 decimal places"),
-  defaultSupplierId: z.number().optional(),
+  defaultSupplierId: z.string().optional(),
 });
 
 type ItemFormData = z.infer<typeof itemSchema>;
 
 interface InventoryItem {
-  id: number;
-  branchId: number;
+  id: string;
+  branchId?: string;
   name: string;
   categoryName: string;
   unit: string;
@@ -70,20 +70,20 @@ interface InventoryItem {
 }
 
 interface InventoryCategory {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface InventorySupplier {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface AddInventoryItemModalProps {
   open: boolean;
   onClose: () => void;
-  branchId: number;
-  item?: InventoryItem & { categoryId?: number; defaultSupplierId?: number };
+  branchId?: string;
+  item?: InventoryItem & { categoryId?: string; defaultSupplierId?: string };
   categories: InventoryCategory[];
   suppliers: InventorySupplier[];
   onSuccess?: () => void;
@@ -112,7 +112,7 @@ export default function AddInventoryItemModal({
     resolver: zodResolver(itemSchema),
     defaultValues: {
       name: "",
-      categoryId: 0,
+      categoryId: "",
       unit: "",
       price: 0,
       reorderLevel: 0,
@@ -142,7 +142,7 @@ export default function AddInventoryItemModal({
     if (open && item) {
       form.reset({
         name: item.name,
-        categoryId: item.categoryId || 0,
+        categoryId: item.categoryId || "",
         unit: item.unit,
         price: item.price,
         reorderLevel: item.reorderLevel,
@@ -151,7 +151,7 @@ export default function AddInventoryItemModal({
     } else if (open && !item) {
       form.reset({
         name: "",
-        categoryId: 0,
+        categoryId: "",
         unit: "",
         price: 0,
         reorderLevel: 0,
@@ -161,8 +161,8 @@ export default function AddInventoryItemModal({
   }, [item, open, form]);
 
   const createItemMutation = useMutation({
-    mutationFn: (data: { name: string; categoryId: number; branchId: number; unit: string; price: number; reorderLevel: number; defaultSupplierId?: number }) => 
-      inventoryApi.createInventoryItem(data),
+    mutationFn: (data: { name: string; categoryId: string; branchId?: string; unit: string; price: number; reorderLevel: number; defaultSupplierId?: string }) =>
+      inventoryApi.createInventoryItem({ ...data, branchId: data.branchId || "" }),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -185,7 +185,7 @@ export default function AddInventoryItemModal({
   });
 
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { name: string; categoryId: number; unit: string; price: number; reorderLevel: number; defaultSupplierId?: number } }) => 
+    mutationFn: ({ id, data }: { id: string; data: { name: string; categoryId: string; unit: string; price: number; reorderLevel: number; defaultSupplierId?: string } }) =>
       inventoryApi.updateInventoryItem(id, data),
     onSuccess: () => {
       toast({
@@ -257,8 +257,8 @@ export default function AddInventoryItemModal({
           <div>
             <Label htmlFor="categoryId">Category</Label>
             <Select
-              value={form.watch("categoryId")?.toString() || ""}
-              onValueChange={(value) => form.setValue("categoryId", parseInt(value))}
+              value={form.watch("categoryId") || ""}
+              onValueChange={(value) => form.setValue("categoryId", value, { shouldValidate: true })}
               disabled={isEdit}
             >
               <SelectTrigger data-testid="select-category">
@@ -380,8 +380,8 @@ export default function AddInventoryItemModal({
           <div>
             <Label htmlFor="defaultSupplierId">Default Supplier (Optional)</Label>
             <Select
-              value={form.watch("defaultSupplierId")?.toString() || "none"}
-              onValueChange={(value) => form.setValue("defaultSupplierId", value === "none" ? undefined : parseInt(value))}
+              value={form.watch("defaultSupplierId") || "none"}
+              onValueChange={(value) => form.setValue("defaultSupplierId", value === "none" ? undefined : value)}
             >
               <SelectTrigger data-testid="select-supplier">
                 <SelectValue placeholder="Select supplier (optional)" />

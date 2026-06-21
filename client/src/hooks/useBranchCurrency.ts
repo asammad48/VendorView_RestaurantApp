@@ -8,7 +8,7 @@ import type { Branch } from '@/types/schema';
  * @param branchId - The branch ID to get currency for
  * @returns Currency utilities and branch data
  */
-export const useBranchCurrency = (branchId?: number) => {
+export const useBranchCurrency = (branchId?: string) => {
   // Fetch branch data to get currency
   const { data: branchData, isLoading } = useQuery({
     queryKey: ['branch', branchId],

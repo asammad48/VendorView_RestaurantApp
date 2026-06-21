@@ -22,7 +22,7 @@ type AddTableFormData = z.infer<typeof addTableSchema>;
 interface AddTableModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  branchId?: number;
+  branchId?: string;
 }
 
 

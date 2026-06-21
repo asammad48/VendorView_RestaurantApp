@@ -102,7 +102,10 @@ export async function mockLogin(email: string, password: string) {
     
     // Store complete user object in single location
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userData));
-    
+
+    // Store full raw login response for downstream consumers
+    localStorage.setItem("login_response", JSON.stringify(data));
+
     return userData;
   } catch (error) {
     console.error('Login error:', error);

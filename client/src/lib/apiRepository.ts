@@ -11,6 +11,28 @@ import {
 import { PaginationResponse } from "../types/pagination";
 import { signalRService } from "../services/signalRService";
 
+// NSwag-generated client singletons
+import {
+  userClient,
+  genericClient,
+  entityClient,
+  branchClient,
+  locationClient,
+  menuCategoryClient,
+  subMenuItemsClient,
+  menuItemClient,
+  dealsClient,
+  discountClient,
+  orderClient,
+  reservationsClient,
+  branchServicesClient,
+  subscriptionsClient as subscriptionsNswagClient,
+  inventoryClient,
+  issuesReportingClient,
+  customerSearchClient,
+  vendorDashboardClient,
+} from "../generated/nswag/api-client";
+
 // Generic API Repository with error handling and token management
 export interface ApiResponse<T> {
   data?: T;
@@ -795,22 +817,10 @@ export const defaultApiConfig: ApiConfig = {
 
 // Chef API Helper Functions
 export const chefApi = {
-  // Get branch ID for chef user
-  getChefBranch: async (): Promise<{ branchId: number }> => {
-    const response = await apiRepository.call<{ branchId: number }>(
-      "getChefBranch",
-      "GET",
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    if (!response.data) {
-      throw new Error("Failed to fetch chef branch");
-    }
-
-    return response.data;
+  getChefBranch: async (): Promise<{ branchId: string }> => {
+    const data = await userClient.UserGetChefBranchGet();
+    if (!data) throw new Error("Failed to fetch chef branch");
+    return data;
   },
 };
 
@@ -822,816 +832,475 @@ export const apiRepository = new ApiRepository(defaultApiConfig);
 
 // Branch API Helper Functions
 export const branchApi = {
-  // Get all branches by entity ID
-  getBranchesByEntity: async (entityId: number): Promise<any[]> => {
-    const response = await apiRepository.call(
-      "getBranchesByEntity",
-      "GET",
-      undefined,
-      {},
-      true,
-      { entityId },
-    );
-    return Array.isArray(response.data) ? response.data : [];
+  getBranchesByEntity: async (entityId: string): Promise<any[]> => {
+    return branchClient.BranchGetBranchesByEntityGet(entityId);
   },
 
-  // Get branch by ID
-  getBranchById: async (branchId: number) => {
-    const response = await apiRepository.call(
-      "getBranchById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: branchId },
-    );
-    return response.data;
+  getBranchById: async (branchId: string) => {
+    return branchClient.BranchGetBranchByIdGet(branchId);
   },
 
-  // Create new branch with FormData
   createBranch: async (branchData: any, logoFile?: File, bannerFile?: File) => {
     const formData = new FormData();
-
-    // Add text fields
     Object.keys(branchData).forEach((key) => {
       if (branchData[key] !== undefined && branchData[key] !== null) {
         formData.append(key, branchData[key].toString());
       }
     });
+    if (logoFile) formData.append("RestaurantLogo", logoFile);
+    if (bannerFile) formData.append("RestaurantBanner", bannerFile);
 
-    // Add files if provided
-    if (logoFile) {
-      formData.append("RestaurantLogo", logoFile);
-    }
-    if (bannerFile) {
-      formData.append("RestaurantBanner", bannerFile);
-    }
-
-      const response = await apiRepository.call("createBranch", "POST", formData);
-      if (response.error) {
-          throw new Error(response.error);
-      }
-
-      if (!response.data) {
-          throw new Error("Failed to create branch");
-      }
-    return response.data;
+    const data = await branchClient.BranchCreateBranchPost(formData);
+    if (!data) throw new Error("Failed to create branch");
+    return data;
   },
 
-  // Update branch with FormData
   updateBranch: async (
-    branchId: number,
+    branchId: string,
     branchData: any,
     logoFile?: File,
     bannerFile?: File,
   ) => {
-    console.log("updateBranch called with:", {
-      branchId,
-      branchData,
-      logoFile,
-      bannerFile,
-    });
-
     const formData = new FormData();
-
-    // Add text fields - Make sure EntityId is included
     Object.keys(branchData).forEach((key) => {
       if (branchData[key] !== undefined && branchData[key] !== null) {
-        console.log(`Adding field ${key}:`, branchData[key]);
         formData.append(key, branchData[key].toString());
       }
     });
+    if (logoFile) formData.append("RestaurantLogo", logoFile);
+    if (bannerFile) formData.append("RestaurantBanner", bannerFile);
 
-    // Add files if provided - for updates, these should be optional but backend requires them
-    // If no new files provided, we should not include empty file fields
-    if (logoFile) {
-      formData.append("RestaurantLogo", logoFile);
-      console.log("Added logo file to form data");
-    }
-    if (bannerFile) {
-      formData.append("RestaurantBanner", bannerFile);
-      console.log("Added banner file to form data");
-    }
-
-    console.log("Sending PUT request to update branch...");
-    console.log("FormData being sent for update branch:");
-    // Log formData contents for debugging
-    console.log(
-      "Number of form entries:",
-      Array.from(formData.entries()).length,
-    );
-
-    const response = await apiRepository.call(
-      "updateBranch",
-      "PUT",
-      formData,
-      {},
-      true,
-      { id: branchId },
-    );
-    console.log("Update branch response:", response);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+    return branchClient.BranchUpdateBranchPut(branchId, formData);
   },
 
-  // Delete branch
-  deleteBranch: async (branchId: number) => {
-    const response = await apiRepository.call(
-      "deleteBranch",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: branchId },
-    );
-    return response.data;
+  deleteBranch: async (branchId: string) => {
+    return branchClient.BranchDeleteBranchDelete(branchId);
   },
 
-  // Get branch configuration
-  getBranchConfiguration: async (branchId: number) => {
-    const response = await apiRepository.call(
-      "getBranchConfiguration",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: branchId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  getBranchConfiguration: async (branchId: string) => {
+    return branchClient.BranchGetBranchConfigurationGet(branchId);
   },
 
-  // Update branch configuration
-  updateBranchConfiguration: async (branchId: number, configData: any) => {
-    const response = await apiRepository.call(
-      "updateBranchConfiguration",
-      "PUT",
-      configData,
-      {},
-      true,
-      { id: branchId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  updateBranchConfiguration: async (branchId: string, configData: any) => {
+    return branchClient.BranchUpdateBranchConfigurationPut(branchId, configData);
   },
 };
 
 // Entity API Helper Functions
 export const entityApi = {
-  // Get entity primary color - using generic API repository with dynamic Bearer token
-  getEntityPrimaryColor: async (entityId: number) => {
-    const response = await apiRepository.call(
-      "getEntityPrimaryColor",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: entityId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  getEntityPrimaryColor: async (entityId: string) => {
+    return entityClient.EntityGetEntityPrimaryColorGet(entityId);
   },
 
-  // Update entity primary color - using generic API repository with dynamic Bearer token
-  updateEntityPrimaryColor: async (entityId: number, primaryColor: string) => {
-    const requestData = { primaryColor };
-    const response = await apiRepository.call(
-      "updateEntityPrimaryColor",
-      "PUT",
-      requestData,
-      {},
-      true,
-      { id: entityId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  updateEntityPrimaryColor: async (entityId: string, primaryColor: string) => {
+    return entityClient.EntityUpdateEntityPrimaryColorPut(entityId, { primaryColor });
   },
 };
 
 // User API Helper Functions
 export const userApi = {
-  // Get users with pagination
   getUsers: async (queryString: string) => {
-    // For query parameters, we need to modify the endpoint temporarily
-    const originalEndpoint = apiRepository.getConfig().endpoints["getUsers"];
-    apiRepository.updateEndpoint(
-      "getUsers",
-      `${originalEndpoint}?${queryString}`,
-    );
-
-    const response = await apiRepository.call(
-      "getUsers",
-      "GET",
-      undefined,
-      {},
-      true,
-    );
-
-    // Restore original endpoint
-    apiRepository.updateEndpoint("getUsers", originalEndpoint);
-
-    return response;
+    try {
+      const data = await userClient.UserGetUsersGet(queryString);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get user by ID
   getUserById: async (userId: string) => {
-    return await apiRepository.call("getUserById", "GET", undefined, {}, true, {
-      id: userId,
-    });
+    try {
+      const data = await userClient.UserGetUserByIdGet(userId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Create user with FormData
   createUser: async (formData: FormData) => {
-    return await apiRepository.call("createUser", "POST", formData);
+    try {
+      const data = await userClient.UserCreateUserPost(formData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Update user with JSON
   updateUser: async (userData: any) => {
-    return await apiRepository.call("updateUser", "PUT", userData);
+    try {
+      const data = await userClient.UserUpdateUserPut(userData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Delete user
   deleteUser: async (userId: string) => {
-    return await apiRepository.call(
-      "deleteUser",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: userId },
-    );
+    try {
+      const data = await userClient.UserDeleteUserDelete(userId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 };
 
 // Generic API Helper Functions
 export const genericApi = {
-  // Get roles
   getRoles: async () => {
-    return await apiRepository.call("getRoles", "GET", undefined, {}, false);
+    try {
+      const data = await genericClient.GenericGetRolesGet();
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get entities and branches
   getEntitiesAndBranches: async () => {
-    return await apiRepository.call("getEntitiesAndBranches", "GET");
+    try {
+      const data = await genericClient.GenericGetEntitiesAndBranchesGet();
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get currencies
   getCurrencies: async () => {
-    return await apiRepository.call(
-      "getCurrencies",
-      "GET",
-      undefined,
-      {},
-      false,
-    );
+    try {
+      const data = await genericClient.GenericGetCurrenciesGet();
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get timezones
   getTimezones: async () => {
-    return await apiRepository.call(
-      "getTimezones",
-      "GET",
-      undefined,
-      {},
-      false,
-    );
+    try {
+      const data = await genericClient.GenericGetTimezonesGet();
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get reservation status types
   getReservationStatusTypes: async () => {
-    return await apiRepository.call(
-      "getReservationStatusTypes",
-      "GET",
-      undefined,
-      {},
-      false,
-    );
+    try {
+      const data = await genericClient.GenericGetReservationStatusTypesGet();
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get bug severities
   getBugSeverities: async () => {
-    return await apiRepository.call(
-      "getBugSeverities",
-      "GET",
-      undefined,
-      {},
-      false,
-    );
+    try {
+      const data = await genericClient.GenericGetBugSeveritiesGet();
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get bug categories
   getBugCategories: async () => {
-    return await apiRepository.call(
-      "getBugCategories",
-      "GET",
-      undefined,
-      {},
-      false,
-    );
+    try {
+      const data = await genericClient.GenericGetBugCategoriesGet();
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 };
 
 // Location/Table API Helper Functions
 export const locationApi = {
-  // Create a new table/location
   createLocation: async (locationData: {
-    branchId: number;
+    branchId: string;
     name: string;
     capacity: number;
   }) => {
-    return await apiRepository.call("createLocation", "POST", locationData);
+    try {
+      const data = await locationClient.LocationCreateLocationPost(locationData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get location by ID
   getLocationById: async (locationId: string) => {
-    return await apiRepository.call(
-      "getLocationById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: locationId },
-    );
+    try {
+      const data = await locationClient.LocationGetLocationByIdGet(locationId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get locations by branch ID
-  getLocationsByBranch: async (branchId: number) => {
-    return await apiRepository.call(
-      "getLocationsByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId: branchId.toString() },
-    );
+  getLocationsByBranch: async (branchId: string) => {
+    try {
+      const data = await locationClient.LocationGetLocationsByBranchGet(branchId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Update location
   updateLocation: async (
     locationId: string,
-    locationData: { branchId?: number; name?: string; capacity?: number },
+    locationData: { branchId?: string; name?: string; capacity?: number },
   ) => {
-    return await apiRepository.call(
-      "updateLocation",
-      "PUT",
-      locationData,
-      {},
-      true,
-      { id: locationId },
-    );
+    try {
+      const data = await locationClient.LocationUpdateLocationPut(locationId, locationData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Delete location
   deleteLocation: async (locationId: string) => {
-    return await apiRepository.call(
-      "deleteLocation",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: locationId },
-    );
+    try {
+      const data = await locationClient.LocationDeleteLocationDelete(locationId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 };
 
 // Bug Reporting API Helper Functions
 export const bugReportingApi = {
-  // Create bug report with FormData
   createBugReport: async (formData: FormData) => {
-    return await apiRepository.call("createIssueReport", "POST", formData);
+    try {
+      const data = await issuesReportingClient.IssuesReportingCreateIssuePost(formData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 };
 
 // Auth API Helper Functions
 export const authApi = {
-  // Login
   login: async (credentials: { email: string; password: string }) => {
-    return await apiRepository.call(
-      "login",
-      "POST",
-      credentials,
-      undefined,
-      false,
-    );
+    try {
+      const data = await userClient.UserLoginPost(credentials);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Signup
   signup: async (userData: any) => {
-    return await apiRepository.call(
-      "signup",
-      "POST",
-      userData,
-      undefined,
-      false,
-    );
+    try {
+      const data = await userClient.UserSignupPost(userData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 };
 
 // MenuItem API Helper Functions
 export const menuItemApi = {
-  // Get simple menu items by branch ID (for deals)
-  getSimpleMenuItemsByBranch: async (branchId: number) => {
-    return await apiRepository.call(
-      "getMenuItemsSimpleByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
+  getSimpleMenuItemsByBranch: async (branchId: string) => {
+    try {
+      const data = await menuItemClient.MenuItemGetMenuItemsSimpleByBranchGet(branchId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get detailed menu items by branch ID with pagination
   getMenuItemsByBranch: async (
-    branchId: number,
+    branchId: string,
     pageNumber: number = 1,
     pageSize: number = 6,
     sortBy: string = "createdAt",
     isAscending: boolean = false,
     searchTerm?: string,
   ): Promise<any> => {
-    const params = new URLSearchParams({
-      PageNumber: pageNumber.toString(),
-      PageSize: pageSize.toString(),
+    return menuItemClient.MenuItemGetMenuItemsByBranchGet(branchId, {
+      PageNumber: pageNumber,
+      PageSize: pageSize,
       SortBy: sortBy,
-      IsAscending: isAscending.toString(),
+      IsAscending: isAscending,
+      SearchTerm: searchTerm,
     });
-
-    if (searchTerm) {
-      params.append("SearchTerm", searchTerm);
-    }
-
-    // Update endpoint with query parameters
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getMenuItemsByBranch"];
-    const endpointWithPath = originalEndpoint.replace(
-      "{branchId}",
-      branchId.toString(),
-    );
-    apiRepository.updateEndpoint(
-      "getMenuItemsByBranch",
-      `${endpointWithPath}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call(
-      "getMenuItemsByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-    );
-
-    // Restore original endpoint
-    apiRepository.updateEndpoint("getMenuItemsByBranch", originalEndpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
   },
 
-  // Get menu item by ID
   getMenuItemById: async (menuItemId: number) => {
-    return await apiRepository.call(
-      "getMenuItemById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: menuItemId },
-    );
+    try {
+      const data = await menuItemClient.MenuItemGetMenuItemByIdGet(menuItemId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 };
 
 // SubMenuItems API Helper Functions
 export const subMenuItemApi = {
-  // Get simple SubMenuItems by branch ID (for modifiers)
-  getSimpleSubMenuItemsByBranch: async (branchId: number) => {
-    return await apiRepository.call(
-      "getSubMenusSimpleByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
+  getSimpleSubMenuItemsByBranch: async (branchId: string) => {
+    try {
+      const data = await subMenuItemsClient.SubMenuItemsGetSubMenusSimpleByBranchGet(branchId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get detailed SubMenuItems by branch ID with pagination
   getSubMenuItemsByBranch: async (
-    branchId: number,
+    branchId: string,
     pageNumber: number = 1,
     pageSize: number = 6,
     sortBy: string = "createdAt",
     isAscending: boolean = false,
     searchTerm?: string,
   ): Promise<any> => {
-    const params = new URLSearchParams({
-      PageNumber: pageNumber.toString(),
-      PageSize: pageSize.toString(),
+    return subMenuItemsClient.SubMenuItemsGetSubMenusByBranchGet(branchId, {
+      PageNumber: pageNumber,
+      PageSize: pageSize,
       SortBy: sortBy,
-      IsAscending: isAscending.toString(),
+      IsAscending: isAscending,
+      SearchTerm: searchTerm,
     });
-
-    if (searchTerm) {
-      params.append("SearchTerm", searchTerm);
-    }
-
-    // Update endpoint with query parameters
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getSubMenusByBranch"];
-    const endpointWithPath = originalEndpoint.replace(
-      "{branchId}",
-      branchId.toString(),
-    );
-    apiRepository.updateEndpoint(
-      "getSubMenusByBranch",
-      `${endpointWithPath}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call(
-      "getSubMenusByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-    );
-
-    // Restore original endpoint
-    apiRepository.updateEndpoint("getSubMenusByBranch", originalEndpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
   },
 
-  // Get SubMenuItem by ID
   getSubMenuItemById: async (subMenuItemId: number) => {
-    return await apiRepository.call(
-      "getSubMenuById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: subMenuItemId },
-    );
+    try {
+      const data = await subMenuItemsClient.SubMenuItemsGetSubMenuByIdGet(subMenuItemId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Update SubMenuItem
   updateSubMenuItem: async (
     subMenuItemId: number,
     subMenuItemData: { name: string; price: number },
   ) => {
-    return await apiRepository.call(
-      "updateSubMenu",
-      "PUT",
-      subMenuItemData,
-      {},
-      true,
-      { id: subMenuItemId },
-    );
+    try {
+      const data = await subMenuItemsClient.SubMenuItemsUpdateSubMenuPut(subMenuItemId, subMenuItemData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Delete SubMenuItem
   deleteSubMenuItem: async (subMenuItemId: number) => {
-    return await apiRepository.call(
-      "deleteSubMenu",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: subMenuItemId },
-    );
+    try {
+      const data = await subMenuItemsClient.SubMenuItemsDeleteSubMenuDelete(subMenuItemId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 };
 
 // MenuCategory API Helper Functions
 export const menuCategoryApi = {
-  // Get menu categories by branch ID with pagination
   getMenuCategoriesByBranch: async (
-    branchId: number,
+    branchId: string,
     pageNumber: number = 1,
     pageSize: number = 6,
     sortBy: string = "createdAt",
     isAscending: boolean = false,
     searchTerm?: string,
   ): Promise<any> => {
-    const params = new URLSearchParams({
-      PageNumber: pageNumber.toString(),
-      PageSize: pageSize.toString(),
+    return menuCategoryClient.MenuCategoryGetMenuCategoriesByBranchGet(branchId, {
+      PageNumber: pageNumber,
+      PageSize: pageSize,
       SortBy: sortBy,
-      IsAscending: isAscending.toString(),
+      IsAscending: isAscending,
+      SearchTerm: searchTerm,
     });
-
-    if (searchTerm) {
-      params.append("SearchTerm", searchTerm);
-    }
-
-    // Update endpoint with query parameters
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getMenuCategoriesByBranch"];
-    const endpointWithPath = originalEndpoint.replace(
-      "{branchId}",
-      branchId.toString(),
-    );
-    apiRepository.updateEndpoint(
-      "getMenuCategoriesByBranch",
-      `${endpointWithPath}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call(
-      "getMenuCategoriesByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-    );
-
-    // Restore original endpoint
-    apiRepository.updateEndpoint("getMenuCategoriesByBranch", originalEndpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
   },
 
-  // Get menu category by ID
   getMenuCategoryById: async (categoryId: number) => {
-    return await apiRepository.call(
-      "getMenuCategoryById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: categoryId },
-    );
-  },
-
-  // Create menu category
-  createMenuCategory: async (categoryData: any) => {
-    return await apiRepository.call("createMenuCategory", "POST", categoryData);
-  },
-
-  // Update menu category
-  updateMenuCategory: async (categoryId: number, categoryData: any) => {
-    return await apiRepository.call(
-      "updateMenuCategory",
-      "PUT",
-      categoryData,
-      {},
-      true,
-      { id: categoryId },
-    );
-  },
-
-  // Delete menu category
-  deleteMenuCategory: async (categoryId: number) => {
-    return await apiRepository.call(
-      "deleteMenuCategory",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: categoryId },
-    );
-  },
-
-  // Get simple menu categories by branch ID (no pagination)
-  getMenuCategoriesSimpleByBranch: async (branchId: number) => {
-    const response = await apiRepository.call<MenuCategory[]>(
-      "getMenuCategoriesSimpleByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
+    try {
+      const data = await menuCategoryClient.MenuCategoryGetMenuCategoryByIdGet(categoryId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
     }
+  },
 
-    return response.data || [];
+  createMenuCategory: async (categoryData: any) => {
+    try {
+      const data = await menuCategoryClient.MenuCategoryCreateMenuCategoryPost(categoryData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
+  },
+
+  updateMenuCategory: async (categoryId: number, categoryData: any) => {
+    try {
+      const data = await menuCategoryClient.MenuCategoryUpdateMenuCategoryPut(categoryId, categoryData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
+  },
+
+  deleteMenuCategory: async (categoryId: number) => {
+    try {
+      const data = await menuCategoryClient.MenuCategoryDeleteMenuCategoryDelete(categoryId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
+  },
+
+  getMenuCategoriesSimpleByBranch: async (branchId: string): Promise<MenuCategory[]> => {
+    return menuCategoryClient.MenuCategoryGetMenuCategoriesSimpleByBranchGet(branchId) as Promise<MenuCategory[]>;
   },
 };
 
 // Deals API Helper Functions
 export const dealsApi = {
-  // Create a new deal
   createDeal: async (dealData: any) => {
-    return await apiRepository.call("createDeal", "POST", dealData);
+    try {
+      const data = await dealsClient.DealsCreateDealPost(dealData);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
+    }
   },
 
-  // Get deals by branch with pagination (using Generic API repository)
   getDealsByBranch: async (
-    branchId: number,
+    branchId: string,
     queryParams?: { [key: string]: string },
   ) => {
-    const response = await apiRepository.call<{
-      items: Deal[];
-      pageNumber: number;
-      pageSize: number;
-      totalCount: number;
-      totalPages: number;
-      hasPrevious: boolean;
-      hasNext: boolean;
-    }>("getDealsByBranch", "GET", undefined, queryParams, true, { branchId });
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+    return dealsClient.DealsGetDealsByBranchGet(branchId, undefined, queryParams);
   },
 
-  // Get all deals with pagination (legacy method - kept for compatibility)
-  getDeals: async (branchId: number, queryString?: string) => {
-    if (!branchId) {
-      throw new Error("Branch ID is required");
+  getDeals: async (branchId: string, queryString?: string) => {
+    if (!branchId) throw new Error("Branch ID is required");
+    try {
+      const data = await dealsClient.DealsGetDealsByBranchGet(branchId);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
     }
-    const endpoint = queryString
-      ? `/api/Deals/branch/${branchId}?${queryString}`
-      : `/api/Deals/branch/${branchId}`;
-    return await apiRepository.get(endpoint);
   },
 
-  // Get deal by ID (using Generic API repository)
-  getDealById: async (dealId: number) => {
-    const response = await apiRepository.call<Deal>(
-      "getDealById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: dealId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+  getDealById: async (dealId: string) => {
+    return dealsClient.DealsGetDealByIdGet(dealId);
   },
 
-  // Update deal (using Generic API repository)
-  updateDeal: async (dealId: number, dealData: any) => {
-    const response = await apiRepository.call<void>(
-      "updateDeal",
-      "PUT",
-      dealData,
-      {},
-      true,
-      { id: dealId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+  updateDeal: async (dealId: string, dealData: any) => {
+    return dealsClient.DealsUpdateDealPut(dealId, dealData);
   },
 
-  // Delete deal (using Generic API repository)
   deleteDeal: async (dealId: number) => {
-    const response = await apiRepository.call<void>(
-      "deleteDeal",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: dealId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+    return dealsClient.DealsDeleteDealDelete(dealId);
   },
 };
 
-// Discount API endpoints using Generic API repository with new pagination format
+// Discount API endpoints
 export const discountsApi = {
-  // Get discounts by branch with pagination (matching new API format)
   getDiscountsByBranch: async (
-    branchId: number,
+    branchId: string,
     queryParams?: {
       PageNumber?: number;
       PageSize?: number;
@@ -1640,504 +1309,161 @@ export const discountsApi = {
       SearchTerm?: string;
     },
   ) => {
-    const params = new URLSearchParams({
-      PageNumber: (queryParams?.PageNumber || 1).toString(),
-      PageSize: (queryParams?.PageSize || 10).toString(),
-    });
-
-    if (queryParams?.SortBy) {
-      params.append("SortBy", queryParams.SortBy);
+    try {
+      const data = await discountClient.DiscountGetDiscountsByBranchGet(branchId, queryParams);
+      return { data, status: 200 } as ApiResponse<any>;
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Error", status: 0 } as ApiResponse<any>;
     }
-
-    if (queryParams?.IsAscending !== undefined) {
-      params.append("IsAscending", queryParams.IsAscending.toString());
-    }
-
-    if (queryParams?.SearchTerm) {
-      params.append("SearchTerm", queryParams.SearchTerm);
-    }
-
-    // For query parameters, modify the endpoint temporarily
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getDiscountsByBranch"];
-    apiRepository.updateEndpoint(
-      "getDiscountsByBranch",
-      `${originalEndpoint}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call(
-      "getDiscountsByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
-
-    // Restore original endpoint
-    apiRepository.updateEndpoint("getDiscountsByBranch", originalEndpoint);
-
-    return response;
   },
 
-  // Get discount by ID
   getDiscountById: async (discountId: number) => {
-    const response = await apiRepository.call(
-      "getDiscountById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: discountId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+    return discountClient.DiscountGetDiscountByIdGet(discountId);
   },
 
-  // Create discount using Generic API repository
   createDiscount: async (discountData: any) => {
-    const response = await apiRepository.call(
-      "createDiscount",
-      "POST",
-      discountData,
-      {},
-      true,
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response;
+    const data = await discountClient.DiscountCreateDiscountPost(discountData);
+    return { data, status: 200 } as ApiResponse<any>;
   },
 
-  // Update discount using Generic API repository
   updateDiscount: async (discountId: number, discountData: any) => {
-    const response = await apiRepository.call(
-      "updateDiscount",
-      "PUT",
-      discountData,
-      {},
-      true,
-      { id: discountId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response;
+    const data = await discountClient.DiscountUpdateDiscountPut(discountId, discountData);
+    return { data, status: 200 } as ApiResponse<any>;
   },
 
-  // Delete discount using Generic API repository
   deleteDiscount: async (discountId: number) => {
-    const response = await apiRepository.call(
-      "deleteDiscount",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: discountId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response;
+    const data = await discountClient.DiscountDeleteDiscountDelete(discountId);
+    return { data, status: 200 } as ApiResponse<any>;
   },
 
-  // Get simple menu items by branch using Generic API repository
-  getMenuItemsSimpleByBranch: async (branchId: number) => {
-    const response = await apiRepository.call(
-      "getMenuItemsSimpleByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+  getMenuItemsSimpleByBranch: async (branchId: string) => {
+    return menuItemClient.MenuItemGetMenuItemsSimpleByBranchGet(branchId);
   },
 
-  // Get simple deals by branch using Generic API repository
-  getDealsSimpleByBranch: async (branchId: number) => {
-    const response = await apiRepository.call(
-      "getDealsSimpleByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+  getDealsSimpleByBranch: async (branchId: string) => {
+    return dealsClient.DealsGetDealsSimpleByBranchGet(branchId);
   },
 
-  // Get simple discounts by branch using Generic API repository
-  getDiscountsSimpleByBranch: async (branchId: number) => {
-    const response = await apiRepository.call(
-      "getDiscountsSimpleByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+  getDiscountsSimpleByBranch: async (branchId: string) => {
+    return discountClient.DiscountGetDiscountsSimpleByBranchGet(branchId);
   },
 
-  // Apply bulk discount to deals
-  applyBulkDiscountToDeals: async (dealIds: number[], discountId: number) => {
-    const response = await apiRepository.call(
-      "bulkDiscountDeals",
-      "PUT",
-      {
-        dealIds,
-        discountId,
-      },
-      {},
-      true,
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response;
+  applyBulkDiscountToDeals: async (dealIds: string[], discountId: string) => {
+    const data = await dealsClient.DealsBulkDiscountDealsPut({ dealIds, discountId } as any);
+    return { data, status: 200 } as ApiResponse<any>;
   },
 
-  // Apply bulk discount to menu items
-  applyBulkDiscountToMenu: async (
-    menuItemIds: number[],
-    discountId: number,
-  ) => {
-    const response = await apiRepository.call(
-      "bulkDiscountMenu",
-      "PUT",
-      {
-        menuItemIds,
-        discountId,
-      },
-      {},
-      true,
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response;
+  applyBulkDiscountToMenu: async (menuItemIds: string[], discountId: string) => {
+    const data = await menuItemClient.MenuItemBulkDiscountMenuPut({ menuItemIds, discountId } as any);
+    return { data, status: 200 } as ApiResponse<any>;
   },
 };
 
 // Orders API Helper Functions
 export const ordersApi = {
-  // Get orders by branch with pagination using Generic API repository
   getOrdersByBranch: async (
-    branchId: number,
+    branchId: string,
     pageNumber: number = 1,
     pageSize: number = 10,
     sortBy: string = "createdAt",
     isAscending: boolean = false,
     searchTerm: string = "",
     statuses: string[] = [],
-  ) => {
-    const params = new URLSearchParams({
-      BranchId: branchId.toString(),
-      PageNumber: pageNumber.toString(),
-      PageSize: pageSize.toString(),
+  ): Promise<PaginationResponse<DetailedOrder> | null> => {
+    return orderClient.OrderGetOrdersByBranchGet({
+      BranchId: branchId,
+      PageNumber: pageNumber,
+      PageSize: pageSize,
       SortBy: sortBy,
-      IsAscending: isAscending.toString(),
+      IsAscending: isAscending,
+      SearchTerm: searchTerm || undefined,
+      Status: statuses.length > 0 ? statuses.join(",") : undefined,
     });
-
-    if (searchTerm) {
-      params.append("SearchTerm", searchTerm);
-    }
-
-    if (statuses.length > 0) {
-      params.append("Status", statuses.join(","));
-    }
-
-    // For query parameters, modify the endpoint temporarily
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getOrdersByBranch"];
-    apiRepository.updateEndpoint(
-      "getOrdersByBranch",
-      `${originalEndpoint}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call<
-      PaginationResponse<DetailedOrder>
-    >("getOrdersByBranch", "GET", undefined, {}, true);
-
-    // Restore original endpoint
-    apiRepository.updateEndpoint("getOrdersByBranch", originalEndpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
   },
 
-  // Get order status types from API
-  getOrderStatusTypes: async () => {
-    const response = await apiRepository.call<
-      Array<{ id: number; name: string }>
-    >("getOrderStatusTypes", "GET");
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data || [];
+  getOrderStatusTypes: async (): Promise<Array<{ id: number; name: string }>> => {
+    return genericClient.GenericGetOrderStatusTypesGet();
   },
 
-  // Update order status
   updateOrderStatus: async (
     orderId: number,
     statusId: number,
     comments: string = "No",
   ) => {
-    const response = await apiRepository.call<{
-      orderId: number;
-      orderStatus: string;
-    }>("updateOrderStatus", "PUT", {
-      orderId: orderId,
+    return orderClient.OrderUpdateOrderStatusPut({
+      orderId,
       status: statusId,
-      comments: comments,
+      comments,
     });
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
   },
 };
 
 // Services API Helper Functions
 export const servicesApi = {
-  // Get services by entity type (2 for restaurant)
   getServicesByType: async (entityType: number): Promise<Service[]> => {
-    const response = await apiRepository.call<Service[]>(
-      "getServicesByType",
-      "GET",
-      undefined,
-      {},
-      true,
-      { entityType },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data || [];
+    return genericClient.GenericGetServicesByTypeGet(entityType) as Promise<Service[]>;
   },
 
-  // Get branch services
-  getBranchServices: async (branchId: number): Promise<BranchService[]> => {
-    const response = await apiRepository.call<BranchService[]>(
-      "getBranchServices",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data || [];
+  getBranchServices: async (branchId: string): Promise<BranchService[]> => {
+    return branchServicesClient.BranchServicesGetBranchServicesGet(branchId) as Promise<BranchService[]>;
   },
 
-  // Update branch services (PUT with array of service objects with price)
   updateBranchServices: async (
-    branchId: number,
+    branchId: string,
     services: Array<{ serviceId: number; price: number }>,
   ) => {
-    const response = await apiRepository.call(
-      "updateBranchServices",
-      "PUT",
-      services,
-      {},
-      true,
-      { branchId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response;
+    const data = await branchServicesClient.BranchServicesUpdateBranchServicesPut(branchId, services);
+    return { data, status: 200 } as ApiResponse<any>;
   },
 };
 
 // Subscription API Helper Functions
 export const subscriptionsApi = {
-  // Get subscriptions by branch (using unique endpoint keys to avoid race conditions)
   getSubscriptionsByBranch: async (
-    branchId: number,
+    branchId: string,
   ): Promise<import("../types/schema").Subscription[]> => {
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getSubscriptionsByBranch"];
-    const uniqueKey = `getSubscriptionsByBranch-${Date.now()}-${Math.random()}`;
-
-    // Add unique temporary endpoint with query params
-    apiRepository.updateEndpoint(
-      uniqueKey,
-      `${originalEndpoint}?branchId=${branchId}`,
-    );
-
-    try {
-      const response = await apiRepository.call<
-        import("../types/schema").Subscription[]
-      >(uniqueKey, "GET", undefined, {}, true);
-
-      // Throw error to let React Query error boundary handle it
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      // Return empty array only if the API successfully returned no data
-      return Array.isArray(response.data) ? response.data : [];
-    } finally {
-      // Always cleanup the temporary endpoint
-      delete apiRepository.getConfig().endpoints[uniqueKey];
-    }
+    const result = await subscriptionsNswagClient.SubscriptionsGetSubscriptionsByBranchGet(branchId);
+    return Array.isArray(result) ? result : [];
   },
 
-  // Apply subscription
   applySubscription: async (
     data: import("../types/schema").ApplySubscriptionRequest,
   ): Promise<import("../types/schema").ApplySubscriptionResponse> => {
-    const response = await apiRepository.call<
-      import("../types/schema").ApplySubscriptionResponse
-    >("applySubscription", "POST", data, {}, true);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    if (!response.data) {
-      throw new Error("Failed to apply subscription");
-    }
-
-    return response.data;
+    const result = await subscriptionsNswagClient.SubscriptionsApplySubscriptionPost(data);
+    if (!result) throw new Error("Failed to apply subscription");
+    return result;
   },
 
-  // Get current subscription for branch (using unique endpoint keys to avoid race conditions)
   getCurrentSubscription: async (
-    branchId: number,
+    branchId: string,
   ): Promise<import("../types/schema").Subscription | null> => {
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getCurrentSubscription"];
-    const uniqueKey = `getCurrentSubscription-${Date.now()}-${Math.random()}`;
-
-    // Add unique temporary endpoint with query params
-    apiRepository.updateEndpoint(
-      uniqueKey,
-      `${originalEndpoint}?branchId=${branchId}`,
-    );
-
-    try {
-      const response = await apiRepository.call<
-        import("../types/schema").Subscription
-      >(uniqueKey, "GET", undefined, {}, true);
-
-      // Throw error to let React Query error boundary handle it
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      // Return null if no subscription is found (but no error)
-      return response.data || null;
-    } finally {
-      // Always cleanup the temporary endpoint
-      delete apiRepository.getConfig().endpoints[uniqueKey];
-    }
+    return (await subscriptionsNswagClient.SubscriptionsGetCurrentSubscriptionGet(branchId)) || null;
   },
 
-  // Calculate prorated amount when changing subscription
   calculateProratedAmount: async (
     data: import("../types/schema").CalculateProratedAmountRequest,
   ): Promise<import("../types/schema").CalculateProratedAmountResponse> => {
-    const response = await apiRepository.call<
-      import("../types/schema").CalculateProratedAmountResponse
-    >("calculateProratedAmount", "POST", data, {}, true);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    if (!response.data) {
-      throw new Error("Failed to calculate prorated amount");
-    }
-
-    return response.data;
+    const result = await subscriptionsNswagClient.SubscriptionsCalculateProratedAmountPost(data);
+    if (!result) throw new Error("Failed to calculate prorated amount");
+    return result;
   },
 
-  // Change subscription plan
   changeSubscription: async (
     data: import("../types/schema").ChangeSubscriptionRequest,
   ): Promise<import("../types/schema").ChangeSubscriptionResponse> => {
-    const response = await apiRepository.call<
-      import("../types/schema").ChangeSubscriptionResponse
-    >("changeSubscription", "POST", data, {}, true);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    if (!response.data) {
-      throw new Error("Failed to change subscription");
-    }
-
-    return response.data;
+    const result = await subscriptionsNswagClient.SubscriptionsChangeSubscriptionPost(data);
+    if (!result) throw new Error("Failed to change subscription");
+    return result;
   },
 
-  // Cancel subscription
   cancelSubscription: async (
     data: import("../types/schema").CancelSubscriptionRequest,
   ): Promise<import("../types/schema").CancelSubscriptionResponse> => {
-    const response = await apiRepository.call<
-      import("../types/schema").CancelSubscriptionResponse
-    >("cancelSubscription", "POST", data, {}, true);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    if (!response.data) {
-      throw new Error("Failed to cancel subscription");
-    }
-
-    return response.data;
+    const result = await subscriptionsNswagClient.SubscriptionsCancelSubscriptionPost(data);
+    if (!result) throw new Error("Failed to cancel subscription");
+    return result;
   },
 
-  // Upload payment proof
   uploadPaymentProof: async (
     branchSubscriptionId: number,
     proofOfPayment: File,
@@ -2145,90 +1471,37 @@ export const subscriptionsApi = {
     const formData = new FormData();
     formData.append("BranchSubscriptionId", branchSubscriptionId.toString());
     formData.append("ProofOfPayment", proofOfPayment);
-
-    const response = await apiRepository.call<
-      import("../types/schema").UploadPaymentProofResponse
-    >("uploadPaymentProof", "POST", formData, {}, true);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    if (!response.data) {
-      throw new Error("Failed to upload payment proof");
-    }
-
-    return response.data;
+    const result = await subscriptionsNswagClient.SubscriptionsUploadPaymentProofPost(formData);
+    if (!result) throw new Error("Failed to upload payment proof");
+    return result;
   },
 };
 
 // Reservation API Helper Functions
 export const reservationApi = {
-  // Get reservations by branch with pagination
   getReservationsByBranch: async (
-    branchId: number,
+    branchId: string,
     pageNumber: number = 1,
     pageSize: number = 10,
     sortBy: string = "name",
     isAscending: boolean = true,
   ): Promise<any> => {
-    const params = new URLSearchParams({
-      PageNumber: pageNumber.toString(),
-      PageSize: pageSize.toString(),
+    return reservationsClient.ReservationsGetReservationsByBranchGet(branchId, {
+      PageNumber: pageNumber,
+      PageSize: pageSize,
       SortBy: sortBy,
-      IsAscending: isAscending.toString(),
+      IsAscending: isAscending,
     });
-
-    // Update endpoint with query parameters
-    const originalEndpoint =
-      apiRepository.getConfig().endpoints["getReservationsByBranch"];
-    const endpointWithPath = originalEndpoint.replace(
-      "{branchId}",
-      branchId.toString(),
-    );
-    apiRepository.updateEndpoint(
-      "getReservationsByBranch",
-      `${endpointWithPath}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call(
-      "getReservationsByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-    );
-
-    // Restore original endpoint
-    apiRepository.updateEndpoint("getReservationsByBranch", originalEndpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
   },
 
-  // Get reservation detail by ID
   getReservationDetail: async (
     reservationId: number,
   ): Promise<import("../types/schema").ReservationDetail> => {
-    const response = await apiRepository.call<
-      import("../types/schema").ReservationDetail
-    >("getReservationById", "GET", undefined, {}, true, { id: reservationId });
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    if (!response.data) {
-      throw new Error("Failed to fetch reservation");
-    }
-
-    return response.data;
+    const result = await reservationsClient.ReservationsGetReservationByIdGet(reservationId);
+    if (!result) throw new Error("Failed to fetch reservation");
+    return result;
   },
 
-  // Update reservation action (status and remarks)
   updateReservationAction: async (
     reservationId: number,
     actionData: {
@@ -2236,91 +1509,30 @@ export const reservationApi = {
       remarks?: string | null;
     },
   ): Promise<void> => {
-    const response = await apiRepository.call<void>(
-      "updateReservationAction",
-      "PUT",
-      actionData,
-      {},
-      true,
-      { id: reservationId },
-    );
-
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
+    await reservationsClient.ReservationsUpdateReservationActionPut(reservationId, actionData);
   },
 
-  // Get reservation status types
   getReservationStatusTypes: async () => {
-    const response = await apiRepository.call(
-      "getReservationStatusTypes",
-      "GET",
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data || [];
+    return genericClient.GenericGetReservationStatusTypesGet();
   },
 
-  // Create reservation
   createReservation: async (reservationData: any) => {
-    const response = await apiRepository.call(
-      "createReservation",
-      "POST",
-      reservationData,
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+    return reservationsClient.ReservationsCreateReservationPost(reservationData);
   },
 
-  // Update reservation
   updateReservation: async (reservationId: number, reservationData: any) => {
-    const response = await apiRepository.call(
-      "updateReservation",
-      "PUT",
-      reservationData,
-      {},
-      true,
-      { id: reservationId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+    return reservationsClient.ReservationsUpdateReservationPut(reservationId, reservationData);
   },
 
-  // Delete reservation
   deleteReservation: async (reservationId: number) => {
-    const response = await apiRepository.call(
-      "deleteReservation",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: reservationId },
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data;
+    return reservationsClient.ReservationsDeleteReservationDelete(reservationId);
   },
 };
 
 // Inventory API Helper Functions
 export const inventoryApi = {
-  // Get inventory categories by branch
   getInventoryCategories: async (
-    branchId: number,
+    branchId: string,
     paginationParams?: {
       PageNumber?: number;
       PageSize?: number;
@@ -2329,87 +1541,26 @@ export const inventoryApi = {
       SearchTerm?: string;
     },
   ) => {
-    const params = new URLSearchParams({ BranchId: branchId.toString() });
-
-    if (paginationParams) {
-      if (paginationParams.PageNumber)
-        params.append("PageNumber", paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize)
-        params.append("PageSize", paginationParams.PageSize.toString());
-      if (paginationParams.SortBy)
-        params.append("SortBy", paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined)
-        params.append("IsAscending", paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm)
-        params.append("SearchTerm", paginationParams.SearchTerm);
-    }
-
-    const baseEndpoint = "/api/inventory/categories";
-    apiRepository.updateEndpoint(
-      "getInventoryCategories",
-      `${baseEndpoint}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call("getInventoryCategories", "GET");
-    apiRepository.updateEndpoint("getInventoryCategories", baseEndpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+    return inventoryClient.InventoryGetInventoryCategoriesGet(branchId, paginationParams) ?? [];
   },
 
-  // Get inventory categories simple (non-paginated)
-  getInventoryCategoriesSimple: async (branchId: number) => {
-    const response = await apiRepository.call(
-      "getInventoryCategoriesSimple",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+  getInventoryCategoriesSimple: async (branchId: string) => {
+    return inventoryClient.InventoryGetInventoryCategoriesSimpleGet(branchId);
   },
 
-  // Create inventory category
   createInventoryCategory: async (categoryData: {
     name: string;
-    branchId: number;
+    branchId: string;
   }) => {
-    const response = await apiRepository.call(
-      "createInventoryCategory",
-      "POST",
-      categoryData,
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryCreateInventoryCategoryPost(categoryData);
   },
 
-  // Delete inventory category
-  deleteInventoryCategory: async (categoryId: number) => {
-    const response = await apiRepository.call(
-      "deleteInventoryCategory",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: categoryId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  deleteInventoryCategory: async (categoryId: string) => {
+    return inventoryClient.InventoryDeleteInventoryCategoryDelete(categoryId);
   },
 
-  // Get inventory suppliers by branch
   getInventorySuppliers: async (
-    branchId: number,
+    branchId: string,
     paginationParams?: {
       PageNumber?: number;
       PageSize?: number;
@@ -2418,75 +1569,26 @@ export const inventoryApi = {
       SearchTerm?: string;
     },
   ) => {
-    const params = new URLSearchParams({ branchId: branchId.toString() });
-
-    if (paginationParams) {
-      if (paginationParams.PageNumber)
-        params.append("PageNumber", paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize)
-        params.append("PageSize", paginationParams.PageSize.toString());
-      if (paginationParams.SortBy)
-        params.append("SortBy", paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined)
-        params.append("IsAscending", paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm)
-        params.append("SearchTerm", paginationParams.SearchTerm);
-    }
-
-    const baseEndpoint = "/api/inventory/suppliers";
-    apiRepository.updateEndpoint(
-      "getInventorySuppliers",
-      `${baseEndpoint}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call("getInventorySuppliers", "GET");
-    apiRepository.updateEndpoint("getInventorySuppliers", baseEndpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+    return inventoryClient.InventoryGetInventorySuppliersGet(branchId, paginationParams) ?? [];
   },
 
-  // Get inventory supplier by ID
-  getInventorySupplierById: async (supplierId: number) => {
-    const response = await apiRepository.call(
-      "getInventorySupplierById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: supplierId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  getInventorySupplierById: async (supplierId: string) => {
+    return inventoryClient.InventoryGetInventorySupplierByIdGet(supplierId);
   },
 
-  // Create inventory supplier
   createInventorySupplier: async (supplierData: {
     name: string;
     contactPerson: string;
     phone: string;
     email: string;
     address: string;
-    branchId: number;
+    branchId: string;
   }) => {
-    const response = await apiRepository.call(
-      "createInventorySupplier",
-      "POST",
-      supplierData,
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryCreateInventorySupplierPost(supplierData);
   },
 
-  // Update inventory supplier
   updateInventorySupplier: async (
-    supplierId: number,
+    supplierId: string,
     supplierData: {
       name: string;
       contactPerson: string;
@@ -2495,39 +1597,15 @@ export const inventoryApi = {
       address: string;
     },
   ) => {
-    const response = await apiRepository.call(
-      "updateInventorySupplier",
-      "PUT",
-      supplierData,
-      {},
-      true,
-      { id: supplierId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryUpdateInventorySupplierPut(supplierId, supplierData);
   },
 
-  // Delete inventory supplier
-  deleteInventorySupplier: async (supplierId: number) => {
-    const response = await apiRepository.call(
-      "deleteInventorySupplier",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: supplierId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  deleteInventorySupplier: async (supplierId: string) => {
+    return inventoryClient.InventoryDeleteInventorySupplierDelete(supplierId);
   },
 
-  // Get inventory items by branch
   getInventoryItemsByBranch: async (
-    branchId: number,
+    branchId: string,
     paginationParams?: {
       PageNumber?: number;
       PageSize?: number;
@@ -2536,144 +1614,49 @@ export const inventoryApi = {
       SearchTerm?: string;
     },
   ) => {
-    const params = new URLSearchParams();
-
-    if (paginationParams) {
-      if (paginationParams.PageNumber)
-        params.append("PageNumber", paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize)
-        params.append("PageSize", paginationParams.PageSize.toString());
-      if (paginationParams.SortBy)
-        params.append("SortBy", paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined)
-        params.append("IsAscending", paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm)
-        params.append("SearchTerm", paginationParams.SearchTerm);
-    }
-
-    const baseEndpoint = "/api/inventory/items/branch";
-    let endpoint = `${baseEndpoint}/${branchId}`;
-    if (params.toString()) {
-      endpoint = `${endpoint}?${params.toString()}`;
-    }
-    apiRepository.updateEndpoint("getInventoryItemsByBranch", endpoint);
-
-    const response = await apiRepository.call(
-      "getInventoryItemsByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-    );
-    apiRepository.updateEndpoint(
-      "getInventoryItemsByBranch",
-      baseEndpoint + "/{branchId}",
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+    return inventoryClient.InventoryGetInventoryItemsByBranchGet(branchId, paginationParams) ?? [];
   },
 
-  // Get inventory items simple (non-paginated)
-  getInventoryItemsSimpleByBranch: async (branchId: number) => {
-    const response = await apiRepository.call(
-      "getInventoryItemsSimpleByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+  getInventoryItemsSimpleByBranch: async (branchId: string) => {
+    return inventoryClient.InventoryGetInventoryItemsSimpleByBranchGet(branchId);
   },
 
-  // Get inventory item by ID
   getInventoryItemById: async (itemId: number) => {
-    const response = await apiRepository.call(
-      "getInventoryItemById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: itemId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryGetInventoryItemByIdGet(itemId);
   },
 
-  // Create inventory item
   createInventoryItem: async (itemData: {
     name: string;
-    categoryId: number;
-    branchId: number;
+    categoryId: string;
+    branchId: string;
     unit: string;
     price: number;
     reorderLevel: number;
-    defaultSupplierId?: number;
+    defaultSupplierId?: string;
   }) => {
-    const response = await apiRepository.call(
-      "createInventoryItem",
-      "POST",
-      itemData,
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryCreateInventoryItemPost(itemData as any);
   },
 
-  // Update inventory item
   updateInventoryItem: async (
-    itemId: number,
+    itemId: string,
     itemData: {
       name: string;
-      categoryId: number;
+      categoryId: string;
       unit: string;
       price: number;
       reorderLevel: number;
-      defaultSupplierId?: number;
+      defaultSupplierId?: string;
     },
   ) => {
-    const response = await apiRepository.call(
-      "updateInventoryItem",
-      "PUT",
-      itemData,
-      {},
-      true,
-      { id: itemId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryUpdateInventoryItemPut(itemId, itemData as any);
   },
 
-  // Delete inventory item
-  deleteInventoryItem: async (itemId: number) => {
-    const response = await apiRepository.call(
-      "deleteInventoryItem",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: itemId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  deleteInventoryItem: async (itemId: string) => {
+    return inventoryClient.InventoryDeleteInventoryItemDelete(itemId);
   },
 
-  // Get inventory stock by branch
   getInventoryStockByBranch: async (
-    branchId: number,
+    branchId: string,
     paginationParams?: {
       PageNumber?: number;
       PageSize?: number;
@@ -2682,63 +1665,18 @@ export const inventoryApi = {
       SearchTerm?: string;
     },
   ) => {
-    const params = new URLSearchParams();
-
-    if (paginationParams) {
-      if (paginationParams.PageNumber)
-        params.append("PageNumber", paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize)
-        params.append("PageSize", paginationParams.PageSize.toString());
-      if (paginationParams.SortBy)
-        params.append("SortBy", paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined)
-        params.append("IsAscending", paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm)
-        params.append("SearchTerm", paginationParams.SearchTerm);
-    }
-
-    const baseEndpoint = "/api/inventory/branch";
-    let endpoint = `${baseEndpoint}/${branchId}/stock`;
-    if (params.toString()) {
-      endpoint = `${endpoint}?${params.toString()}`;
-    }
-    apiRepository.updateEndpoint("getInventoryStockByBranch", endpoint);
-    const response = await apiRepository.call(
-      "getInventoryStockByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-    );
-    apiRepository.updateEndpoint("getInventoryStockByBranch", endpoint);
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+    return inventoryClient.InventoryGetInventoryStockByBranchGet(branchId, paginationParams) ?? [];
   },
 
-  // Update inventory stock
   updateInventoryStock: async (
-    branchId: number,
+    branchId: string,
     stockData: { inventoryItemId: number; newStock: number; reason: string },
   ) => {
-    const response = await apiRepository.call(
-      "updateInventoryStock",
-      "POST",
-      stockData,
-      {},
-      true,
-      { branchId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryUpdateInventoryStockPost(branchId, stockData);
   },
 
-  // Get inventory low stock by branch
   getInventoryLowStockByBranch: async (
-    branchId: number,
+    branchId: string,
     paginationParams?: {
       PageNumber?: number;
       PageSize?: number;
@@ -2747,65 +1685,21 @@ export const inventoryApi = {
       SearchTerm?: string;
     },
   ) => {
-    const params = new URLSearchParams();
-
-    if (paginationParams) {
-      if (paginationParams.PageNumber)
-        params.append("PageNumber", paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize)
-        params.append("PageSize", paginationParams.PageSize.toString());
-      if (paginationParams.SortBy)
-        params.append("SortBy", paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined)
-        params.append("IsAscending", paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm)
-        params.append("SearchTerm", paginationParams.SearchTerm);
-    }
-
-    const baseEndpoint = "/api/inventory/branch";
-    let endpoint = `${baseEndpoint}/${branchId}/low-stock`;
-    if (params.toString()) {
-      endpoint = `${endpoint}?${params.toString()}`;
-    }
-    apiRepository.updateEndpoint("getInventoryLowStockByBranch", endpoint);
-
-    const response = await apiRepository.call(
-      "getInventoryLowStockByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-    );
-    apiRepository.updateEndpoint("getInventoryLowStockByBranch", endpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+    return inventoryClient.InventoryGetInventoryLowStockByBranchGet(branchId, paginationParams) ?? [];
   },
 
-  // Create purchase order
   createPurchaseOrder: async (orderData: {
-    supplierId: number;
-    branchId: number;
+    supplierId: string;
+    branchId: string;
     orderDate: string;
     status: number;
-    items: { inventoryItemId: number; quantity: number; unitPrice: number }[];
+    items: { inventoryItemId: string; quantity: number; unitPrice: number }[];
   }) => {
-    const response = await apiRepository.call(
-      "createPurchaseOrder",
-      "POST",
-      orderData,
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryCreatePurchaseOrderPost(orderData as any);
   },
 
-  // Get purchase orders by branch
   getPurchaseOrdersByBranch: async (
-    branchId: number,
+    branchId: string,
     paginationParams?: {
       PageNumber?: number;
       PageSize?: number;
@@ -2814,116 +1708,30 @@ export const inventoryApi = {
       SearchTerm?: string;
     },
   ) => {
-    const params = new URLSearchParams();
-
-    if (paginationParams) {
-      if (paginationParams.PageNumber)
-        params.append("PageNumber", paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize)
-        params.append("PageSize", paginationParams.PageSize.toString());
-      if (paginationParams.SortBy)
-        params.append("SortBy", paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined)
-        params.append("IsAscending", paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm)
-        params.append("SearchTerm", paginationParams.SearchTerm);
-    }
-
-    const baseEndpoint = "/api/inventory/purchase-orders/branch";
-    let endpoint = `${baseEndpoint}/${branchId}`;
-    if (params.toString()) {
-      endpoint = `${endpoint}?${params.toString()}`;
-    }
-    apiRepository.updateEndpoint("getPurchaseOrdersByBranch", endpoint);
-
-    const response = await apiRepository.call(
-      "getPurchaseOrdersByBranch",
-      "GET",
-      undefined,
-      {},
-      true,
-    );
-    apiRepository.updateEndpoint(
-      "getPurchaseOrdersByBranch",
-      baseEndpoint + "/{branchId}",
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+    return inventoryClient.InventoryGetPurchaseOrdersByBranchGet(branchId, paginationParams) ?? [];
   },
 
-  // Get purchase order by ID
   getPurchaseOrderById: async (orderId: number) => {
-    const response = await apiRepository.call(
-      "getPurchaseOrderById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: orderId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryGetPurchaseOrderByIdGet(orderId);
   },
 
-  // Receive purchase order
   receivePurchaseOrder: async (
     orderId: number,
     items: { purchaseOrderItemId: number; receivedQuantity: number }[],
   ) => {
-    const response = await apiRepository.call(
-      "receivePurchaseOrder",
-      "PUT",
-      { items },
-      {},
-      true,
-      { id: orderId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryReceivePurchaseOrderPut(orderId, { items });
   },
 
-  // Cancel purchase order
   cancelPurchaseOrder: async (orderId: number) => {
-    const response = await apiRepository.call(
-      "cancelPurchaseOrder",
-      "PUT",
-      undefined,
-      {},
-      true,
-      { id: orderId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryCancelPurchaseOrderPut(orderId);
   },
 
-  // Get menu items search (for recipe form)
-  getMenuItemsSearch: async (branchId: number) => {
-    const response = await apiRepository.call(
-      "getMenuItemsSearch",
-      "GET",
-      undefined,
-      {},
-      true,
-      { branchId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  getMenuItemsSearch: async (branchId: string) => {
+    return menuItemClient.MenuItemSearchGet(branchId);
   },
 
-  // Get recipes by branch
   getRecipesByBranch: async (
-    branchId: number,
+    branchId: string,
     paginationParams?: {
       PageNumber?: number;
       PageSize?: number;
@@ -2932,120 +1740,36 @@ export const inventoryApi = {
       SearchTerm?: string;
     },
   ): Promise<Recipe[]> => {
-    const params = new URLSearchParams({ branchId: branchId.toString() });
-
-    if (paginationParams) {
-      if (paginationParams.PageNumber)
-        params.append("PageNumber", paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize)
-        params.append("PageSize", paginationParams.PageSize.toString());
-      if (paginationParams.SortBy)
-        params.append("SortBy", paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined)
-        params.append("IsAscending", paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm)
-        params.append("SearchTerm", paginationParams.SearchTerm);
-    }
-
-    const baseEndpoint = "/api/inventory/recipes";
-    apiRepository.updateEndpoint(
-      "getRecipes",
-      `${baseEndpoint}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call("getRecipes", "GET");
-    apiRepository.updateEndpoint("getRecipes", baseEndpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return (response.data || []) as Recipe[];
+    return (await inventoryClient.InventoryGetRecipesByBranchGet(branchId, paginationParams) ?? []) as Recipe[];
   },
 
-  // Get recipe by ID
   getRecipeById: async (recipeId: number): Promise<RecipeDetail> => {
-    const response = await apiRepository.call(
-      "getRecipeById",
-      "GET",
-      undefined,
-      {},
-      true,
-      { id: recipeId },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data as RecipeDetail;
+    return inventoryClient.InventoryGetRecipeByIdGet(recipeId) as Promise<RecipeDetail>;
   },
 
-  // Create recipe
   createRecipe: async (recipeData: InsertRecipe): Promise<RecipeDetail> => {
-    const response = await apiRepository.call(
-      "createRecipe",
-      "POST",
-      recipeData,
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data as RecipeDetail;
+    return inventoryClient.InventoryCreateRecipePost(recipeData) as Promise<RecipeDetail>;
   },
 
-  // Update recipe
-  updateRecipe: async (
-    recipeId: number,
-    recipeData: InsertRecipe,
-  ): Promise<RecipeDetail> => {
-    const response = await apiRepository.call(
-      "updateRecipe",
-      "PUT",
-      recipeData,
-      {},
-      true,
-      { id: recipeId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data as RecipeDetail;
+  updateRecipe: async (recipeId: string, recipeData: InsertRecipe): Promise<RecipeDetail> => {
+    return inventoryClient.InventoryUpdateRecipePut(recipeId, recipeData) as Promise<RecipeDetail>;
   },
 
-  // Delete recipe
-  deleteRecipe: async (recipeId: number): Promise<void> => {
-    const response = await apiRepository.call(
-      "deleteRecipe",
-      "DELETE",
-      undefined,
-      {},
-      true,
-      { id: recipeId },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
+  deleteRecipe: async (recipeId: string): Promise<void> => {
+    await inventoryClient.InventoryDeleteRecipeDelete(recipeId);
   },
 
-  // Create inventory wastage
   createInventoryWastage: async (wastageData: {
-    branchId: number;
-    inventoryItemId: number;
+    branchId: string;
+    inventoryItemId: string;
     quantity: number;
     reason: string;
   }) => {
-    const response = await apiRepository.call(
-      "createInventoryWastage",
-      "POST",
-      wastageData,
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryCreateInventoryWastagePost(wastageData as any);
   },
 
-  // Get inventory wastage by branch with date filters
   getInventoryWastageByBranch: async (
-    branchId: number,
+    branchId: string,
     from: string,
     to: string,
     paginationParams?: {
@@ -3056,66 +1780,22 @@ export const inventoryApi = {
       SearchTerm?: string;
     },
   ) => {
-    const params = new URLSearchParams({
-      branchId: branchId.toString(),
-      from: from,
-      to: to,
-    });
-
-    if (paginationParams) {
-      if (paginationParams.PageNumber)
-        params.append("PageNumber", paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize)
-        params.append("PageSize", paginationParams.PageSize.toString());
-      if (paginationParams.SortBy)
-        params.append("SortBy", paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined)
-        params.append("IsAscending", paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm)
-        params.append("SearchTerm", paginationParams.SearchTerm);
-    }
-
-    const baseEndpoint = "/api/inventory/wastage";
-    apiRepository.updateEndpoint(
-      "getInventoryWastageByBranch",
-      `${baseEndpoint}?${params.toString()}`,
-    );
-
-    const response = await apiRepository.call(
-      "getInventoryWastageByBranch",
-      "GET",
-    );
-    apiRepository.updateEndpoint("getInventoryWastageByBranch", baseEndpoint);
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+    return inventoryClient.InventoryGetInventoryWastageByBranchGet(branchId, from, to, paginationParams) ?? [];
   },
 
-  // Utility Expense API methods
   createUtilityExpense: async (expenseData: {
-    branchId: number;
-    utilityType: string;
-    usageUnit: number;
-    unitCost: number;
-    billingPeriodStart: string;
-    billingPeriodEnd: string;
-    billNumber: string;
+    branchId: string;
+    type: string;
+    unitConsumed: number;
+    costPerUnit: number;
+    readingDate: string;
+    remarks?: string;
   }) => {
-    const response = await apiRepository.call(
-      "createUtilityExpense",
-      "POST",
-      expenseData,
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryCreateUtilityExpensePost(expenseData as any);
   },
 
   getUtilityExpensesByBranch: async (
-    branchId: number,
+    branchId: string,
     paginationParams?: {
       PageNumber?: number;
       PageSize?: number;
@@ -3124,100 +1804,29 @@ export const inventoryApi = {
       SearchTerm?: string;
     },
   ) => {
-    const params = new URLSearchParams();
-
-    if (paginationParams) {
-      if (paginationParams.PageNumber)
-        params.append("PageNumber", paginationParams.PageNumber.toString());
-      if (paginationParams.PageSize)
-        params.append("PageSize", paginationParams.PageSize.toString());
-      if (paginationParams.SortBy)
-        params.append("SortBy", paginationParams.SortBy);
-      if (paginationParams.IsAscending !== undefined)
-        params.append("IsAscending", paginationParams.IsAscending.toString());
-      if (paginationParams.SearchTerm)
-        params.append("SearchTerm", paginationParams.SearchTerm);
-    }
-
-    const baseEndpoint = "/api/facilityutilityrecords/branch";
-    let endpoint = `${baseEndpoint}/${branchId}`;
-    if (params.toString()) {
-      endpoint = `${endpoint}?${params.toString()}`;
-    }
-    apiRepository.updateEndpoint("getUtilityExpensesByBranch", endpoint);
-
-    const response = await apiRepository.call(
-      "getUtilityExpensesByBranch",
-      "GET",
-      undefined,
-      undefined,
-      true,
-    );
-    apiRepository.updateEndpoint(
-      "getUtilityExpensesByBranch",
-      baseEndpoint + "/{branchId}",
-    );
-
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data || [];
+    return inventoryClient.InventoryGetUtilityExpensesByBranchGet(branchId, paginationParams) ?? [];
   },
 
   getUtilityExpenseById: async (id: number) => {
-    const response = await apiRepository.call(
-      "getUtilityExpenseById",
-      "GET",
-      undefined,
-      undefined,
-      true,
-      { id },
-    );
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryGetUtilityExpenseByIdGet(id);
   },
 
   updateUtilityExpense: async (
-    id: number,
+    id: string,
     expenseData: {
-      utilityType: string;
-      usageUnit: number;
-      unitCost: number;
-      billingPeriodStart: string;
-      billingPeriodEnd: string;
-      billNumber: string;
-      isActive: boolean;
+      type: string;
+      unitConsumed: number;
+      costPerUnit: number;
+      readingDate: string;
+      remarks?: string;
+      isActive?: boolean;
     },
   ) => {
-    const response = await apiRepository.call(
-      "updateUtilityExpense",
-      "PUT",
-      expenseData,
-      undefined,
-      true,
-      { id },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+    return inventoryClient.InventoryUpdateUtilityExpensePut(id, expenseData as any);
   },
 
-  deleteUtilityExpense: async (id: number) => {
-    const response = await apiRepository.call(
-      "deleteUtilityExpense",
-      "DELETE",
-      undefined,
-      undefined,
-      true,
-      { id },
-    );
-    if (response.error && response.status >= 400) {
-      throw new Error(response.error);
-    }
-    return response.data;
+  deleteUtilityExpense: async (id: string) => {
+    return inventoryClient.InventoryDeleteUtilityExpenseDelete(id);
   },
 };
 

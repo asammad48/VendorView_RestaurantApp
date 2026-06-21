@@ -21,7 +21,7 @@ import { useLocation } from "wouter";
 
 const addMenuSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  categoryId: z.number().min(1, "Category is required"),
+  categoryId: z.string().min(1, "Category is required"),
   description: z.string().optional(),
   preparationTime: z.number().min(1, "Preparation time must be at least 1 minute"),
   restaurantId: z.string().optional(),
@@ -56,7 +56,7 @@ interface AddMenuModalProps {
   isOpen: boolean;
   onClose: () => void;
   restaurantId?: string;
-  branchId?: number;
+  branchId?: string;
   editMenuItem?: MenuItem; // MenuItem type for edit mode
 }
 
@@ -120,7 +120,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
     queryFn: async () => {
       console.log(`🔍 Fetching SubMenuItems for branchId: ${branchId}`);
       
-      if (!branchId || branchId === 0) {
+      if (!branchId || branchId === "") {
         console.error("❌ Invalid branchId:", branchId);
         throw new Error("Invalid branch ID");
       }
@@ -210,7 +210,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
     resolver: zodResolver(addMenuSchema),
     defaultValues: {
       name: "",
-      categoryId: 0,
+      categoryId: "",
       description: "",
       preparationTime: 15,
       restaurantId: restaurantId || "",
@@ -223,7 +223,7 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
       // Populate form with API data
       form.reset({
         name: menuItemData.name || "",
-        categoryId: menuItemData.menuCategoryId || 0,
+        categoryId: menuItemData.menuCategoryId || "",
         description: menuItemData.description || "",
         preparationTime: menuItemData.preparationTime || 15,
         restaurantId: restaurantId || "",
@@ -647,11 +647,11 @@ export default function AddMenuModal({ isOpen, onClose, restaurantId, branchId, 
 
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select 
-                onValueChange={(value) => form.setValue("categoryId", parseInt(value))} 
+              <Select
+                onValueChange={(value) => form.setValue("categoryId", value, { shouldValidate: true })}
                 data-testid="select-category"
                 disabled={categoriesLoading || (isEditMode && isLoadingMenuItem)}
-                value={form.watch("categoryId")?.toString() || ""}
+                value={form.watch("categoryId") || ""}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />

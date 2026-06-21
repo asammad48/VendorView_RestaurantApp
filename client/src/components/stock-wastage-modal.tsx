@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -12,9 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { inventoryApi } from "@/lib/apiRepository";
+import type { InventoryItemSimple } from "@/types/schema";
 
 const wastageSchema = z.object({
-  inventoryItemId: z.coerce.number().min(1, "Please select an item"),
+  inventoryItemId: z.string().min(1, "Please select an item"),
   quantity: z.coerce.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
   reason: z.string().min(1, "Reason is required"),
 });
@@ -24,32 +25,33 @@ type WastageFormData = z.infer<typeof wastageSchema>;
 interface StockWastageModalProps {
   open: boolean;
   onClose: () => void;
-  branchId: number;
-  inventoryItems: Array<{
-    inventoryItemId: number;
-    itemName: string;
-    currentStock: number;
-    unit: string;
-  }>;
+  branchId?: string;
   onSuccess: () => void;
 }
 
-export default function StockWastageModal({ 
-  open, 
-  onClose, 
+export default function StockWastageModal({
+  open,
+  onClose,
   branchId,
-  inventoryItems,
-  onSuccess 
+  onSuccess
 }: StockWastageModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<typeof inventoryItems[0] | null>(null);
+  const [selectedItem, setSelectedItem] = useState<InventoryItemSimple | null>(null);
+
+  // Fetch inventory items for the dropdown (same source as the recipe modal)
+  const { data: itemsData } = useQuery({
+    queryKey: ["inventory-items-simple", branchId],
+    queryFn: async () => await inventoryApi.getInventoryItemsSimpleByBranch(branchId || ""),
+    enabled: !!branchId && open,
+  });
+  const inventoryItems: InventoryItemSimple[] = Array.isArray(itemsData) ? itemsData : [];
 
   const form = useForm<WastageFormData>({
     resolver: zodResolver(wastageSchema),
     defaultValues: {
-      inventoryItemId: 0,
+      inventoryItemId: "",
       quantity: 0,
       reason: "",
     },
@@ -59,7 +61,7 @@ export default function StockWastageModal({
   useEffect(() => {
     if (open) {
       form.reset({
-        inventoryItemId: 0,
+        inventoryItemId: "",
         quantity: 0,
         reason: "",
       });
@@ -71,7 +73,7 @@ export default function StockWastageModal({
     setIsSubmitting(true);
     try {
       await inventoryApi.createInventoryWastage({
-        branchId,
+        branchId: branchId || "",
         inventoryItemId: data.inventoryItemId,
         quantity: data.quantity,
         reason: data.reason,
@@ -100,7 +102,7 @@ export default function StockWastageModal({
   };
 
   const handleItemChange = (itemId: string) => {
-    const item = inventoryItems.find(i => i.inventoryItemId === parseInt(itemId));
+    const item = inventoryItems.find(i => i.id === itemId);
     setSelectedItem(item || null);
   };
 
@@ -133,8 +135,8 @@ export default function StockWastageModal({
                     onValueChange={(value) => {
                       field.onChange(value);
                       handleItemChange(value);
-                    }} 
-                    value={field.value?.toString()}
+                    }}
+                    value={field.value || ""}
                   >
                     <FormControl>
                       <SelectTrigger data-testid="select-inventory-item">
@@ -143,13 +145,13 @@ export default function StockWastageModal({
                     </FormControl>
                     <SelectContent>
                       {inventoryItems
-                        .filter((item) => item && item.inventoryItemId)
+                        .filter((item) => item && item.id)
                         .map((item) => (
-                          <SelectItem 
-                            key={item.inventoryItemId} 
-                            value={item.inventoryItemId.toString()}
+                          <SelectItem
+                            key={item.id}
+                            value={item.id}
                           >
-                            {item.itemName} ({item.currentStock} {item.unit})
+                            {item.name} ({item.unit})
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -162,7 +164,7 @@ export default function StockWastageModal({
             {selectedItem && (
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">
-                  Available Stock: <span className="font-semibold text-gray-900">{selectedItem.currentStock} {selectedItem.unit}</span>
+                  Selected Item: <span className="font-semibold text-gray-900">{selectedItem.name} ({selectedItem.unit})</span>
                 </p>
               </div>
             )}

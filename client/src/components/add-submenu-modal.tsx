@@ -22,7 +22,7 @@ const addSubMenuSchema = z.object({
   price: z.coerce.number().refine((val) => val >= 0, {
     message: "Price must be 0 or greater",
   }),
-  branchId: z.number().min(1, "Branch ID is required"),
+  branchId: z.string(),
 });
 
 type AddSubMenuFormData = z.infer<typeof addSubMenuSchema>;
@@ -30,7 +30,7 @@ type AddSubMenuFormData = z.infer<typeof addSubMenuSchema>;
 interface AddSubMenuModalProps {
   isOpen: boolean;
   onClose: () => void;
-  branchId: number;
+  branchId?: string;
   editSubMenu?: SubMenu;
 }
 

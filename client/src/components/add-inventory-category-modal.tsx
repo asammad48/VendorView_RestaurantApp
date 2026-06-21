@@ -18,7 +18,7 @@ type CategoryFormData = z.infer<typeof categorySchema>;
 interface AddInventoryCategoryModalProps {
   open: boolean;
   onClose: () => void;
-  branchId: number;
+  branchId?: string;
   onSuccess?: () => void;
 }
 
@@ -34,7 +34,7 @@ export default function AddInventoryCategoryModal({ open, onClose, branchId, onS
   });
 
   const createCategoryMutation = useMutation({
-    mutationFn: (data: { name: string; branchId: number }) => inventoryApi.createInventoryCategory(data),
+    mutationFn: (data: { name: string; branchId?: string }) => inventoryApi.createInventoryCategory({ ...data, branchId: data.branchId || "" }),
     onSuccess: () => {
       toast({
         title: "Success",

@@ -22,7 +22,7 @@ import { validateImage, getConstraintDescription } from "@/lib/imageValidation";
 interface AddBranchModalProps {
   open: boolean;
   onClose: () => void;
-  entityId: number;
+  entityId: string;
   branchToEdit?: Branch | null;
   isEdit?: boolean;
 }
@@ -87,7 +87,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
       Address: "",
       ContactNumber: "",
       EntityId: entityId,
-      SubscriptionId: 1,
+      SubscriptionId: "d0000000-0000-0000-0000-000000000001",
       InstagramLink: "",
       WhatsappLink: "",
       FacebookLink: "",
@@ -131,7 +131,7 @@ export default function AddBranchModal({ open, onClose, entityId, branchToEdit, 
         Address: "",
         ContactNumber: "",
         EntityId: entityId,
-        SubscriptionId: 1,
+        SubscriptionId: "d0000000-0000-0000-0000-000000000001",
         InstagramLink: "",
         WhatsappLink: "",
         FacebookLink: "",

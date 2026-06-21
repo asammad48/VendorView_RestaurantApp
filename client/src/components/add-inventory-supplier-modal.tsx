@@ -21,19 +21,19 @@ const supplierSchema = z.object({
 type SupplierFormData = z.infer<typeof supplierSchema>;
 
 interface InventorySupplier {
-  id: number;
+  id: string;
   name: string;
   contactPerson: string;
   phone: string;
   email: string;
   address: string;
-  branchId: number;
+  branchId?: string;
 }
 
 interface AddInventorySupplierModalProps {
   open: boolean;
   onClose: () => void;
-  branchId: number;
+  branchId?: string;
   supplier?: InventorySupplier;
   onSuccess?: () => void;
 }
@@ -76,8 +76,8 @@ export default function AddInventorySupplierModal({ open, onClose, branchId, sup
   }, [supplier, open, form]);
 
   const createSupplierMutation = useMutation({
-    mutationFn: (data: { name: string; contactPerson: string; phone: string; email: string; address: string; branchId: number }) => 
-      inventoryApi.createInventorySupplier(data),
+    mutationFn: (data: { name: string; contactPerson: string; phone: string; email: string; address: string; branchId?: string }) =>
+      inventoryApi.createInventorySupplier({ ...data, branchId: data.branchId || "" }),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -104,7 +104,7 @@ export default function AddInventorySupplierModal({ open, onClose, branchId, sup
   });
 
   const updateSupplierMutation = useMutation({
-    mutationFn: (data: { id: number; data: { name: string; contactPerson: string; phone: string; email: string; address: string } }) => 
+    mutationFn: (data: { id: string; data: { name: string; contactPerson: string; phone: string; email: string; address: string } }) =>
       inventoryApi.updateInventorySupplier(data.id, data.data),
     onSuccess: () => {
       toast({

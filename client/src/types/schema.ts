@@ -6,7 +6,7 @@ export type ReservationStatus = 0 | 1 | 2;
 export interface ReservationDetail {
   id: number;
   locationId: number;
-  branchId: number;
+  branchId: string;
   reservationName: string;
   reservationDate: string; // ISO
   reservationTime?: string | null;
@@ -50,7 +50,7 @@ export type InsertEntity = z.infer<typeof insertEntitySchema>;
 
 // Entity type based on API response structure
 export interface Entity {
-  id: number;
+  id: string;
   userId: number;
   name: string;
   phone: string;
@@ -75,14 +75,14 @@ export const transformEntityForUI = (apiEntity: Entity): Entity => ({
 
 // MenuCategory types (matching API response)
 export interface MenuCategory {
-  id: number;
-  branchId: number;
+  id: string;
+  branchId: string;
   name: string;
   isActive: boolean;
 }
 
 export const insertMenuCategorySchema = z.object({
-  branchId: z.number().min(1, "Branch ID is required"),
+  branchId: z.string(),
   name: z.string().min(1, "Category name is required"),
 });
 
@@ -90,12 +90,12 @@ export type InsertMenuCategory = z.infer<typeof insertMenuCategorySchema>;
 
 // Branch types (matching API response)
 export type Branch = {
-  id: number;
-  entityId: number;
+  id: string;
+  entityId: string;
   userId: number;
   name: string;
   address: string;
-  subscriptionId: number;
+  subscriptionId: string;
   contactNumber?: string;
   trialEndDate: string;
   gracePeriodEndDate: string;
@@ -119,8 +119,8 @@ export const insertBranchSchema = z.object({
   Name: z.string().min(1, "Branch name is required"),
   Address: z.string().min(1, "Address is required"),
   ContactNumber: z.string().optional(),
-  EntityId: z.number().min(1, "Entity ID is required"),
-  SubscriptionId: z.number().default(1),
+  EntityId: z.string().min(1, "Entity ID is required"),
+  SubscriptionId: z.string().default("d0000000-0000-0000-0000-000000000001"),
   InstagramLink: z.string().optional(),
   WhatsappLink: z.string().optional(),
   FacebookLink: z.string().optional(),
@@ -178,7 +178,7 @@ export interface Subscription {
 }
 
 export interface ApplySubscriptionRequest {
-  branchId: number;
+  branchId: string;
   subscriptionId: number;
   billingCycle: BillingCycle;
   currencyCode: string;
@@ -191,7 +191,7 @@ export interface ApplySubscriptionResponse {
 }
 
 export interface CalculateProratedAmountRequest {
-  branchId: number;
+  branchId: string;
   newSubscriptionId: number;
   billingCycle: BillingCycle;
 }
@@ -203,7 +203,7 @@ export interface CalculateProratedAmountResponse {
 }
 
 export interface ChangeSubscriptionRequest {
-  branchId: number;
+  branchId: string;
   newSubscriptionId: number;
   billingCycle: BillingCycle;
   currencyCode: string;
@@ -216,7 +216,7 @@ export interface ChangeSubscriptionResponse {
 }
 
 export interface CancelSubscriptionRequest {
-  branchId: number;
+  branchId: string;
   cancelImmediately: boolean;
 }
 
@@ -260,7 +260,7 @@ export interface MenuItemCustomization {
 
 export interface MenuItem {
   id: number;
-  menuCategoryId: number;
+  menuCategoryId: string;
   name: string;
   description: string;
   isActive: boolean;
@@ -304,14 +304,14 @@ export type Category = InsertCategory & { id: string; createdAt: Date; };
 export const insertSubMenuSchema = z.object({
   name: z.string().min(1, "SubMenu name is required"),
   price: z.number().min(0, "Price must be positive"),
-  branchId: z.number().min(1, "Branch ID is required"),
+  branchId: z.string(),
 });
 
 export type InsertSubMenu = z.infer<typeof insertSubMenuSchema>;
 
 export interface SubMenu {
-  id: number;
-  branchId: number;
+  id: string;
+  branchId: string;
   name: string;
   price: number;
   isActive: boolean;
@@ -319,17 +319,17 @@ export interface SubMenu {
 
 // Simple SubMenuItem types for deals (from API response)
 export interface SimpleSubMenuItem {
-  id: number;
+  id: string;
   name: string;
   price: number;
 }
 
 // Simple Menu Item types for deals (from API response)
 export interface SimpleMenuItem {
-  menuItemId: number;
+  menuItemId: string;
   menuItemName: string;
   variants: Array<{
-    id: number;
+    id: string;
     name: string;
     price: number;
   }>;
@@ -337,16 +337,16 @@ export interface SimpleMenuItem {
 
 // Deal types (matching API structure)
 export interface DealMenuItem {
-  menuItemId: number;
+  menuItemId: string;
   variants: Array<{
-    variantId: number;
+    variantId: string;
     quantity: number;
   }>;
 }
 
 export interface Deal {
-  id: number;
-  branchId: number;
+  id: string;
+  branchId: string;
   name: string;
   description: string;
   price: number;
@@ -355,16 +355,16 @@ export interface Deal {
   isActive: boolean;
   disountName?: string;  // Note: API has typo in field name
   menuItems: Array<{
-    menuItemId: number;
+    menuItemId: string;
     menuItemName?: string; // Added for display
     variants: Array<{
-      variantId: number;
-      variantName?: string; // Added for display 
+      variantId: string;
+      variantName?: string; // Added for display
       quantity: number;
     }>;
   }>;
   subMenuItems: Array<{
-    subMenuItemId: number;
+    subMenuItemId: string;
     subMenuItemName?: string; // Added for display
     quantity: number;
   }>;
@@ -384,7 +384,7 @@ export type InsertDiscount = z.infer<typeof insertDiscountSchema>;
 
 export interface Discount {
   id: number;
-  branchId: number;
+  branchId: string;
   name: string;
   discountType: number; // 1 = Flat, 2 = Percentage  
   discountValue: number;
@@ -412,21 +412,21 @@ export const getDiscountTypeLabel = (type: number): string => {
 };
 
 export const insertDealSchema = z.object({
-  branchId: z.number().min(1, "Branch ID is required"),
+  branchId: z.string(),
   name: z.string().min(1, "Deal name is required"),
   description: z.string().min(1, "Description is required"),
   price: z.number().min(0, "Price must be positive"),
   packagePicture: z.string().optional(),
   expiryDate: z.string().optional(),
   menuItems: z.array(z.object({
-    menuItemId: z.number(),
+    menuItemId: z.string(),
     variants: z.array(z.object({
-      variantId: z.number(),
+      variantId: z.string(),
       quantity: z.number().min(1),
     })).min(1, "At least one variant is required"),
   })).optional(),
   subMenuItems: z.array(z.object({
-    subMenuItemId: z.number(),
+    subMenuItemId: z.string(),
     quantity: z.number().min(1),
   })).optional(),
 }).refine(data => (data.menuItems && data.menuItems.length > 0) || (data.subMenuItems && data.subMenuItems.length > 0), {
@@ -635,7 +635,7 @@ export interface OrderStatusHistoryItem {
 export interface DetailedOrder {
   id: number;
   orderNumber: string;
-  branchId: number;
+  branchId: string;
   branchName: string;
   locationId: number;
   locationName: string;
@@ -791,8 +791,8 @@ export type InsertIssueReporting = z.infer<typeof insertIssueReportingSchema>;
 
 // Recipe types based on API response
 export interface RecipeItem {
-  id?: number;
-  inventoryItemId: number;
+  id?: string;
+  inventoryItemId: string;
   inventoryItemName?: string;
   quantity: number;
   unit: string;
@@ -803,37 +803,37 @@ export interface Recipe {
   id: number;
   name: string;
   type: string;
-  branchId: number;
+  branchId: string;
   recipePrice?: number;
 }
 
 export interface RecipeDetail {
-  id: number;
-  menuItemId?: number;
+  id: string;
+  menuItemId?: string;
   menuItemName?: string;
-  variantId?: number;
+  variantId?: string;
   variantName?: string;
-  subMenuItemId?: number;
+  subMenuItemId?: string;
   subMenuItemName?: string;
-  branchId: number;
+  branchId: string;
   recipePrice: number;
   items: RecipeItem[];
 }
 
 // Insert schema for creating new recipes
 export const insertRecipeItemSchema = z.object({
-  id: z.number().optional(),
-  inventoryItemId: z.number().min(1, "Inventory item is required"),
+  id: z.string().optional(),
+  inventoryItemId: z.string().min(1, "Inventory item is required"),
   quantity: z.number().min(0.001, "Quantity must be greater than 0").multipleOf(0.001, "Quantity can have up to 3 decimal places"),
   unit: z.string().optional(), // Unit is auto-populated from inventory item
   price: z.number().min(0, "Price must be 0 or greater"),
 });
 
 export const insertRecipeSchema = z.object({
-  menuItemId: z.number().optional(),
-  variantId: z.number().optional(),
-  subMenuItemId: z.number().optional(),
-  branchId: z.number().min(1, "Branch is required"),
+  menuItemId: z.string().optional(),
+  variantId: z.string().optional(),
+  subMenuItemId: z.string().optional(),
+  branchId: z.string().min(1, "Branch is required"),
   recipePrice: z.number().min(0, "Recipe price must be 0 or greater"),
   items: z.array(insertRecipeItemSchema).min(1, "At least one item is required"),
 });
@@ -843,8 +843,8 @@ export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
 
 // Inventory Item types for recipe management
 export interface InventoryItemSimple {
-  id: number;
-  branchId: number;
+  id: string;
+  branchId: string;
   name: string;
   categoryName: string;
   unit: string;
@@ -855,18 +855,18 @@ export interface InventoryItemSimple {
 
 // Menu Item Search types for recipe selection
 export interface MenuItemSearchVariant {
-  id: number;
-  menuItemId: number;
+  id: string;
+  menuItemId: string;
   name: string;
 }
 
 export interface MenuItemSearchMenuItem {
-  id: number;
+  id: string;
   name: string;
 }
 
 export interface MenuItemSearchSubMenuItem {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -878,7 +878,7 @@ export interface MenuItemSearchData {
 
 // Create Order - Customer Search Menu Types
 export interface CustomerMenuVariation {
-  id: number;
+  id: string;
   name: string;
   price: number;
 }
@@ -987,7 +987,7 @@ export interface CreateOrderItemCustomization {
 
 export interface CreateOrderItem {
   menuItemId: number;
-  variantId: number;
+  variantId: string;
   quantity: number;
   modifiers: CreateOrderItemModifier[];
   customizations: CreateOrderItemCustomization[];
@@ -1021,8 +1021,8 @@ export interface CreateOrderDeliveryDetails {
 }
 
 export interface CreateOrderRequest {
-  branchId: number;
-  locationId: number | null;
+  branchId: string;
+  locationId: string | null;
   deviceInfo: string;
   tipAmount: number;
   username: string;

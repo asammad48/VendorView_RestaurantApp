@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ShoppingCart, Plus, Trash2 } from "lucide-react";
+import { ShoppingCart, Plus, Trash2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,11 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { inventoryApi } from "@/lib/apiRepository";
 
 const purchaseOrderSchema = z.object({
-  supplierId: z.coerce.number().min(1, "Supplier is required"),
+  supplierId: z.string().min(1, "Supplier is required"),
   orderDate: z.string().min(1, "Order date is required"),
   status: z.coerce.number().min(0).max(3),
   items: z.array(z.object({
-    inventoryItemId: z.coerce.number().min(1, "Item is required"),
+    inventoryItemId: z.string().min(1, "Item is required"),
     quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
     unitPrice: z.coerce.number().min(0, "Unit price must be 0 or greater"),
   })).min(1, "At least one item is required"),
@@ -28,24 +28,42 @@ type PurchaseOrderFormData = z.infer<typeof purchaseOrderSchema>;
 interface PurchaseOrderModalProps {
   open: boolean;
   onClose: () => void;
-  branchId: number;
+  branchId?: string;
   onSuccess: () => void;
+  onNavigateToSuppliers?: () => void;
+  onNavigateToItems?: () => void;
 }
 
-export default function PurchaseOrderModal({ 
-  open, 
-  onClose, 
+export default function PurchaseOrderModal({
+  open,
+  onClose,
   branchId,
-  onSuccess 
+  onSuccess,
+  onNavigateToSuppliers,
+  onNavigateToItems,
 }: PurchaseOrderModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleNavigateToSuppliers = () => {
+    onClose();
+    if (onNavigateToSuppliers) {
+      setTimeout(() => onNavigateToSuppliers(), 100);
+    }
+  };
+
+  const handleNavigateToItems = () => {
+    onClose();
+    if (onNavigateToItems) {
+      setTimeout(() => onNavigateToItems(), 100);
+    }
+  };
+
   // Fetch suppliers
   const { data: suppliersData } = useQuery({
     queryKey: ["inventory-suppliers", branchId],
-    queryFn: async () => await inventoryApi.getInventorySuppliers(branchId),
+    queryFn: async () => await inventoryApi.getInventorySuppliers(branchId || ""),
     enabled: !!branchId && open,
   });
   const suppliers = Array.isArray(suppliersData) ? suppliersData : (suppliersData as any)?.items || [];
@@ -53,7 +71,7 @@ export default function PurchaseOrderModal({
   // Fetch inventory items
   const { data: inventoryItemsData } = useQuery({
     queryKey: ["inventory-items", branchId],
-    queryFn: async () => await inventoryApi.getInventoryItemsByBranch(branchId),
+    queryFn: async () => await inventoryApi.getInventoryItemsByBranch(branchId || ""),
     enabled: !!branchId && open,
   });
   const inventoryItems = Array.isArray(inventoryItemsData) ? inventoryItemsData : (inventoryItemsData as any)?.items || [];
@@ -61,10 +79,10 @@ export default function PurchaseOrderModal({
   const form = useForm<PurchaseOrderFormData>({
     resolver: zodResolver(purchaseOrderSchema),
     defaultValues: {
-      supplierId: 0,
+      supplierId: "",
       orderDate: new Date().toISOString().split('T')[0],
       status: 0, // Draft
-      items: [{ inventoryItemId: 0, quantity: 1, unitPrice: 0 }],
+      items: [{ inventoryItemId: "", quantity: 1, unitPrice: 0 }],
     },
   });
 
@@ -78,7 +96,7 @@ export default function PurchaseOrderModal({
     try {
       await inventoryApi.createPurchaseOrder({
         supplierId: data.supplierId,
-        branchId: branchId,
+        branchId: branchId || "",
         orderDate: new Date(data.orderDate).toISOString(),
         status: data.status,
         items: data.items,
@@ -131,8 +149,8 @@ export default function PurchaseOrderModal({
                   <FormItem>
                     <FormLabel>Supplier</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      value={field.value?.toString()}
+                      onValueChange={(value) => field.onChange(value)}
+                      value={field.value || ""}
                     >
                       <FormControl>
                         <SelectTrigger data-testid="select-supplier">
@@ -147,6 +165,19 @@ export default function PurchaseOrderModal({
                         ))}
                       </SelectContent>
                     </Select>
+                    {suppliers.length === 0 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        No suppliers found.{" "}
+                        <button
+                          type="button"
+                          onClick={handleNavigateToSuppliers}
+                          className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                          data-testid="link-suppliers"
+                        >
+                          Go to Suppliers <ExternalLink className="w-3 h-3" />
+                        </button>
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -201,7 +232,7 @@ export default function PurchaseOrderModal({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ inventoryItemId: 0, quantity: 1, unitPrice: 0 })}
+                  onClick={() => append({ inventoryItemId: "", quantity: 1, unitPrice: 0 })}
                   data-testid="button-add-item"
                 >
                   <Plus className="w-4 h-4 mr-1" />
@@ -230,8 +261,8 @@ export default function PurchaseOrderModal({
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <Select
-                          onValueChange={(value) => field.onChange(parseInt(value))}
-                          value={field.value?.toString()}
+                          onValueChange={(value) => field.onChange(value)}
+                          value={field.value || ""}
                         >
                           <FormControl>
                             <SelectTrigger data-testid={`select-item-${index}`}>
@@ -246,6 +277,19 @@ export default function PurchaseOrderModal({
                             ))}
                           </SelectContent>
                         </Select>
+                        {inventoryItems.length === 0 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            No items found.{" "}
+                            <button
+                              type="button"
+                              onClick={handleNavigateToItems}
+                              className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                              data-testid="link-items"
+                            >
+                              Go to Items <ExternalLink className="w-3 h-3" />
+                            </button>
+                          </p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
